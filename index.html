@@ -75,3 +75,31 @@
 <body>
 
   <header>
+    <h1>🏈 Bully's CFB Game List</h1>
+    <span id="update-status" class="status-badge">Loading...</span>
+  </header>
+
+  <div id="games-container"></div>
+
+  <script>
+    async function fetchScores() {
+      const statusElement = document.getElementById("update-status");
+      statusElement.innerText = "Refreshing...";
+      
+      try {
+        const response = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=300");
+        const data = await response.json();
+        
+        const games = data.events.map(event => {
+          const comp = event.competitions[0];
+          const home = comp.competitors.find(c => c.homeAway === 'home');
+          const away = comp.competitors.find(c => c.homeAway === 'away');
+          
+          const statusState = event.status.type.state; 
+          const period = event.status.period;
+          const homeScore = parseInt(home.score || "0");
+          const awayScore = parseInt(away.score || "0");
+          const diff = Math.abs(homeScore - awayScore);
+
+          const isSecGame = (home.
+                             
