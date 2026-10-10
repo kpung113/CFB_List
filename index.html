@@ -1,1 +1,169 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CFB Game Watcher</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --accent: #38bdf8;
+      --live-red: #ef4444;
+      --subtext: #94a3b8;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #334155;
+    }
+    h1 { margin: 0; font-size: 1.25rem; }
+    .status-badge {
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      background: #334155;
+      border-radius: 12px;
+    }
+    .game-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-left: 4px solid transparent;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .game-card.live-4q { border-left-color: var(--live-red); }
+    .game-card.live { border-left-color: var(--accent); }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--subtext);
+      margin-bottom: 8px;
+    }
+    .team-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 6px 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .score { font-size: 1.25rem; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🏈 CFB Priority Board</h1>
+    <span id="update-status" class="status-badge">Loading...</span>
+  </header>
+
+  <div id="games-container"></div>
+
+  <script>
+    async function fetchScores() {
+      const statusElement = document.getElementById("update-status");
+      statusElement.innerText = "Refreshing...";
+      
+      try {
+        const response = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard");
+        const data = await response.json();
+        
+        const games = data.events.map(event => {
+          const comp = event.competitions[0];
+          const home = comp.competitors.find(c => c.homeAway === 'home');
+          const away = comp.competitors.find(c => c.homeAway === 'away');
+          
+          const statusState = event.status.type.state; 
+          const period = event.status.period;
+          const homeScore = parseInt(home.score || "0");
+          const awayScore = parseInt(away.score || "0");
+          const diff = Math.abs(homeScore - awayScore);
+          
+          let priority = 0;
+
+          if (statusState === 'in') {
+            priority += 5000; 
+            if (period >= 4) {
+              priority += 3000; 
+            }
+            priority += Math.max(0, (30 - diff) * 100);
+          } else if (statusState === 'pre') {
+            priority += 1000; 
+          }
+
+          return {
+            homeTeam: home.team.shortDisplayName || home.team.name,
+            awayTeam: away.team.shortDisplayName || away.team.name,
+            homeScore,
+            awayScore,
+            statusState,
+            statusDetail: event.status.type.shortDetail,
+            period,
+            diff,
+            priority
+          };
+        });
+
+        games.sort((a, b) => b.priority - a.priority);
+        renderGames(games);
+        statusElement.innerText = "Live • 30s";
+      } catch (err) {
+        statusElement.innerText = "Error";
+      }
+    }
+
+    function renderGames(games) {
+      const container = document.getElementById("games-container");
+      container.innerHTML = "";
+
+      if (games.length === 0) {
+        container.innerHTML = "<p>No games found today.</p>";
+        return;
+      }
+
+      games.forEach(game => {
+        const card = document.createElement("div");
+        card.className = "game-card";
+        if (game.statusState === 'in' && game.period >= 4) {
+          card.classList.add("live-4q");
+        } else if (game.statusState === 'in') {
+          card.classList.add("live");
+        }
+
+        card.innerHTML = `
+          <div class="card-header">
+            <span>${game.statusDetail}</span>
+            <span>${game.statusState === 'in' ? `Diff: ${game.diff} pts` : ''}</span>
+          </div>
+          <div class="team-row">
+            <span>${game.awayTeam}</span>
+            <span class="score">${game.awayScore}</span>
+          </div>
+          <div class="team-row">
+            <span>${game.homeTeam}</span>
+            <span class="score">${game.homeScore}</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    fetchScores();
+    setInterval(fetchScores, 30000);
+  </script>
+</body>
+</html>
