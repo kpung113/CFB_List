@@ -166,6 +166,96 @@ const response = await fetch("https://site.api.espn.com/apis/site/v2/sports/foot
       if (games.length === 0) {
         container.innerHTML = "<p>No games found today.</p>";
         return;
+  <script>
+    async function fetchScores() {
+      const statusElement = document.getElementById("update-status");
+      statusElement.innerText = "Refreshing...";
+      
+      try {
+        const response = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=300");
+        const data = await response.json();
+        
+        const games = data.events.map(event => {
+          const comp = event.competitions[0];
+          const home = comp.competitors.find(c => c.homeAway === 'home');
+          const away = comp.competitors.find(c => c.homeAway === 'away');
+          
+          const statusState = event.status.type.state; 
+          const period = event.status.period;
+          const homeScore = parseInt(home.score || "0");
+          const awayScore = parseInt(away.score || "0");
+          const diff = Math.abs(homeScore - awayScore);
+
+          const isSecGame = (home.team.conferenceId === "8" || away.team.conferenceId === "8");
+          
+          // Grab TV Broadcast network name
+          const tvNetwork = (comp.broadcasts && comp.broadcasts.length > 0 && comp.broadcasts[0].names)
+            ? comp.broadcasts[0].names[0] 
+            : "TV TBD";
+
+          let priority = 0;
+          const isCloseFourthQuarter = (statusState === 'in' && period >= 4 && diff < 15);
+
+          if (statusState === 'pre') {
+            priority += 1000;
+            if (isSecGame) priority += 200;
+
+          } else if (statusState === 'post') {
+            priority += 0;
+
+          } else if (statusState === 'in') {
+            priority += 20000; // Live games baseline
+
+            if (isCloseFourthQuarter) {
+              priority += 10000;
+              priority += (15 - diff) * 100;
+
+            } else if (isSecGame) {
+              priority += 5000;
+              priority += (period * 500);
+              priority += Math.max(0, (35 - diff) * 50);
+
+            } else {
+              let periodMultiplier = 1.0;
+              if (period === 3) periodMultiplier = 1.3;
+              if (period === 2) periodMultiplier = 1.1;
+              if (period === 1) periodMultiplier = 1.0;
+
+              const rawCloseness = Math.max(0, (35 - diff) * 100);
+              priority += Math.round(rawCloseness * periodMultiplier);
+            }
+          }
+
+          return {
+            homeTeam: home.team.shortDisplayName || home.team.name,
+            awayTeam: away.team.shortDisplayName || away.team.name,
+            homeScore,
+            awayScore,
+            statusState,
+            statusDetail: event.status.type.shortDetail,
+            period,
+            diff,
+            isSecGame,
+            tvNetwork,
+            priority
+          };
+        });
+
+        games.sort((a, b) => b.priority - a.priority);
+        renderGames(games);
+        statusElement.innerText = "Live • 30s";
+      } catch (err) {
+        statusElement.innerText = "Error Loading";
+      }
+    }
+
+    function renderGames(games) {
+      const container = document.getElementById("games-container");
+      container.innerHTML = "";
+
+      if (games.length === 0) {
+        container.innerHTML = "<p>No games found today.</p>";
+        return;
       }
 
       games.forEach(game => {
@@ -180,7 +270,7 @@ const response = await fetch("https://site.api.espn.com/apis/site/v2/sports/foot
         card.innerHTML = `
           <div class="card-header">
             <span>${game.statusDetail} ${game.isSecGame ? '<strong style="color:#38bdf8;">[SEC]</strong>' : ''}</span>
-            <span>${game.statusState === 'in' ? `Diff: ${game.diff} pts` : ''}</span>
+            <span><strong style="color:#fbbf24;">📺 ${game.tvNetwork}</strong> ${game.statusState === 'in' ? `| Diff: ${game.diff} pts` : ''}</span>
           </div>
           <div class="team-row">
             <span>${game.awayTeam}</span>
@@ -198,6 +288,7 @@ const response = await fetch("https://site.api.espn.com/apis/site/v2/sports/foot
     fetchScores();
     setInterval(fetchScores, 30000);
   </script>
+
   
 </body>
 </html>
