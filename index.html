@@ -89,9 +89,9 @@
       try {
         const response = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=300");
         const data = await response.json();
-              
 
-const games = data.events.map(event => {
+
+                const games = data.events.map(event => {
           const comp = event.competitions[0];
           const home = comp.competitors.find(c => c.homeAway === 'home');
           const away = comp.competitors.find(c => c.homeAway === 'away');
@@ -247,3 +247,4 @@ const games = data.events.map(event => {
 
 </body>
 </html>
+
