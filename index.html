@@ -87,40 +87,44 @@
           const home = comp.competitors.find(c => c.homeAway === 'home');
           const away = comp.competitors.find(c => c.homeAway === 'away');
           
-          const statusState = event.status.type.state; 
+          const statusState = event.status.type.state; // 'in', 'pre', 'post'
           const period = event.status.period;
           const homeScore = parseInt(home.score || "0");
           const awayScore = parseInt(away.score || "0");
           const diff = Math.abs(homeScore - awayScore);
 
-          // Check if either team is in the SEC (Conference ID 8)
           const isSecGame = (home.team.conferenceId === "8" || away.team.conferenceId === "8");
           
           let priority = 0;
 
           const isCloseFourthQuarter = (statusState === 'in' && period >= 4 && diff < 15);
 
-          if (isCloseFourthQuarter) {
-            // TIER 1: 4th Quarter games with < 15 pt diff (Highest Priority Overall)
+          if (statusState === 'pre') {
+            // Upcoming games always sit at the bottom tier
+            priority += 1000;
+            if (isSecGame) priority += 200; // Small nudge for upcoming SEC games among themselves
+
+          } else if (statusState === 'post') {
+            // Final games at the very bottom
+            priority += 0;
+
+          } else if (statusState === 'in') {
+            // ALL LIVE GAMES GET A MASSIVE FLOOR SO THEY BEAT UPCOMING GAMES
             priority += 20000;
-            // Closer games within this tier rank higher
-            priority += (15 - diff) * 100;
 
-          } else if (isSecGame) {
-            // TIER 2: SEC Games (Prioritized above all non-exception games)
-            priority += 10000;
+            if (isCloseFourthQuarter) {
+              // TIER 1: Close 4th quarter games get absolute top priority within live games
+              priority += 10000;
+              priority += (15 - diff) * 100;
 
-            if (statusState === 'in') {
-              priority += 5000 + (period * 500);
-              priority += Math.max(0, (35 - diff) * 50); // Closeness sub-sorting for SEC games
-            } else if (statusState === 'pre') {
-              priority += 1000;
-            }
-
-          } else {
-            // TIER 3: Standard Non-SEC Games
-            if (statusState === 'in') {
+            } else if (isSecGame) {
+              // TIER 2: SEC live games (above other live games, unless 4th quarter close exception)
               priority += 5000;
+              priority += (period * 500);
+              priority += Math.max(0, (35 - diff) * 50);
+
+            } else {
+              // TIER 3: Standard live games
               let periodMultiplier = 1.0;
               if (period === 3) periodMultiplier = 1.3;
               if (period === 2) periodMultiplier = 1.1;
@@ -128,8 +132,6 @@
 
               const rawCloseness = Math.max(0, (35 - diff) * 100);
               priority += Math.round(rawCloseness * periodMultiplier);
-            } else if (statusState === 'pre') {
-              priority += 1000;
             }
           }
 
@@ -194,5 +196,6 @@
     fetchScores();
     setInterval(fetchScores, 30000);
   </script>
+  
 </body>
 </html>
