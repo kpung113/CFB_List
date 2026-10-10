@@ -89,12 +89,8 @@
       try {
         const response = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=300");
         const data = await response.json();
-
-          // Betting Spread
-          const odds = (comp.odds && comp.odds.length > 0) ? comp.odds[0] : null;
-          const spread = (odds && odds.details) ? odds.details : 'Line N/A';
-
-                const games = data.events.map(event => {
+        
+        const games = data.events.map(event => {
           const comp = event.competitions[0];
           const home = comp.competitors.find(c => c.homeAway === 'home');
           const away = comp.competitors.find(c => c.homeAway === 'away');
@@ -118,9 +114,16 @@
             ? comp.broadcasts[0].names[0] 
             : "TV TBD";
 
-          // Betting Spread
-          const odds = (comp.odds && comp.odds.length > 0) ? comp.odds[0] : null;
-          const spread = (odds && odds.details) ? odds.details : 'Line N/A';
+          // Robust Betting Spread Extraction
+          let spread = '';
+          if (comp.odds && comp.odds.length > 0) {
+            const oddsObj = comp.odds[0];
+            if (oddsObj.details && oddsObj.details !== 'null' && oddsObj.details !== 'EVEN') {
+              spread = oddsObj.details;
+            } else if (oddsObj.summary) {
+              spread = oddsObj.summary;
+            }
+          }
 
           // Win Probability Calculation
           let winProbText = '';
@@ -235,10 +238,12 @@
             <span>${game.homeRank}${game.homeTeam}</span>
             <span class="score">${game.homeScore}</span>
           </div>
+          ${(game.spread || game.winProbText) ? `
           <div class="game-meta">
-            <span><strong>Line:</strong> ${game.spread}</span>
+            <span>${game.spread ? `<strong>Line:</strong> ${game.spread}` : ''}</span>
             <span>${game.winProbText ? `<strong>Win Prob:</strong> ${game.winProbText}` : ''}</span>
           </div>
+          ` : ''}
         `;
         container.appendChild(card);
       });
@@ -250,4 +255,3 @@
 
 </body>
 </html>
-
