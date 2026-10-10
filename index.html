@@ -158,18 +158,33 @@
             priority += 0;
 
           } else if (statusState === 'in') {
+                      } else if (statusState === 'in') {
             priority += 20000; // Live games baseline
 
+            // Check if either team is ranked in the AP/CFP Top 25
+            const homeRank = home.curatedRank && home.curatedRank.current;
+            const awayRank = away.curatedRank && away.curatedRank.current;
+            const hasRankedTeam = (homeRank && homeRank <= 25) || (awayRank && awayRank <= 25);
+
             if (isCloseFourthQuarter) {
+              // TIER 1: Close 4th quarter games get absolute top priority
               priority += 10000;
               priority += (15 - diff) * 100;
 
             } else if (isSecGame) {
+              // TIER 2: SEC live games
               priority += 5000;
               priority += (period * 500);
               priority += Math.max(0, (35 - diff) * 50);
 
+            } else if (hasRankedTeam) {
+              // TIER 2.5 (NEW): Non-SEC Live Games with Ranked Teams
+              priority += 2500;
+              priority += (period * 400);
+              priority += Math.max(0, (35 - diff) * 50);
+
             } else {
+              // TIER 3: Standard live non-SEC, unranked games
               let periodMultiplier = 1.0;
               if (period === 3) periodMultiplier = 1.3;
               if (period === 2) periodMultiplier = 1.1;
@@ -179,6 +194,7 @@
               priority += Math.round(rawCloseness * periodMultiplier);
             }
           }
+          
 
           return {
             homeTeam: home.team.shortDisplayName || home.team.name,
