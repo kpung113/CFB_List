@@ -90,6 +90,9 @@
         const response = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=300");
         const data = await response.json();
 
+          // Betting Spread
+          const odds = (comp.odds && comp.odds.length > 0) ? comp.odds[0] : null;
+          const spread = (odds && odds.details) ? odds.details : 'Line N/A';
 
                 const games = data.events.map(event => {
           const comp = event.competitions[0];
