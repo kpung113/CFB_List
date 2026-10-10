@@ -94,6 +94,12 @@
 
           const isSecGame = (home.team.conferenceId === "8" || away.team.conferenceId === "8");
           
+          // Helper to get formatted rank prefix (e.g., "#3 ")
+          const getRank = (c) => {
+            const r = c.curatedRank && c.curatedRank.current;
+            return (r && r <= 25) ? `<span style="color:#fbbf24; font-weight:bold;">#${r}</span> ` : '';
+          };
+
           // Grab TV Broadcast network name
           const tvNetwork = (comp.broadcasts && comp.broadcasts.length > 0 && comp.broadcasts[0].names)
             ? comp.broadcasts[0].names[0] 
@@ -135,6 +141,8 @@
           return {
             homeTeam: home.team.shortDisplayName || home.team.name,
             awayTeam: away.team.shortDisplayName || away.team.name,
+            homeRank: getRank(home),
+            awayRank: getRank(away),
             homeScore,
             awayScore,
             statusState,
@@ -179,11 +187,11 @@
             <span><strong style="color:#fbbf24;">📺 ${game.tvNetwork}</strong> ${game.statusState === 'in' ? `| Diff: ${game.diff} pts` : ''}</span>
           </div>
           <div class="team-row">
-            <span>${game.awayTeam}</span>
+            <span>${game.awayRank}${game.awayTeam}</span>
             <span class="score">${game.awayScore}</span>
           </div>
           <div class="team-row">
-            <span>${game.homeTeam}</span>
+            <span>${game.homeRank}${game.homeTeam}</span>
             <span class="score">${game.homeScore}</span>
           </div>
         `;
