@@ -1,4 +1,97 @@
-        const games = data.events.map(event => {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bully's CFB Game List</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --accent: #38bdf8;
+      --live-red: #ef4444;
+      --subtext: #94a3b8;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #334155;
+    }
+    h1 { margin: 0; font-size: 1.25rem; }
+    .status-badge {
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      background: #334155;
+      border-radius: 12px;
+    }
+    .game-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-left: 4px solid transparent;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .game-card.live-4q { border-left-color: var(--live-red); }
+    .game-card.live { border-left-color: var(--accent); }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--subtext);
+      margin-bottom: 8px;
+    }
+    .team-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 6px 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .score { font-size: 1.25rem; font-weight: bold; }
+    .game-meta {
+      font-size: 0.75rem;
+      color: var(--subtext);
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid #334155;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🏈 Bully's CFB Game List</h1>
+    <span id="update-status" class="status-badge">Loading...</span>
+  </header>
+
+  <div id="games-container"></div>
+
+  <script>
+    async function fetchScores() {
+      const statusElement = document.getElementById("update-status");
+      statusElement.innerText = "Refreshing...";
+      
+      try {
+        const response = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=300");
+        const data = await response.json();
+              
+
+const games = data.events.map(event => {
           const comp = event.competitions[0];
           const home = comp.competitors.find(c => c.homeAway === 'home');
           const away = comp.competitors.find(c => c.homeAway === 'away');
