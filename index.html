@@ -131,7 +131,6 @@
 
   <header>
     <div class="header-title">
-      <!-- Official interlocking MSU helmet/logo graphic -->
       <img src="https://a.espncdn.com/i/teamlogos/ncaa/500/344.png" alt="MSU Logo" class="msu-logo">
       <h1>Bully's CFB Board</h1>
     </div>
@@ -162,23 +161,19 @@
 
           const isSecGame = (home.team.conferenceId === "8" || away.team.conferenceId === "8");
           
-          // Check for Top 25 Ranking
           const homeRankNum = home.curatedRank && home.curatedRank.current;
           const awayRankNum = away.curatedRank && away.curatedRank.current;
           const hasRankedTeam = (homeRankNum && homeRankNum <= 25) || (awayRankNum && awayRankNum <= 25);
 
-          // Helper to get formatted rank prefix
           const getRank = (c) => {
             const r = c.curatedRank && c.curatedRank.current;
             return (r && r <= 25) ? `<span style="color:#fbbf24; font-weight:bold;">#${r}</span> ` : '';
           };
 
-          // Broadcast Network
           const tvNetwork = (comp.broadcasts && comp.broadcasts.length > 0 && comp.broadcasts[0].names)
             ? comp.broadcasts[0].names[0] 
             : "TV TBD";
 
-          // Robust Betting Spread Extraction
           let spread = '';
           if (comp.odds && comp.odds.length > 0) {
             const oddsObj = comp.odds[0];
@@ -189,7 +184,6 @@
             }
           }
 
-          // Live Situation & Drive Tracking
           const situation = comp.situation;
           let possessionTeamId = null;
           let driveText = '';
@@ -218,7 +212,6 @@
             }
           }
 
-          // Win Probability Calculation
           let winProbText = '';
           if (situation && situation.lastPlay && situation.lastPlay.probability) {
             const prob = situation.lastPlay.probability;
@@ -336,11 +329,11 @@
             <span>${game.statusDetail} ${game.isSecGame ? '<strong style="color:#660000; background:#fff; padding:1px 4px; border-radius:3px;">SEC</strong>' : ''}</span>
             <span class="header-right">
               <strong style="color:#fbbf24;">📺 ${game.tvNetwork}</strong>
-              <a href="https://www.espn.com/watch/player/_/id/${game.gameId}" 
+              <a href="https://www.espn.com/college-football/game/_/gameId/${game.gameId}" 
                  target="_blank" 
                  rel="noopener noreferrer" 
                  class="watch-btn">
-                ▶ Watch
+                📊 Gamecast
               </a>
               ${game.statusState === 'in' ? `| Diff: ${game.diff} pts` : ''}
             </span>
