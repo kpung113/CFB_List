@@ -48,9 +48,15 @@
     .card-header {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       font-size: 0.85rem;
       color: var(--subtext);
       margin-bottom: 8px;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     .team-row {
       display: flex;
@@ -85,6 +91,23 @@
       border-top: 1px solid #334155;
       display: flex;
       justify-content: space-between;
+    }
+    .watch-btn {
+      color: #ef4444;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.75rem;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      transition: background 0.2s;
+    }
+    .watch-btn:active {
+      background: rgba(239, 68, 68, 0.35);
     }
   </style>
 </head>
@@ -146,7 +169,7 @@
             }
           }
 
-          // Live Situation & Drive Tracking with -1 Filter
+          // Live Situation & Drive Tracking
           const situation = comp.situation;
           let possessionTeamId = null;
           let driveText = '';
@@ -166,12 +189,10 @@
               downText = `${down} & ${distance}`;
             }
             
-            // Only form driveText if we have valid non-negative data
             if (downText || (posText && !posText.includes('-1'))) {
               driveText = `${downText}${downText && posText ? ' at ' : ''}${posText}`;
             }
 
-            // Extract Last Play Summary
             if (situation.lastPlay && situation.lastPlay.text) {
               lastPlayText = situation.lastPlay.text;
             }
@@ -209,7 +230,7 @@
             priority += 0;
 
           } else if (statusState === 'in') {
-            priority += 20000; // Live games baseline
+            priority += 20000;
 
             if (isCloseFourthQuarter) {
               priority += 10000;
@@ -237,6 +258,7 @@
           }
 
           return {
+            gameId: event.id,
             homeId: home.id,
             awayId: away.id,
             homeTeam: home.team.shortDisplayName || home.team.name,
@@ -292,7 +314,16 @@
         card.innerHTML = `
           <div class="card-header">
             <span>${game.statusDetail} ${game.isSecGame ? '<strong style="color:#38bdf8;">[SEC]</strong>' : ''}</span>
-            <span><strong style="color:#fbbf24;">📺 ${game.tvNetwork}</strong> ${game.statusState === 'in' ? `| Diff: ${game.diff} pts` : ''}</span>
+            <span class="header-right">
+              <strong style="color:#fbbf24;">📺 ${game.tvNetwork}</strong>
+              <a href="https://www.espn.com/watch/player/_/id/${game.gameId}" 
+                 target="_blank" 
+                 rel="noopener noreferrer" 
+                 class="watch-btn">
+                ▶ Watch
+              </a>
+              ${game.statusState === 'in' ? `| Diff: ${game.diff} pts` : ''}
+            </span>
           </div>
           <div class="team-row">
             <span>${isAwayPossession ? '🏈 ' : ''}${game.awayRank}${game.awayTeam}</span>
