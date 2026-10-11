@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bully's CFB Game List</title>
+  <title>Bully's CFB Board</title>
   <style>
     :root {
       --bg: #0b0c10;
@@ -101,13 +101,6 @@
       margin: 8px 0;
       font-weight: 600;
     }
-    .last-play {
-      font-size: 0.72rem;
-      color: var(--subtext);
-      font-style: italic;
-      margin: 4px 0 8px 0;
-      line-height: 1.2;
-    }
     .game-meta {
       font-size: 0.75rem;
       color: var(--subtext);
@@ -198,7 +191,6 @@
           const situation = comp.situation;
           let possessionTeamId = null;
           let driveText = '';
-          let lastPlayText = '';
 
           if (statusState === 'in' && situation) {
             possessionTeamId = situation.possession;
@@ -216,10 +208,6 @@
             
             if (downText || (posText && !posText.includes('-1'))) {
               driveText = `${downText}${downText && posText ? ' at ' : ''}${posText}`;
-            }
-
-            if (situation.lastPlay && situation.lastPlay.text) {
-              lastPlayText = situation.lastPlay.text;
             }
           }
 
@@ -315,7 +303,6 @@
             winProbText,
             possessionTeamId,
             driveText,
-            lastPlayText,
             priority
           };
         });
@@ -370,8 +357,7 @@
             <span>${isHomePossession ? '🏈 ' : ''}${game.homeRank}${game.homeTeam}</span>
             <span class="score">${game.homeScore}</span>
           </div>
-          ${game.driveText ? `<div class="drive-banner">📍 Drive: ${game.driveText}</div>` : ''}
-          ${game.lastPlayText ? `<div class="last-play"><strong>Last Play:</strong> ${game.lastPlayText}</div>` : ''}
+          ${game.driveText ? `<div class="drive-banner">Drive: ${game.driveText}</div>` : ''}
           ${(game.spread || game.winProbText) ? `
           <div class="game-meta">
             <span>${game.spread ? `<strong>Line:</strong> ${game.spread}` : ''}</span>
