@@ -333,8 +333,13 @@
           card.classList.add("live");
         }
 
-        const isAwayPossession = (game.possessionTeamId && game.possessionTeamId === game.awayId);
-        const isHomePossession = (game.possessionTeamId && game.possessionTeamId === game.homeId);
+        // Convert team IDs to string for bulletproof comparison
+        const posId = String(game.possessionTeamId || '');
+        const homeId = String(game.homeId || '');
+        const awayId = String(game.awayId || '');
+
+        const isAwayPossession = posId && posId === awayId;
+        const isHomePossession = posId && posId === homeId;
 
         card.innerHTML = `
           <div class="card-header">
