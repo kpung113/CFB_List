@@ -39,7 +39,6 @@
       height: 38px;
       width: auto;
       object-fit: contain;
-      /* 3px crisp white outline around transparent logo */
       filter: 
         drop-shadow( 3px  0px 0px #ffffff)
         drop-shadow(-3px  0px 0px #ffffff)
@@ -247,6 +246,11 @@
           let priority = 0;
           const isCloseFourthQuarter = (statusState === 'in' && period >= 4 && diff < 15);
 
+          let displayClockSeconds = 900; 
+          if (event.status && typeof event.status.clock !== 'undefined') {
+            displayClockSeconds = event.status.clock;
+          }
+
           if (statusState === 'pre') {
             priority += 1000;
             if (isSecGame) priority += 200;
@@ -258,8 +262,17 @@
             priority += 20000;
 
             if (isCloseFourthQuarter) {
-              priority += 10000;
-              priority += (15 - diff) * 100;
+              if (isSecGame) {
+                priority += 15000;
+              } else if (hasRankedTeam) {
+                priority += 12000;
+              } else {
+                priority += 10000;
+              }
+
+              const periodBonus = (period - 4) * 1000;
+              const timeFactor = (900 - displayClockSeconds);
+              priority += periodBonus + timeFactor;
 
             } else if (isSecGame) {
               priority += 5000;
