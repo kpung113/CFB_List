@@ -10,7 +10,7 @@
       --card-bg: #181920;
       --card-border: #272935;
       --text: #f8fafc;
-      --accent-maroon: #660000;
+      --accent-maroon: #5d1725;
       --accent-red: #ef4444;
       --subtext: #94a3b8;
       --gold: #fbbf24;
@@ -33,11 +33,11 @@
     .header-title {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
     .msu-logo {
-      width: 36px;
-      height: 36px;
+      height: 40px;
+      width: auto;
       object-fit: contain;
     }
     h1 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px; }
@@ -114,7 +114,7 @@
       font-weight: bold;
       font-size: 0.75rem;
       background: var(--accent-maroon);
-      border: 1px solid #800000;
+      border: 1px solid #7d2033;
       padding: 3px 8px;
       border-radius: 4px;
       display: inline-flex;
@@ -123,7 +123,7 @@
       transition: background 0.2s;
     }
     .watch-btn:active {
-      background: #4d0000;
+      background: #3b0e17;
     }
   </style>
 </head>
@@ -131,7 +131,8 @@
 
   <header>
     <div class="header-title">
-      <img src="https://a.espncdn.com/i/teamlogos/ncaa/500/344.png" alt="MSU Logo" class="msu-logo">
+      <!-- Transparent Interlocking MSU Monogram -->
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Mississippi_State_Bulldogs_logo.svg/512px-Mississippi_State_Bulldogs_logo.svg.png" alt="Interlocking MSU Logo" class="msu-logo">
       <h1>Bully's CFB Board</h1>
     </div>
     <span id="update-status" class="status-badge">Loading...</span>
@@ -326,7 +327,7 @@
 
         card.innerHTML = `
           <div class="card-header">
-            <span>${game.statusDetail} ${game.isSecGame ? '<strong style="color:#660000; background:#fff; padding:1px 4px; border-radius:3px;">SEC</strong>' : ''}</span>
+            <span>${game.statusDetail} ${game.isSecGame ? '<strong style="color:#fff; background:#5d1725; padding:1px 5px; border-radius:3px; font-size:0.7rem;">SEC</strong>' : ''}</span>
             <span class="header-right">
               <strong style="color:#fbbf24;">📺 ${game.tvNetwork}</strong>
               <a href="https://www.espn.com/college-football/game/_/gameId/${game.gameId}" 
