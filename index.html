@@ -36,9 +36,19 @@
       gap: 12px;
     }
     .msu-logo {
-      height: 40px;
+      height: 38px;
       width: auto;
       object-fit: contain;
+      /* 3px crisp white outline around transparent logo */
+      filter: 
+        drop-shadow( 3px  0px 0px #ffffff)
+        drop-shadow(-3px  0px 0px #ffffff)
+        drop-shadow( 0px  3px 0px #ffffff)
+        drop-shadow( 0px -3px 0px #ffffff)
+        drop-shadow( 2px  2px 0px #ffffff)
+        drop-shadow(-2px -2px 0px #ffffff)
+        drop-shadow( 2px -2px 0px #ffffff)
+        drop-shadow(-2px  2px 0px #ffffff);
     }
     h1 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px; }
     .status-badge {
@@ -131,8 +141,8 @@
 
   <header>
     <div class="header-title">
-      <img src="https://images.seeklogo.com/logo-png/37/1/mississippi-state-bulldogs-baseball-logo-png_seeklogo-375662.png" 
-           alt="Interlocking MSU Logo" 
+      <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" 
+           alt="MSU Logo" 
            class="msu-logo">
       <h1>Bully's CFB Board</h1>
     </div>
