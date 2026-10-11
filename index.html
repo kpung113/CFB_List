@@ -6,12 +6,14 @@
   <title>Bully's CFB Game List</title>
   <style>
     :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
+      --bg: #0b0c10;
+      --card-bg: #181920;
+      --card-border: #272935;
       --text: #f8fafc;
-      --accent: #38bdf8;
-      --live-red: #ef4444;
+      --accent-maroon: #660000;
+      --accent-red: #ef4444;
       --subtext: #94a3b8;
+      --gold: #fbbf24;
     }
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -26,25 +28,38 @@
       align-items: center;
       margin-bottom: 20px;
       padding-bottom: 12px;
-      border-bottom: 1px solid #334155;
+      border-bottom: 2px solid var(--accent-maroon);
     }
-    h1 { margin: 0; font-size: 1.25rem; }
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .msu-logo {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
+    h1 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px; }
     .status-badge {
       font-size: 0.75rem;
-      padding: 4px 8px;
-      background: #334155;
+      padding: 4px 10px;
+      background: #222530;
+      border: 1px solid var(--card-border);
       border-radius: 12px;
+      color: var(--subtext);
     }
     .game-card {
       background: var(--card-bg);
+      border: 1px solid var(--card-border);
       border-radius: 12px;
       padding: 16px;
       margin-bottom: 12px;
-      border-left: 4px solid transparent;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      border-left: 5px solid var(--card-border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     }
-    .game-card.live-4q { border-left-color: var(--live-red); }
-    .game-card.live { border-left-color: var(--accent); }
+    .game-card.live-4q { border-left-color: var(--accent-red); background: linear-gradient(135deg, #181920 0%, #221518 100%); }
+    .game-card.live { border-left-color: var(--accent-maroon); background: linear-gradient(135deg, #181920 0%, #1f1418 100%); }
     .card-header {
       display: flex;
       justify-content: space-between;
@@ -71,6 +86,7 @@
       font-size: 0.75rem;
       color: #38bdf8;
       background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.2);
       padding: 4px 8px;
       border-radius: 6px;
       margin: 8px 0;
@@ -88,33 +104,37 @@
       color: var(--subtext);
       margin-top: 8px;
       padding-top: 6px;
-      border-top: 1px solid #334155;
+      border-top: 1px solid var(--card-border);
       display: flex;
       justify-content: space-between;
     }
     .watch-btn {
-      color: #ef4444;
+      color: #fff;
       text-decoration: none;
       font-weight: bold;
       font-size: 0.75rem;
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      padding: 2px 6px;
+      background: var(--accent-maroon);
+      border: 1px solid #800000;
+      padding: 3px 8px;
       border-radius: 4px;
       display: inline-flex;
       align-items: center;
-      gap: 2px;
+      gap: 3px;
       transition: background 0.2s;
     }
     .watch-btn:active {
-      background: rgba(239, 68, 68, 0.35);
+      background: #4d0000;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>🏈 Bully's CFB Game List</h1>
+    <div class="header-title">
+      <!-- Official interlocking MSU helmet/logo graphic -->
+      <img src="https://a.espncdn.com/i/teamlogos/ncaa/500/344.png" alt="MSU Logo" class="msu-logo">
+      <h1>Bully's CFB Board</h1>
+    </div>
     <span id="update-status" class="status-badge">Loading...</span>
   </header>
 
@@ -313,7 +333,7 @@
 
         card.innerHTML = `
           <div class="card-header">
-            <span>${game.statusDetail} ${game.isSecGame ? '<strong style="color:#38bdf8;">[SEC]</strong>' : ''}</span>
+            <span>${game.statusDetail} ${game.isSecGame ? '<strong style="color:#660000; background:#fff; padding:1px 4px; border-radius:3px;">SEC</strong>' : ''}</span>
             <span class="header-right">
               <strong style="color:#fbbf24;">📺 ${game.tvNetwork}</strong>
               <a href="https://www.espn.com/watch/player/_/id/${game.gameId}" 
@@ -352,4 +372,3 @@
 
 </body>
 </html>
-        
