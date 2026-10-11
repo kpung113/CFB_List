@@ -146,7 +146,7 @@
             }
           }
 
-          // Live Situation & Drive Tracking
+          // Live Situation & Drive Tracking with -1 Filter
           const situation = comp.situation;
           let possessionTeamId = null;
           let driveText = '';
@@ -155,11 +155,19 @@
           if (statusState === 'in' && situation) {
             possessionTeamId = situation.possession;
 
-            // Extract Down & Distance & Position
-            const downText = situation.downText || (situation.down && situation.distance ? `${situation.down} & ${situation.distance}` : '');
+            const down = situation.down;
+            const distance = situation.distance;
             const posText = situation.possessionText || '';
+
+            let downText = '';
+            if (situation.downText && !situation.downText.includes('-1')) {
+              downText = situation.downText;
+            } else if (down && down > 0 && distance && distance > 0) {
+              downText = `${down} & ${distance}`;
+            }
             
-            if (downText || posText) {
+            // Only form driveText if we have valid non-negative data
+            if (downText || (posText && !posText.includes('-1'))) {
               driveText = `${downText}${downText && posText ? ' at ' : ''}${posText}`;
             }
 
@@ -204,24 +212,20 @@
             priority += 20000; // Live games baseline
 
             if (isCloseFourthQuarter) {
-              // TIER 1: Close 4th quarter games
               priority += 10000;
               priority += (15 - diff) * 100;
 
             } else if (isSecGame) {
-              // TIER 2: Live SEC games
               priority += 5000;
               priority += (period * 500);
               priority += Math.max(0, (35 - diff) * 50);
 
             } else if (hasRankedTeam) {
-              // TIER 2.5: Live Non-SEC games featuring a Top 25 team
               priority += 2500;
               priority += (period * 400);
               priority += Math.max(0, (35 - diff) * 50);
 
             } else {
-              // TIER 3: Standard unranked live games
               let periodMultiplier = 1.0;
               if (period === 3) periodMultiplier = 1.3;
               if (period === 2) periodMultiplier = 1.1;
@@ -317,3 +321,4 @@
 
 </body>
 </html>
+        
