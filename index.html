@@ -61,6 +61,22 @@
       font-weight: 600;
     }
     .score { font-size: 1.25rem; font-weight: bold; }
+    .drive-banner {
+      font-size: 0.75rem;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+      margin: 8px 0;
+      font-weight: 600;
+    }
+    .last-play {
+      font-size: 0.72rem;
+      color: var(--subtext);
+      font-style: italic;
+      margin: 4px 0 8px 0;
+      line-height: 1.2;
+    }
     .game-meta {
       font-size: 0.75rem;
       color: var(--subtext);
@@ -130,9 +146,31 @@
             }
           }
 
+          // Live Situation & Drive Tracking
+          const situation = comp.situation;
+          let possessionTeamId = null;
+          let driveText = '';
+          let lastPlayText = '';
+
+          if (statusState === 'in' && situation) {
+            possessionTeamId = situation.possession;
+
+            // Extract Down & Distance & Position
+            const downText = situation.downText || (situation.down && situation.distance ? `${situation.down} & ${situation.distance}` : '');
+            const posText = situation.possessionText || '';
+            
+            if (downText || posText) {
+              driveText = `${downText}${downText && posText ? ' at ' : ''}${posText}`;
+            }
+
+            // Extract Last Play Summary
+            if (situation.lastPlay && situation.lastPlay.text) {
+              lastPlayText = situation.lastPlay.text;
+            }
+          }
+
           // Win Probability Calculation
           let winProbText = '';
-          const situation = comp.situation;
           if (situation && situation.lastPlay && situation.lastPlay.probability) {
             const prob = situation.lastPlay.probability;
             const homeWp = Math.round(prob.homeWinPercentage * 100);
@@ -166,12 +204,12 @@
             priority += 20000; // Live games baseline
 
             if (isCloseFourthQuarter) {
-              // TIER 1: Close 4th quarter games get absolute top priority
+              // TIER 1: Close 4th quarter games
               priority += 10000;
               priority += (15 - diff) * 100;
 
             } else if (isSecGame) {
-              // TIER 2: SEC live games
+              // TIER 2: Live SEC games
               priority += 5000;
               priority += (period * 500);
               priority += Math.max(0, (35 - diff) * 50);
@@ -195,6 +233,8 @@
           }
 
           return {
+            homeId: home.id,
+            awayId: away.id,
             homeTeam: home.team.shortDisplayName || home.team.name,
             awayTeam: away.team.shortDisplayName || away.team.name,
             homeRank: getRank(home),
@@ -209,6 +249,9 @@
             tvNetwork,
             spread,
             winProbText,
+            possessionTeamId,
+            driveText,
+            lastPlayText,
             priority
           };
         });
@@ -239,19 +282,24 @@
           card.classList.add("live");
         }
 
+        const isAwayPossession = (game.possessionTeamId && game.possessionTeamId === game.awayId);
+        const isHomePossession = (game.possessionTeamId && game.possessionTeamId === game.homeId);
+
         card.innerHTML = `
           <div class="card-header">
             <span>${game.statusDetail} ${game.isSecGame ? '<strong style="color:#38bdf8;">[SEC]</strong>' : ''}</span>
             <span><strong style="color:#fbbf24;">📺 ${game.tvNetwork}</strong> ${game.statusState === 'in' ? `| Diff: ${game.diff} pts` : ''}</span>
           </div>
           <div class="team-row">
-            <span>${game.awayRank}${game.awayTeam}</span>
+            <span>${isAwayPossession ? '🏈 ' : ''}${game.awayRank}${game.awayTeam}</span>
             <span class="score">${game.awayScore}</span>
           </div>
           <div class="team-row">
-            <span>${game.homeRank}${game.homeTeam}</span>
+            <span>${isHomePossession ? '🏈 ' : ''}${game.homeRank}${game.homeTeam}</span>
             <span class="score">${game.homeScore}</span>
           </div>
+          ${game.driveText ? `<div class="drive-banner">📍 Drive: ${game.driveText}</div>` : ''}
+          ${game.lastPlayText ? `<div class="last-play"><strong>Last Play:</strong> ${game.lastPlayText}</div>` : ''}
           ${(game.spread || game.winProbText) ? `
           <div class="game-meta">
             <span>${game.spread ? `<strong>Line:</strong> ${game.spread}` : ''}</span>
@@ -269,4 +317,3 @@
 
 </body>
 </html>
-                    
