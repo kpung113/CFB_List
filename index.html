@@ -65,9 +65,19 @@
       background: #12131a;
       border-left: 4px solid var(--accent-maroon);
       padding: 8px 12px;
-      margin: 20px 0 10px 0;
+      margin: 24px 0 10px 0;
       border-radius: 4px;
       letter-spacing: -0.3px;
+    }
+    .tier-header {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--gold);
+      margin: 14px 0 8px 4px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #222530;
     }
     .game-card {
       background: var(--card-bg);
@@ -163,7 +173,6 @@
         const response = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=300");
         const data = await response.json();
 
-        // Separate Live/Final vs Scheduled Upcoming Games
         const liveOrFinalGames = [];
         const upcomingGames = [];
 
@@ -184,7 +193,6 @@
           const awayRankNum = away.curatedRank && away.curatedRank.current;
           const hasRankedTeam = (homeRankNum && homeRankNum <= 25) || (awayRankNum && awayRankNum <= 25);
 
-          // Find lowest rank number (e.g., #2 vs #15 returns 2)
           let bestRank = 99;
           if (homeRankNum && homeRankNum <= 25) bestRank = Math.min(bestRank, homeRankNum);
           if (awayRankNum && awayRankNum <= 25) bestRank = Math.min(bestRank, awayRankNum);
@@ -282,7 +290,6 @@
           if (statusState === 'pre') {
             upcomingGames.push(gameObj);
           } else {
-            // Live or Completed
             let priority = 0;
             const isCloseFourthQuarter = (statusState === 'in' && period >= 4 && diff < 15);
 
@@ -334,22 +341,17 @@
           }
         });
 
-        // Sort Live/Final games using current Priority Tier logic
+        // Sort Live/Final games
         liveOrFinalGames.sort((a, b) => b.priority - a.priority);
 
-        // Sort Upcoming games by Day -> Tier (SEC > Ranked > Rest) -> Time -> Rank
+        // Sort Upcoming games
         upcomingGames.sort((a, b) => {
-          // 1. Group by Calendar Date
           const dateA = a.gameDate.toDateString();
           const dateB = b.gameDate.toDateString();
           if (dateA !== dateB) {
             return a.gameDate - b.gameDate;
           }
 
-          // 2. Priority Tiers within the same Day
-          // Tier 1: SEC Game
-          // Tier 2: Ranked Matchup
-          // Tier 3: Standard Matchup
           const getUpcomingTier = (g) => g.isSecGame ? 1 : (g.hasRankedTeam ? 2 : 3);
           const tierA = getUpcomingTier(a);
           const tierB = getUpcomingTier(b);
@@ -358,12 +360,10 @@
             return tierA - tierB;
           }
 
-          // 3. Sort by Kickoff Time within Tier
           if (a.gameDate.getTime() !== b.gameDate.getTime()) {
             return a.gameDate - b.gameDate;
           }
 
-          // 4. If kickoff times are identical in Ranked Tier, sort by highest ranked team (#1 before #25)
           return a.bestRank - b.bestRank;
         });
 
@@ -388,28 +388,69 @@
         container.appendChild(createGameCard(game));
       });
 
-      // Render Upcoming Games Grouped by Day
+      // Group Upcoming Games by Day
       if (upcomingGames.length > 0) {
-        let currentDayLabel = "";
-
+        // Group games by date string
+        const gamesByDay = {};
         upcomingGames.forEach(game => {
-          // Format Day & Date (e.g., "Tuesday, Oct 13")
-          const dayLabel = game.gameDate.toLocaleDateString('en-US', {
+          const dayString = game.gameDate.toDateString();
+          if (!gamesByDay[dayString]) gamesByDay[dayString] = [];
+          gamesByDay[dayString].push(game);
+        });
+
+        Object.keys(gamesByDay).forEach(dayString => {
+          const dayGames = gamesByDay[dayString];
+          const firstGame = dayGames[0];
+
+          // Format Header (e.g., "Saturday, Oct 17")
+          const dayLabel = firstGame.gameDate.toLocaleDateString('en-US', {
             weekday: 'long',
             month: 'short',
             day: 'numeric'
           });
 
-          // Add a Day Header banner when crossing into a new day
-          if (dayLabel !== currentDayLabel) {
-            currentDayLabel = dayLabel;
-            const headerDiv = document.createElement("div");
-            headerDiv.className = "day-header";
-            headerDiv.innerText = currentDayLabel;
-            container.appendChild(headerDiv);
-          }
+          // Day Header
+          const dayHeader = document.createElement("div");
+          dayHeader.className = "day-header";
+          dayHeader.innerText = dayLabel;
+          container.appendChild(dayHeader);
 
-          container.appendChild(createGameCard(game));
+          const isSaturday = firstGame.gameDate.getDay() === 6;
+
+          if (isSaturday) {
+            // Render Saturday with Category Sub-Headers
+            const secGames = dayGames.filter(g => g.isSecGame);
+            const rankedGames = dayGames.filter(g => !g.isSecGame && g.hasRankedTeam);
+            const otherGames = dayGames.filter(g => !g.isSecGame && !g.hasRankedTeam);
+
+            if (secGames.length > 0) {
+              const tierHeader = document.createElement("div");
+              tierHeader.className = "tier-header";
+              tierHeader.innerText = "SEC Games - sorted by start time";
+              container.appendChild(tierHeader);
+              secGames.forEach(game => container.appendChild(createGameCard(game)));
+            }
+
+            if (rankedGames.length > 0) {
+              const tierHeader = document.createElement("div");
+              tierHeader.className = "tier-header";
+              tierHeader.innerText = "Ranked Matchups - sorted by time";
+              container.appendChild(tierHeader);
+              rankedGames.forEach(game => container.appendChild(createGameCard(game)));
+            }
+
+            if (otherGames.length > 0) {
+              const tierHeader = document.createElement("div");
+              tierHeader.className = "tier-header";
+              tierHeader.innerText = "All Other Matchups - sorted by time";
+              container.appendChild(tierHeader);
+              otherGames.forEach(game => container.appendChild(createGameCard(game)));
+            }
+
+          } else {
+            // Non-Saturday days: render directly under the Day Header
+            dayGames.forEach(game => container.appendChild(createGameCard(game)));
+          }
         });
       }
     }
