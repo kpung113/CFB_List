@@ -203,6 +203,7 @@
 
         const liveOrFinalGames = [];
         const upcomingGames = [];
+        const now = new Date();
 
         data.events.forEach(event => {
           const comp = event.competitions[0];
@@ -214,6 +215,19 @@
           const homeScore = parseInt(home.score || "0");
           const awayScore = parseInt(away.score || "0");
           const diff = Math.abs(homeScore - awayScore);
+
+          const gameDate = new Date(event.date);
+
+          // DROP RULE: If game is finished, check if current time is past 12:00 PM the following day
+          if (statusState === 'post') {
+            const dropDeadline = new Date(gameDate);
+            dropDeadline.setDate(dropDeadline.getDate() + 1);
+            dropDeadline.setHours(12, 0, 0, 0);
+
+            if (now > dropDeadline) {
+              return; // Skip/drop this game entirely
+            }
+          }
 
           const isSecGame = (home.team.conferenceId === "8" || away.team.conferenceId === "8");
           
@@ -286,8 +300,6 @@
               winProbText = `${away.team.abbreviation || 'AWAY'} ${awayWp}%`;
             }
           }
-
-          const gameDate = new Date(event.date);
 
           const gameObj = {
             gameId: event.id,
