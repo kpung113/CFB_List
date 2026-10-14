@@ -70,7 +70,6 @@
       border-color: #7d2033;
     }
 
-    /* Sport Filter Subheader */
     .sport-filter-bar {
       display: flex;
       gap: 6px;
@@ -165,7 +164,6 @@
     </nav>
   </header>
 
-  <!-- Sport Filter Subheader -->
   <div class="sport-filter-bar">
     <button class="sport-tab active" onclick="filterSport('all', this)">All Sports</button>
     <button class="sport-tab" onclick="filterSport('football', this)">🏈 Football</button>
@@ -174,7 +172,7 @@
     <button class="sport-tab" onclick="filterSport('baseball', this)">⚾ Baseball</button>
   </div>
 
-  <div id="schedule-container">Loading schedules...</div>
+  <div id="schedule-container"></div>
 
   <script>
     const sportLabels = {
@@ -285,4 +283,4 @@
       { sportKey: 'baseball', opponent: 'Georgia', isoDate: '2027-03-27', timeStr: 'TBD', isHome: false, location: 'Athens, Ga.', result: '' },
       { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-02', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
       { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-03', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
-      { sportKey: 'b
+      { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-04', timeStr: 'TBD', isHome: true, lo
