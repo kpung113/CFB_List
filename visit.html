@@ -366,4 +366,144 @@
       { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-20', timeStr: 'TBD', isHome: true },
       { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-21', timeStr: 'TBD', isHome: true },
       { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-22', timeStr: 'TBD', isHome: true },
-      { sportKey: 'baseball', opponent: 'SEC Tourn
+          { sportKey: 'baseball', opponent: 'SEC Tournament', isoDate: '2027-05-25', timeStr: 'TBD', isHome: false }
+    ];
+
+    function calculateHomestands() {
+      const container = document.getElementById("results-container");
+      if (!container) return;
+      container.innerHTML = "<p style='color:var(--subtext);'>Calculating homestand windows...</p>";
+
+      const daysInput = document.getElementById("trip-days");
+      let selectedDays = parseInt(daysInput.value);
+      if (isNaN(selectedDays) || selectedDays < 1) selectedDays = 1;
+      if (selectedDays > 5) selectedDays = 5;
+      daysInput.value = selectedDays;
+
+      const checkedSports = Array.from(document.querySelectorAll('.sports-toggles input:checked')).map(cb => cb.value);
+
+      if (checkedSports.length === 0) {
+        container.innerHTML = "<p style='color:var(--subtext);'>Please select at least one sport toggle.</p>";
+        return;
+      }
+
+      // Filter to home games only for toggled sports
+      const homeGames = masterDataset.filter(ev => ev.isHome && checkedSports.includes(ev.sportKey));
+
+      if (homeGames.length === 0) {
+        container.innerHTML = "<p style='color:var(--subtext);'>No home games found for selected filters.</p>";
+        return;
+      }
+
+      homeGames.sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
+
+      const gamesByDate = {};
+      homeGames.forEach(game => {
+        if (!gamesByDate[game.isoDate]) gamesByDate[game.isoDate] = [];
+        gamesByDate[game.isoDate].push(game);
+      });
+
+      const sortedIsoDates = Object.keys(gamesByDate).sort();
+      const candidateWindows = [];
+
+      for (let i = 0; i < sortedIsoDates.length; i++) {
+        const startDate = new Date(sortedIsoDates[i] + 'T00:00:00');
+        const windowEndDate = new Date(startDate);
+        windowEndDate.setDate(startDate.getDate() + (selectedDays - 1));
+
+        let windowGames = [];
+        sortedIsoDates.forEach(dateStr => {
+          const d = new Date(dateStr + 'T00:00:00');
+          if (d >= startDate && d <= windowEndDate) {
+            windowGames.push(...gamesByDate[dateStr]);
+          }
+        });
+
+        if (windowGames.length >= 2) {
+          const sportsSet = new Set(windowGames.map(g => g.sportKey));
+          candidateWindows.push({
+            startDate,
+            windowEndDate,
+            games: windowGames,
+            sportCount: sportsSet.size
+          });
+        }
+      }
+
+      const uniqueCandidates = [];
+      const seenSignatures = new Set();
+
+      candidateWindows.forEach(w => {
+        const sig = w.games.map(g => g.isoDate + g.sportKey + g.opponent).join('|');
+        if (!seenSignatures.has(sig)) {
+          seenSignatures.add(sig);
+          uniqueCandidates.push(w);
+        }
+      });
+
+      renderCandidates(uniqueCandidates, selectedDays);
+    }
+
+    function renderCandidates(windows, tripDays) {
+      const container = document.getElementById("results-container");
+      container.innerHTML = "";
+
+      if (windows.length === 0) {
+        container.innerHTML = `<p style='color:var(--subtext);'>No multi-game homestands found for a ${tripDays}-day trip with current filters.</p>`;
+        return;
+      }
+
+      windows.forEach(w => {
+        const startLabel = w.startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
+        const endLabel = w.windowEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
+
+        const dateHeaderStr = (tripDays === 1 || w.startDate.getTime() === w.windowEndDate.getTime())
+          ? startLabel
+          : `${startLabel} – ${endLabel}`;
+
+        const card = document.createElement("div");
+        card.className = "candidate-card";
+
+        let gamesHtml = w.games.map(g => {
+          const gameDate = new Date(g.isoDate + 'T00:00:00');
+          const dayName = gameDate.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
+          return `
+            <div class="game-line">
+              <span><strong class="sport-title">${sportLabels[g.sportKey]}</strong> vs ${g.opponent}</span>
+              <span>${dayName} • ${g.timeStr}</span>
+            </div>
+          `;
+        }).join('');
+
+        const multiSportBadge = w.sportCount > 1 
+          ? `<span class="badge badge-multi">${w.sportCount} Sports Crossover</span>` 
+          : '';
+
+        card.innerHTML = `
+          <div class="candidate-header">
+            <span class="date-range">${dateHeaderStr}</span>
+            <div class="badge-group">
+              ${multiSportBadge}
+              <span class="badge">${w.games.length} Home Games</span>
+            </div>
+          </div>
+          ${gamesHtml}
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // Run safely when window loads
+    window.onload = function() {
+      try {
+        calculateHomestands();
+      } catch (err) {
+        const container = document.getElementById("results-container");
+        if (container) container.innerHTML = "<p style='color:var(--subtext);'>Error calculating trip windows.</p>";
+      }
+    };
+  </script>
+
+</body>
+</html>
