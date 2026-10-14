@@ -112,6 +112,7 @@
     }
     .game-card.live-4q { border-left-color: var(--accent-red); background: linear-gradient(135deg, #181920 0%, #221518 100%); }
     .game-card.live { border-left-color: var(--accent-maroon); background: linear-gradient(135deg, #181920 0%, #1f1418 100%); }
+    .game-card.archived { opacity: 0.75; }
     .card-header {
       display: flex;
       justify-content: space-between;
@@ -203,6 +204,7 @@
 
         const liveOrFinalGames = [];
         const upcomingGames = [];
+        const pastDeadlineGames = [];
         const now = new Date();
 
         data.events.forEach(event => {
@@ -218,16 +220,12 @@
 
           const gameDate = new Date(event.date);
 
-          // DROP RULE: If game is finished, check if current time is past 12:00 PM the following day
-          if (statusState === 'post') {
-            const dropDeadline = new Date(gameDate);
-            dropDeadline.setDate(dropDeadline.getDate() + 1);
-            dropDeadline.setHours(12, 0, 0, 0);
+          // CHECK DROP DEADLINE: 12:00 PM (noon) the day after game date
+          const dropDeadline = new Date(gameDate);
+          dropDeadline.setDate(dropDeadline.getDate() + 1);
+          dropDeadline.setHours(12, 0, 0, 0);
 
-            if (now > dropDeadline) {
-              return; // Skip/drop this game entirely
-            }
-          }
+          const isPastDeadline = (statusState === 'post' && now > dropDeadline);
 
           const isSecGame = (home.team.conferenceId === "8" || away.team.conferenceId === "8");
           
@@ -324,10 +322,13 @@
             possessionTeamId,
             driveText,
             gameDate,
+            isPastDeadline,
             priority: 0
           };
 
-          if (statusState === 'pre') {
+          if (isPastDeadline) {
+            pastDeadlineGames.push(gameObj);
+          } else if (statusState === 'pre') {
             upcomingGames.push(gameObj);
           } else {
             let priority = 0;
@@ -381,8 +382,11 @@
           }
         });
 
-        // Sort Live/Final games
+        // Sort Live/Active Final games by priority
         liveOrFinalGames.sort((a, b) => b.priority - a.priority);
+
+        // Sort Past-Deadline games chronologically
+        pastDeadlineGames.sort((a, b) => b.gameDate - a.gameDate);
 
         // Sort Upcoming games
         upcomingGames.sort((a, b) => {
@@ -407,28 +411,28 @@
           return a.bestRank - b.bestRank;
         });
 
-        renderGames(liveOrFinalGames, upcomingGames);
+        renderGames(liveOrFinalGames, upcomingGames, pastDeadlineGames);
         statusElement.innerText = "Live • 30s";
       } catch (err) {
         statusElement.innerText = "Error Loading";
       }
     }
 
-    function renderGames(liveOrFinalGames, upcomingGames) {
+    function renderGames(liveOrFinalGames, upcomingGames, pastDeadlineGames) {
       const container = document.getElementById("games-container");
       container.innerHTML = "";
 
-      if (liveOrFinalGames.length === 0 && upcomingGames.length === 0) {
+      if (liveOrFinalGames.length === 0 && upcomingGames.length === 0 && pastDeadlineGames.length === 0) {
         container.innerHTML = "<p>No games found.</p>";
         return;
       }
 
-      // Render Live & Final Games First
+      // 1. Render Live & Recent Final Games First
       liveOrFinalGames.forEach(game => {
         container.appendChild(createGameCard(game));
       });
 
-      // Group Upcoming Games by Day
+      // 2. Group & Render Upcoming Games by Day
       if (upcomingGames.length > 0) {
         const gamesByDay = {};
         upcomingGames.forEach(game => {
@@ -488,12 +492,27 @@
           }
         });
       }
+
+      // 3. Render Past Deadline Games at the Very Bottom
+      if (pastDeadlineGames.length > 0) {
+        const pastHeader = document.createElement("div");
+        pastHeader.className = "day-header";
+        pastHeader.style.borderColor = "var(--subtext)";
+        pastHeader.innerText = "Earlier Results";
+        container.appendChild(pastHeader);
+
+        pastDeadlineGames.forEach(game => {
+          container.appendChild(createGameCard(game));
+        });
+      }
     }
 
     function createGameCard(game) {
       const card = document.createElement("div");
       card.className = "game-card";
-      if (game.statusState === 'in' && game.period >= 4) {
+      if (game.isPastDeadline) {
+        card.classList.add("archived");
+      } else if (game.statusState === 'in' && game.period >= 4) {
         card.classList.add("live-4q");
       } else if (game.statusState === 'in') {
         card.classList.add("live");
