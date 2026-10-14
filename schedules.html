@@ -27,6 +27,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
       margin-bottom: 20px;
       padding-bottom: 12px;
       border-bottom: 2px solid var(--accent-maroon);
@@ -158,18 +160,24 @@
         
         container.innerHTML = "";
 
-        if (!data.events || data.events.length === 0) {
-          container.innerHTML = "<p>No schedule data found.</p>";
+        // Extract events from root or nested team structure
+        const events = data.events || (data.requestedSeason && data.requestedSeason.events) || [];
+
+        if (events.length === 0) {
+          container.innerHTML = "<p style='color:var(--subtext);'>No schedule data found for this season.</p>";
           return;
         }
 
-        data.events.forEach(event => {
-          const comp = event.competitions[0];
-          const msu = comp.competitors.find(c => c.id === '344');
-          const opp = comp.competitors.find(c => c.id !== '344');
+        events.forEach(event => {
+          const comp = event.competitions && event.competitions[0];
+          if (!comp) return;
+
+          // Find MSU competitor vs Opponent competitor
+          const msu = comp.competitors.find(c => String(c.id) === '344') || comp.competitors[0];
+          const opp = comp.competitors.find(c => String(c.id) !== '344') || comp.competitors[1] || msu;
 
           const isHome = msu.homeAway === 'home';
-          const statusState = event.status.type.state;
+          const statusState = (event.status && event.status.type) ? event.status.type.state : 'pre';
           const gameDate = new Date(event.date);
 
           const formattedDate = gameDate.toLocaleDateString('en-US', {
@@ -183,19 +191,25 @@
             minute: '2-digit'
           });
 
-          const oppRank = (opp.curatedRank && opp.curatedRank.current <= 25) 
-            ? `<span style="color:#fbbf24;">#${opp.curatedRank.current}</span> ` 
-            : '';
+          // Opponent Name & Rank
+          const oppTeam = opp.team || {};
+          const oppDisplayName = oppTeam.shortDisplayName || oppTeam.displayName || oppTeam.name || "TBD";
+          
+          let oppRank = '';
+          if (opp.curatedRank && opp.curatedRank.current && opp.curatedRank.current <= 25) {
+            oppRank = `<span style="color:#fbbf24;">#${opp.curatedRank.current}</span> `;
+          }
 
+          // Broadcast info
           const tvNetwork = (comp.broadcasts && comp.broadcasts.length > 0 && comp.broadcasts[0].names)
             ? comp.broadcasts[0].names[0] 
             : "TV TBD";
 
           let resultHtml = '';
           if (statusState === 'post') {
-            const isWinner = msu.winner;
-            const msuScore = msu.score.displayValue;
-            const oppScore = opp.score.displayValue;
+            const isWinner = msu.winner || (msu.score && opp.score && parseInt(msu.score.value) > parseInt(opp.score.value));
+            const msuScore = (msu.score && (msu.score.displayValue || msu.score.value)) || "0";
+            const oppScore = (opp.score && (opp.score.displayValue || opp.score.value)) || "0";
             
             resultHtml = `
               <span class="result-badge ${isWinner ? 'result-win' : 'result-loss'}">
@@ -216,7 +230,7 @@
               <span class="game-date">${formattedDate}</span>
               <div class="opponent-name">
                 <span style="color:var(--subtext); font-size:0.8rem;">${isHome ? 'vs' : '@'}</span>
-                ${oppRank}${opp.team.shortDisplayName || opp.team.name}
+                ${oppRank}${oppDisplayName}
               </div>
             </div>
             <div class="game-right">
@@ -233,7 +247,7 @@
         });
 
       } catch (err) {
-        container.innerHTML = "<p>Error loading Mississippi State schedule.</p>";
+        container.innerHTML = "<p style='color:var(--subtext);'>Error loading Mississippi State schedule.</p>";
       }
     }
 
