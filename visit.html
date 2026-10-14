@@ -227,7 +227,6 @@
         <label><input type="checkbox" value="mens-basketball" checked> <span>🏀 Men's BB</span></label>
         <label><input type="checkbox" value="womens-basketball" checked> <span>🏀 Women's BB</span></label>
         <label><input type="checkbox" value="baseball" checked> <span>⚾ Baseball</span></label>
-        <label><input type="checkbox" value="softball" checked> <span>🥎 Softball</span></label>
       </div>
     </div>
 
@@ -237,246 +236,134 @@
   <div id="results-container">Scanning schedules...</div>
 
   <script>
-    const sportEndpoints = {
-      'football': 'football/college-football',
-      'mens-basketball': 'basketball/mens-college-basketball',
-      'womens-basketball': 'basketball/womens-college-basketball',
-      'baseball': 'baseball/college-baseball',
-      'softball': 'softball/college-softball'
-    };
-
     const sportLabels = {
       'football': '🏈 Football',
       'mens-basketball': '🏀 Men\'s Basketball',
       'womens-basketball': '🏀 Women\'s Basketball',
-      'baseball': '⚾ Baseball',
-      'softball': '🥎 Softball'
+      'baseball': '⚾ Baseball'
     };
 
-    // Complete Fallback manual array for Spring 2027 Baseball/Softball home games
-    const fallbackSpring2027Games = [
-      { sportKey: 'baseball', opponent: 'Little Rock (Exh.)', isoDate: '2026-10-30', timeStr: '6:00 PM' },
-      
-      { sportKey: 'baseball', opponent: 'Missouri', isoDate: '2027-03-19', timeStr: '6:30 PM' },
-      { sportKey: 'baseball', opponent: 'Missouri', isoDate: '2027-03-20', timeStr: '2:00 PM' },
-      { sportKey: 'baseball', opponent: 'Missouri', isoDate: '2027-03-21', timeStr: '1:00 PM' },
+    const masterDataset = [
+      // FOOTBALL
+      { sportKey: 'football', opponent: 'ULM', isoDate: '2026-09-05', timeStr: '6:30 PM', isHome: true },
+      { sportKey: 'football', opponent: 'Minnesota', isoDate: '2026-09-12', timeStr: '2:30 PM', isHome: false },
+      { sportKey: 'football', opponent: 'South Carolina', isoDate: '2026-09-19', timeStr: '3:15 PM', isHome: false },
+      { sportKey: 'football', opponent: 'Missouri', isoDate: '2026-09-26', timeStr: '6:45 PM', isHome: true },
+      { sportKey: 'football', opponent: 'Alabama', isoDate: '2026-10-03', timeStr: '11:00 AM', isHome: true },
+      { sportKey: 'football', opponent: 'LSU', isoDate: '2026-10-17', timeStr: '11:00 AM', isHome: false },
+      { sportKey: 'football', opponent: 'Oklahoma', isoDate: '2026-10-24', timeStr: 'TBD (Flex Window)', isHome: true },
+      { sportKey: 'football', opponent: 'Texas', isoDate: '2026-10-31', timeStr: 'TBD (Night Window)', isHome: false },
+      { sportKey: 'football', opponent: 'Vanderbilt', isoDate: '2026-11-07', timeStr: 'TBD (Flex Window)', isHome: true },
+      { sportKey: 'football', opponent: 'Auburn', isoDate: '2026-11-14', timeStr: 'TBD (Early Window)', isHome: true },
+      { sportKey: 'football', opponent: 'Tennessee Tech', isoDate: '2026-11-21', timeStr: '12:00 PM', isHome: true },
+      { sportKey: 'football', opponent: 'Ole Miss', isoDate: '2026-11-27', timeStr: '11:00 AM', isHome: false },
 
-      { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-02', timeStr: '6:30 PM' },
-      { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-03', timeStr: '2:00 PM' },
-      { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-04', timeStr: '1:00 PM' },
+      // MEN'S BASKETBALL
+      { sportKey: 'mens-basketball', opponent: 'North Carolina State (Exh.)', isoDate: '2026-10-18', timeStr: '3:00 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'Memphis (Exh.)', isoDate: '2026-10-23', timeStr: '7:00 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'Tennessee Tech', isoDate: '2026-11-02', timeStr: '6:30 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'Northwestern State', isoDate: '2026-11-05', timeStr: '6:30 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'Jackson State', isoDate: '2026-11-09', timeStr: '6:30 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'Xavier', isoDate: '2026-11-13', timeStr: '8:00 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'UCF', isoDate: '2026-11-17', timeStr: '6:00 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'Tulsa', isoDate: '2026-11-20', timeStr: '6:30 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'Wake Forest', isoDate: '2026-11-25', timeStr: '6:30 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'TBA (Battle 4 Atlantis)', isoDate: '2026-11-27', timeStr: 'TBD', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'Georgia Tech', isoDate: '2026-12-02', timeStr: '8:15 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'Alabama A&M', isoDate: '2026-12-07', timeStr: '6:00 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'Marquette', isoDate: '2026-12-12', timeStr: '5:30 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'Mississippi Valley State', isoDate: '2026-12-15', timeStr: '6:30 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'VCU', isoDate: '2026-12-19', timeStr: '2:00 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'Campbell', isoDate: '2026-12-28', timeStr: '6:30 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'Alabama', isoDate: '2027-01-02', timeStr: '5:00 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'Vanderbilt', isoDate: '2027-01-06', timeStr: '6:00 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'Oklahoma', isoDate: '2027-01-09', timeStr: '5:00 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'Florida', isoDate: '2027-01-13', timeStr: '8:00 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'Georgia', isoDate: '2027-01-16', timeStr: '2:30 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'Kentucky', isoDate: '2027-01-20', timeStr: '7:30 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'South Carolina', isoDate: '2027-01-23', timeStr: '12:00 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'Auburn', isoDate: '2027-01-26', timeStr: '6:00 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'Arkansas', isoDate: '2027-01-30', timeStr: '7:30 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'Missouri', isoDate: '2027-02-03', timeStr: '7:00 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'Texas A&M', isoDate: '2027-02-06', timeStr: '5:00 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'Ole Miss', isoDate: '2027-02-13', timeStr: '7:30 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'Alabama', isoDate: '2027-02-16', timeStr: '8:00 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'LSU', isoDate: '2027-02-20', timeStr: '5:00 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'Texas', isoDate: '2027-02-24', timeStr: '6:00 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'South Carolina', isoDate: '2027-02-27', timeStr: '12:00 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'Tennessee', isoDate: '2027-03-02', timeStr: '5:00 PM', isHome: false },
+      { sportKey: 'mens-basketball', opponent: 'Ole Miss', isoDate: '2027-03-06', timeStr: '3:00 PM', isHome: true },
+      { sportKey: 'mens-basketball', opponent: 'TBA (SEC Tournament)', isoDate: '2027-03-10', timeStr: 'TBD', isHome: false },
 
-      { sportKey: 'baseball', opponent: 'Texas A&M', isoDate: '2027-04-16', timeStr: '6:30 PM' },
-      { sportKey: 'baseball', opponent: 'Texas A&M', isoDate: '2027-04-17', timeStr: '2:00 PM' },
-      { sportKey: 'baseball', opponent: 'Texas A&M', isoDate: '2027-04-18', timeStr: '1:00 PM' },
+      // WOMEN'S BASKETBALL
+      { sportKey: 'womens-basketball', opponent: 'Louisiana Tech', isoDate: '2026-10-18', timeStr: '4:00 PM', isHome: false },
+      { sportKey: 'womens-basketball', opponent: 'North Alabama', isoDate: '2026-11-03', timeStr: '6:30 PM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'UT Martin', isoDate: '2026-11-08', timeStr: '2:00 PM', isHome: false },
+      { sportKey: 'womens-basketball', opponent: 'Troy', isoDate: '2026-11-11', timeStr: '6:30 PM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'Buffalo', isoDate: '2026-11-14', timeStr: '11:00 AM', isHome: false },
+      { sportKey: 'womens-basketball', opponent: 'Alabama State', isoDate: '2026-11-17', timeStr: '11:00 AM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'Southern Miss', isoDate: '2026-11-22', timeStr: '2:00 PM', isHome: false },
+      { sportKey: 'womens-basketball', opponent: 'Indiana', isoDate: '2026-11-27', timeStr: '10:00 AM', isHome: false },
+      { sportKey: 'womens-basketball', opponent: 'TCU', isoDate: '2026-11-28', timeStr: '10:00 AM', isHome: false },
+      { sportKey: 'womens-basketball', opponent: 'Virginia', isoDate: '2026-12-03', timeStr: '8:00 PM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'Sam Houston', isoDate: '2026-12-06', timeStr: '5:00 PM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'Texas Tech', isoDate: '2026-12-13', timeStr: '2:00 PM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'Samford', isoDate: '2026-12-16', timeStr: '6:30 PM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'Davidson', isoDate: '2026-12-20', timeStr: '12:00 PM', isHome: false },
+      { sportKey: 'womens-basketball', opponent: 'Jackson State', isoDate: '2026-12-28', timeStr: '3:00 PM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'Missouri', isoDate: '2026-12-31', timeStr: 'TBD', isHome: false },
+      { sportKey: 'womens-basketball', opponent: 'Texas A&M', isoDate: '2027-01-03', timeStr: '2:00 PM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'South Carolina', isoDate: '2027-01-07', timeStr: '6:00 PM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'Vanderbilt', isoDate: '2027-01-10', timeStr: '5:00 PM', isHome: false },
+      { sportKey: 'womens-basketball', opponent: 'LSU', isoDate: '2027-01-14', timeStr: '7:00 PM', isHome: false },
+      { sportKey: 'womens-basketball', opponent: 'Oklahoma', isoDate: '2027-01-21', timeStr: '6:30 PM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'Texas', isoDate: '2027-01-24', timeStr: '4:00 PM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'Arkansas', isoDate: '2027-01-28', timeStr: '6:30 PM', isHome: false },
+      { sportKey: 'womens-basketball', opponent: 'Georgia', isoDate: '2027-01-31', timeStr: '11:00 AM', isHome: false },
+      { sportKey: 'womens-basketball', opponent: 'Tennessee', isoDate: '2027-02-04', timeStr: '6:30 PM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'Ole Miss', isoDate: '2027-02-07', timeStr: '3:00 PM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'Florida', isoDate: '2027-02-11', timeStr: 'TBD', isHome: false },
+      { sportKey: 'womens-basketball', opponent: 'Auburn', isoDate: '2027-02-15', timeStr: '7:00 PM', isHome: false },
+      { sportKey: 'womens-basketball', opponent: 'Alabama', isoDate: '2027-02-21', timeStr: '2:00 PM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'Arkansas', isoDate: '2027-02-25', timeStr: '6:30 PM', isHome: true },
+      { sportKey: 'womens-basketball', opponent: 'Kentucky', isoDate: '2027-02-28', timeStr: '1:00 PM', isHome: false },
 
-      { sportKey: 'baseball', opponent: 'Oklahoma', isoDate: '2027-04-30', timeStr: '6:30 PM' },
-      { sportKey: 'baseball', opponent: 'Oklahoma', isoDate: '2027-05-01', timeStr: '2:00 PM' },
-      { sportKey: 'baseball', opponent: 'Oklahoma', isoDate: '2027-05-02', timeStr: '1:00 PM' },
-
-      { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-20', timeStr: '6:30 PM' },
-      { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-21', timeStr: '2:00 PM' },
-      { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-22', timeStr: '1:00 PM' }
-    ];
-
-    const seasonsToQuery = [2026, 2027];
-
-    async function calculateHomestands() {
-      const container = document.getElementById("results-container");
-      container.innerHTML = "<p style='color:var(--subtext);'>Scanning 2026-2027 home schedules...</p>";
-
-      const daysInput = document.getElementById("trip-days");
-      let selectedDays = parseInt(daysInput.value);
-      if (isNaN(selectedDays) || selectedDays < 1) selectedDays = 1;
-      if (selectedDays > 5) selectedDays = 5;
-      daysInput.value = selectedDays;
-
-      const checkedSports = Array.from(document.querySelectorAll('.sports-toggles input:checked')).map(cb => cb.value);
-
-      if (checkedSports.length === 0) {
-        container.innerHTML = "<p style='color:var(--subtext);'>Please select at least one sport toggle.</p>";
-        return;
-      }
-
-      try {
-        let fetchTasks = [];
-
-        checkedSports.forEach(sportKey => {
-          const path = sportEndpoints[sportKey];
-          seasonsToQuery.forEach(season => {
-            const url = `https://site.api.espn.com/apis/site/v2/sports/${path}/teams/344/schedule?season=${season}`;
-            fetchTasks.push(
-              fetch(url)
-                .then(r => r.json())
-                .then(data => ({ sportKey, season, events: data.events || [] }))
-                .catch(() => ({ sportKey, season, events: [] }))
-            );
-          });
-        });
-
-        const responses = await Promise.all(fetchTasks);
-        const homeGamesMap = new Map();
-
-        let apiHas2027SpringData = false;
-
-        responses.forEach(({ sportKey, season, events }) => {
-          if (season === 2027 && (sportKey === 'baseball' || sportKey === 'softball') && events.length > 0) {
-            apiHas2027SpringData = true;
-          }
-
-          events.forEach(event => {
-            const comp = event.competitions && event.competitions[0];
-            if (!comp) return;
-
-            const msu = comp.competitors.find(c => String(c.id) === '344') || comp.competitors[0];
-            const opp = comp.competitors.find(c => String(c.id) !== '344') || comp.competitors[1] || msu;
-
-            if (msu.homeAway === 'home') {
-              const gameDate = new Date(event.date);
-              const isoDate = event.date.split("T")[0];
-              const uniqueGameKey = `${event.id}_${sportKey}`;
-
-              const isTimeValid = event.timeValid !== false;
-              let timeStr = gameDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-              if (!isTimeValid || timeStr === "12:00 AM") timeStr = "TBD";
-
-              homeGamesMap.set(uniqueGameKey, {
-                sportKey,
-                opponent: (opp.team && (opp.team.shortDisplayName || opp.team.name)) || "TBD",
-                date: gameDate,
-                isoDate: isoDate,
-                timeStr
-              });
-            }
-          });
-        });
-
-        if (!apiHas2027SpringData) {
-          fallbackSpring2027Games.forEach(item => {
-            if (checkedSports.includes(item.sportKey)) {
-              const gameDate = new Date(item.isoDate + 'T14:00:00');
-              const uniqueKey = `fallback_${item.sportKey}_${item.isoDate}`;
-              homeGamesMap.set(uniqueKey, {
-                sportKey: item.sportKey,
-                opponent: item.opponent,
-                date: gameDate,
-                isoDate: item.isoDate,
-                timeStr: item.timeStr
-              });
-            }
-          });
-        }
-
-        const allHomeGames = Array.from(homeGamesMap.values());
-
-        if (allHomeGames.length === 0) {
-          container.innerHTML = "<p style='color:var(--subtext);'>No upcoming home games found for the selected toggles.</p>";
-          return;
-        }
-
-        allHomeGames.sort((a, b) => a.date - b.date);
-
-        const gamesByDate = {};
-        allHomeGames.forEach(game => {
-          if (!gamesByDate[game.isoDate]) gamesByDate[game.isoDate] = [];
-          gamesByDate[game.isoDate].push(game);
-        });
-
-        const sortedIsoDates = Object.keys(gamesByDate).sort();
-        const candidateWindows = [];
-
-        for (let i = 0; i < sortedIsoDates.length; i++) {
-          const startDate = new Date(sortedIsoDates[i] + 'T00:00:00');
-          const windowEndDate = new Date(startDate);
-          windowEndDate.setDate(startDate.getDate() + (selectedDays - 1));
-
-          let windowGames = [];
-          sortedIsoDates.forEach(dateStr => {
-            const d = new Date(dateStr + 'T00:00:00');
-            if (d >= startDate && d <= windowEndDate) {
-              windowGames.push(...gamesByDate[dateStr]);
-            }
-          });
-
-          if (windowGames.length >= 2) {
-            const sportsSet = new Set(windowGames.map(g => g.sportKey));
-            candidateWindows.push({
-              startDate,
-              windowEndDate,
-              games: windowGames,
-              sportCount: sportsSet.size
-            });
-          }
-        }
-
-        const uniqueCandidates = [];
-        const seenSignatures = new Set();
-
-        candidateWindows.forEach(w => {
-          const sig = w.games.map(g => g.isoDate + g.sportKey + g.opponent).join('|');
-          if (!seenSignatures.has(sig)) {
-            seenSignatures.add(sig);
-            uniqueCandidates.push(w);
-          }
-        });
-
-        renderCandidates(uniqueCandidates, selectedDays);
-
-      } catch (err) {
-        container.innerHTML = "<p style='color:var(--subtext);'>Error processing schedules.</p>";
-      }
-    }
-
-    function renderCandidates(windows, tripDays) {
-      const container = document.getElementById("results-container");
-      container.innerHTML = "";
-
-      if (windows.length === 0) {
-        container.innerHTML = `<p style='color:var(--subtext);'>No multi-game homestands found for a ${tripDays}-day trip with current filters.</p>`;
-        return;
-      }
-
-      windows.forEach(w => {
-        const startLabel = w.startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
-        const endLabel = w.windowEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
-
-        const dateHeaderStr = (tripDays === 1 || w.startDate.getTime() === w.windowEndDate.getTime())
-          ? startLabel
-          : `${startLabel} – ${endLabel}`;
-
-        const card = document.createElement("div");
-        card.className = "candidate-card";
-
-        let gamesHtml = w.games.map(g => {
-          const dayName = g.date.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
-          return `
-            <div class="game-line">
-              <span><strong class="sport-title">${sportLabels[g.sportKey]}</strong> vs ${g.opponent}</span>
-              <span>${dayName} • ${g.timeStr}</span>
-            </div>
-          `;
-        }).join('');
-
-        const multiSportBadge = w.sportCount > 1 
-          ? `<span class="badge badge-multi">${w.sportCount} Sports Crossover</span>` 
-          : '';
-
-        card.innerHTML = `
-          <div class="candidate-header">
-            <span class="date-range">${dateHeaderStr}</span>
-            <div class="badge-group">
-              ${multiSportBadge}
-              <span class="badge">${w.games.length} Home Games</span>
-            </div>
-          </div>
-          ${gamesHtml}
-        `;
-
-        container.appendChild(card);
-      });
-    }
-
-    calculateHomestands();
-  </script>
-
-</body>
-</html>
+      // BASEBALL
+      { sportKey: 'baseball', opponent: 'Auburn (Exh.)', isoDate: '2026-10-08', timeStr: '6:00 PM', isHome: false },
+      { sportKey: 'baseball', opponent: 'Southern Miss (Exh.)', isoDate: '2026-10-10', timeStr: '2:00 PM', isHome: false },
+      { sportKey: 'baseball', opponent: 'Western Kentucky (Exh.)', isoDate: '2026-10-18', timeStr: '1:00 PM', isHome: false },
+      { sportKey: 'baseball', opponent: 'Little Rock (Exh.)', isoDate: '2026-10-30', timeStr: '6:00 PM', isHome: true },
+      { sportKey: 'baseball', opponent: 'Dallas Baptist', isoDate: '2027-03-05', timeStr: '7:00 PM', isHome: false },
+      { sportKey: 'baseball', opponent: 'UCLA', isoDate: '2027-03-06', timeStr: '3:00 PM', isHome: false },
+      { sportKey: 'baseball', opponent: 'Wake Forest', isoDate: '2027-03-07', timeStr: '10:30 AM', isHome: false },
+      { sportKey: 'baseball', opponent: 'Missouri', isoDate: '2027-03-19', timeStr: 'TBD', isHome: true },
+      { sportKey: 'baseball', opponent: 'Missouri', isoDate: '2027-03-20', timeStr: 'TBD', isHome: true },
+      { sportKey: 'baseball', opponent: 'Missouri', isoDate: '2027-03-21', timeStr: 'TBD', isHome: true },
+      { sportKey: 'baseball', opponent: 'Georgia', isoDate: '2027-03-25', timeStr: 'TBD', isHome: false },
+      { sportKey: 'baseball', opponent: 'Georgia', isoDate: '2027-03-26', timeStr: 'TBD', isHome: false },
+      { sportKey: 'baseball', opponent: 'Georgia', isoDate: '2027-03-27', timeStr: 'TBD', isHome: false },
+      { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-02', timeStr: 'TBD', isHome: true },
+      { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-03', timeStr: 'TBD', isHome: true },
+      { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-04', timeStr: 'TBD', isHome: true },
+      { sportKey: 'baseball', opponent: 'Florida', isoDate: '2027-04-09', timeStr: 'TBD', isHome: false },
+      { sportKey: 'baseball', opponent: 'Florida', isoDate: '2027-04-10', timeStr: 'TBD', isHome: false },
+      { sportKey: 'baseball', opponent: 'Florida', isoDate: '2027-04-11', timeStr: 'TBD', isHome: false },
+      { sportKey: 'baseball', opponent: 'Texas A&M', isoDate: '2027-04-16', timeStr: 'TBD', isHome: true },
+      { sportKey: 'baseball', opponent: 'Texas A&M', isoDate: '2027-04-17', timeStr: 'TBD', isHome: true },
+      { sportKey: 'baseball', opponent: 'Texas A&M', isoDate: '2027-04-18', timeStr: 'TBD', isHome: true },
+      { sportKey: 'baseball', opponent: 'Vanderbilt', isoDate: '2027-04-23', timeStr: 'TBD', isHome: false },
+      { sportKey: 'baseball', opponent: 'Vanderbilt', isoDate: '2027-04-24', timeStr: 'TBD', isHome: false },
+      { sportKey: 'baseball', opponent: 'Vanderbilt', isoDate: '2027-04-25', timeStr: 'TBD', isHome: false },
+      { sportKey: 'baseball', opponent: 'Oklahoma', isoDate: '2027-04-30', timeStr: 'TBD', isHome: true },
+      { sportKey: 'baseball', opponent: 'Oklahoma', isoDate: '2027-05-01', timeStr: 'TBD', isHome: true },
+      { sportKey: 'baseball', opponent: 'Oklahoma', isoDate: '2027-05-02', timeStr: 'TBD', isHome: true },
+      { sportKey: 'baseball', opponent: 'Tennessee', isoDate: '2027-05-07', timeStr: 'TBD', isHome: false },
+      { sportKey: 'baseball', opponent: 'Tennessee', isoDate: '2027-05-08', timeStr: 'TBD', isHome: false },
+      { sportKey: 'baseball', opponent: 'Tennessee', isoDate: '2027-05-09', timeStr: 'TBD', isHome: false },
+      { sportKey: 'baseball', opponent: 'LSU', isoDate: '2027-05-14', timeStr: 'TBD', isHome: false },
+      { sportKey: 'baseball', opponent: 'LSU', isoDate: '2027-05-15', timeStr: 'TBD', isHome: false },
+      { sportKey: 'baseball', opponent: 'LSU', isoDate: '2027-05-16', timeStr: 'TBD', isHome: false },
+      { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-20', timeStr: 'TBD', isHome: true },
+      { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-21', timeStr: 'TBD', isHome: true },
+      { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-22', timeStr: 'TBD', isHome: true },
+      { sportKey: 'baseball', opponent: 'SEC Tourn
