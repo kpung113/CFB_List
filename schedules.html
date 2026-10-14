@@ -29,7 +29,7 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 12px;
       padding-bottom: 12px;
       border-bottom: 2px solid var(--accent-maroon);
     }
@@ -73,6 +73,18 @@
       background: var(--accent-maroon);
       border-color: #7d2033;
     }
+    .record-banner {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--subtext);
+      margin-bottom: 16px;
+      padding: 6px 12px;
+      background: #12131a;
+      border-left: 4px solid var(--accent-maroon);
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
     .schedule-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -111,7 +123,7 @@
     .result-badge {
       font-weight: 800;
       font-size: 0.85rem;
-      padding: 2px 8px;
+      padding: 3px 8px;
       border-radius: 4px;
       display: inline-block;
     }
@@ -150,16 +162,25 @@
     </nav>
   </header>
 
-  <div id="schedule-container">Loading Mississippi State Schedule...</div>
+  <div id="record-container" class="record-banner" style="display:none;"></div>
+  <div id="schedule-container">Loading 2026 Mississippi State Schedule...</div>
 
   <script>
     async function fetchMSUSchedule() {
       const container = document.getElementById("schedule-container");
+      const recordContainer = document.getElementById("record-container");
+
       try {
         const response = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule");
         const data = await response.json();
         
         container.innerHTML = "";
+
+        // Render Overall Team Record if available
+        if (data.team && data.team.recordSummary) {
+          recordContainer.style.display = "flex";
+          recordContainer.innerHTML = `<span>2026 Mississippi State Bulldogs</span> <span>Record: <strong style="color:#fff;">${data.team.recordSummary}</strong></span>`;
+        }
 
         const events = data.events || (data.requestedSeason && data.requestedSeason.events) || [];
 
@@ -177,6 +198,8 @@
 
           const isHome = msu.homeAway === 'home';
           const statusState = (event.status && event.status.type) ? event.status.type.state : 'pre';
+          const isCompleted = (event.status && event.status.type && event.status.type.completed) || statusState === 'post';
+
           const gameDate = new Date(event.date);
 
           const formattedDate = gameDate.toLocaleDateString('en-US', {
@@ -204,23 +227,24 @@
 
           let resultHtml = '';
 
-          if (statusState === 'post') {
-            // Read scores safely from value or displayValue
-            const getScoreVal = (c) => {
-              if (c.score && typeof c.score.value !== 'undefined') return parseInt(c.score.value);
-              if (c.score && c.score.displayValue) return parseInt(c.score.displayValue);
-              return 0;
+          // Check if game is completed or has score data populated
+          if (isCompleted || (msu.score && opp.score)) {
+            const getScoreStr = (c) => {
+              if (c.score && typeof c.score.value !== 'undefined') return String(c.score.value);
+              if (c.score && c.score.displayValue) return String(c.score.displayValue);
+              if (typeof c.score === 'string' || typeof c.score === 'number') return String(c.score);
+              return "0";
             };
 
-            const msuScore = getScoreVal(msu);
-            const oppScore = getScoreVal(opp);
+            const msuScoreNum = parseInt(getScoreStr(msu));
+            const oppScoreNum = parseInt(getScoreStr(opp));
 
-            // Determine winner based on boolean flag or score comparison
-            const isWinner = msu.winner === true || (msuScore > oppScore);
+            // Determine winner
+            const isWinner = msu.winner === true || (msuScoreNum > oppScoreNum);
 
             resultHtml = `
               <span class="result-badge ${isWinner ? 'result-win' : 'result-loss'}">
-                ${isWinner ? 'W' : 'L'} ${msuScore}-${oppScore}
+                ${isWinner ? 'W' : 'L'} ${msuScoreNum}-${oppScoreNum}
               </span>
             `;
           } else {
