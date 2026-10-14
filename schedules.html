@@ -194,21 +194,35 @@
       'softball': 'Softball'
     };
 
-    // Fallback manual array for Spring 2027 Baseball/Softball home games
+    // Complete Fallback manual array for Spring 2027 Baseball/Softball home games
     const fallbackSpring2027Games = [
-      { sportKey: 'baseball', opponent: 'Opening Weekend', isoDate: '2027-02-19', timeStr: '4:00 PM' },
-      { sportKey: 'baseball', opponent: 'Opening Weekend', isoDate: '2027-02-20', timeStr: '2:00 PM' },
-      { sportKey: 'baseball', opponent: 'Opening Weekend', isoDate: '2027-02-21', timeStr: '1:00 PM' },
-      { sportKey: 'softball', opponent: 'Bulldog Invitational', isoDate: '2027-02-26', timeStr: '5:00 PM' },
-      { sportKey: 'softball', opponent: 'Bulldog Invitational', isoDate: '2027-02-27', timeStr: '2:00 PM' },
-      { sportKey: 'baseball', opponent: 'SEC Home Series', isoDate: '2027-03-19', timeStr: '6:30 PM' },
-      { sportKey: 'baseball', opponent: 'SEC Home Series', isoDate: '2027-03-20', timeStr: '2:00 PM' },
-      { sportKey: 'baseball', opponent: 'SEC Home Series', isoDate: '2027-03-21', timeStr: '1:00 PM' },
-      { sportKey: 'softball', opponent: 'SEC Home Series', isoDate: '2027-03-26', timeStr: '6:00 PM' },
-      { sportKey: 'softball', opponent: 'SEC Home Series', isoDate: '2027-03-27', timeStr: '2:00 PM' },
-      { sportKey: 'baseball', opponent: 'SEC Home Series', isoDate: '2027-04-16', timeStr: '6:30 PM' },
-      { sportKey: 'baseball', opponent: 'SEC Home Series', isoDate: '2027-04-17', timeStr: '2:00 PM' },
-      { sportKey: 'baseball', opponent: 'SEC Home Series', isoDate: '2027-04-18', timeStr: '1:00 PM' }
+      // Fall exhibition / early setup placeholders
+      { sportKey: 'baseball', opponent: 'Little Rock (Exh.)', isoDate: '2026-10-30', timeStr: '6:00 PM' },
+      
+      // SEC Home Series: vs Missouri (Mar 19-21)
+      { sportKey: 'baseball', opponent: 'Missouri', isoDate: '2027-03-19', timeStr: '6:30 PM' },
+      { sportKey: 'baseball', opponent: 'Missouri', isoDate: '2027-03-20', timeStr: '2:00 PM' },
+      { sportKey: 'baseball', opponent: 'Missouri', isoDate: '2027-03-21', timeStr: '1:00 PM' },
+
+      // SEC Home Series: vs Ole Miss (Apr 2-4)
+      { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-02', timeStr: '6:30 PM' },
+      { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-03', timeStr: '2:00 PM' },
+      { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-04', timeStr: '1:00 PM' },
+
+      // SEC Home Series: vs Texas A&M (Apr 16-18)
+      { sportKey: 'baseball', opponent: 'Texas A&M', isoDate: '2027-04-16', timeStr: '6:30 PM' },
+      { sportKey: 'baseball', opponent: 'Texas A&M', isoDate: '2027-04-17', timeStr: '2:00 PM' },
+      { sportKey: 'baseball', opponent: 'Texas A&M', isoDate: '2027-04-18', timeStr: '1:00 PM' },
+
+      // SEC Home Series: vs Oklahoma (Apr 30 - May 2)
+      { sportKey: 'baseball', opponent: 'Oklahoma', isoDate: '2027-04-30', timeStr: '6:30 PM' },
+      { sportKey: 'baseball', opponent: 'Oklahoma', isoDate: '2027-05-01', timeStr: '2:00 PM' },
+      { sportKey: 'baseball', opponent: 'Oklahoma', isoDate: '2027-05-02', timeStr: '1:00 PM' },
+
+      // SEC Home Series: vs Arkansas (May 20-22)
+      { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-20', timeStr: '6:30 PM' },
+      { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-21', timeStr: '2:00 PM' },
+      { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-22', timeStr: '1:00 PM' }
     ];
 
     const completedFootballGamesMap = {
