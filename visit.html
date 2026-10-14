@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Starkville Trip Planner (2026-2027)</title>
+  <title>Starkville Visit Planner (2026-2027)</title>
   <style>
     :root {
       --bg: #0b0c10;
@@ -253,23 +253,29 @@
       'softball': '🥎 Softball'
     };
 
-    // Fallback manual array for Spring 2027 Baseball/Softball home games 
-    // (used automatically if ESPN API returns blank for 2027 spring sports)
+    // Complete Fallback manual array for Spring 2027 Baseball/Softball home games
     const fallbackSpring2027Games = [
-      // Example verified 2027 Spring home placeholders / known series windows
-      { sportKey: 'baseball', opponent: 'Opening Weekend', isoDate: '2027-02-19', timeStr: '4:00 PM' },
-      { sportKey: 'baseball', opponent: 'Opening Weekend', isoDate: '2027-02-20', timeStr: '2:00 PM' },
-      { sportKey: 'baseball', opponent: 'Opening Weekend', isoDate: '2027-02-21', timeStr: '1:00 PM' },
-      { sportKey: 'softball', owner: 'Bulldog Invitational', isoDate: '2027-02-26', timeStr: '5:00 PM' },
-      { sportKey: 'softball', owner: 'Bulldog Invitational', isoDate: '2027-02-27', timeStr: '2:00 PM' },
-      { sportKey: 'baseball', opponent: 'SEC Home Series', isoDate: '2027-03-19', timeStr: '6:30 PM' },
-      { sportKey: 'baseball', opponent: 'SEC Home Series', isoDate: '2027-03-20', timeStr: '2:00 PM' },
-      { sportKey: 'baseball', opponent: 'SEC Home Series', isoDate: '2027-03-21', timeStr: '1:00 PM' },
-      { sportKey: 'softball', opponent: 'SEC Home Series', isoDate: '2027-03-26', timeStr: '6:00 PM' },
-      { sportKey: 'softball', opponent: 'SEC Home Series', isoDate: '2027-03-27', timeStr: '2:00 PM' },
-      { sportKey: 'baseball', opponent: 'SEC Home Series', isoDate: '2027-04-16', timeStr: '6:30 PM' },
-      { sportKey: 'baseball', opponent: 'SEC Home Series', isoDate: '2027-04-17', timeStr: '2:00 PM' },
-      { sportKey: 'baseball', opponent: 'SEC Home Series', isoDate: '2027-04-18', timeStr: '1:00 PM' }
+      { sportKey: 'baseball', opponent: 'Little Rock (Exh.)', isoDate: '2026-10-30', timeStr: '6:00 PM' },
+      
+      { sportKey: 'baseball', opponent: 'Missouri', isoDate: '2027-03-19', timeStr: '6:30 PM' },
+      { sportKey: 'baseball', opponent: 'Missouri', isoDate: '2027-03-20', timeStr: '2:00 PM' },
+      { sportKey: 'baseball', opponent: 'Missouri', isoDate: '2027-03-21', timeStr: '1:00 PM' },
+
+      { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-02', timeStr: '6:30 PM' },
+      { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-03', timeStr: '2:00 PM' },
+      { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-04', timeStr: '1:00 PM' },
+
+      { sportKey: 'baseball', opponent: 'Texas A&M', isoDate: '2027-04-16', timeStr: '6:30 PM' },
+      { sportKey: 'baseball', opponent: 'Texas A&M', isoDate: '2027-04-17', timeStr: '2:00 PM' },
+      { sportKey: 'baseball', opponent: 'Texas A&M', isoDate: '2027-04-18', timeStr: '1:00 PM' },
+
+      { sportKey: 'baseball', opponent: 'Oklahoma', isoDate: '2027-04-30', timeStr: '6:30 PM' },
+      { sportKey: 'baseball', opponent: 'Oklahoma', isoDate: '2027-05-01', timeStr: '2:00 PM' },
+      { sportKey: 'baseball', opponent: 'Oklahoma', isoDate: '2027-05-02', timeStr: '1:00 PM' },
+
+      { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-20', timeStr: '6:30 PM' },
+      { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-21', timeStr: '2:00 PM' },
+      { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-22', timeStr: '1:00 PM' }
     ];
 
     const seasonsToQuery = [2026, 2027];
@@ -310,7 +316,6 @@
         const responses = await Promise.all(fetchTasks);
         const homeGamesMap = new Map();
 
-        // Track if 2027 baseball/softball returned actual data from ESPN
         let apiHas2027SpringData = false;
 
         responses.forEach(({ sportKey, season, events }) => {
@@ -345,7 +350,6 @@
           });
         });
 
-        // If ESPN is blank for 2027 spring sports, inject fallback array items for checked sports
         if (!apiHas2027SpringData) {
           fallbackSpring2027Games.forEach(item => {
             if (checkedSports.includes(item.sportKey)) {
