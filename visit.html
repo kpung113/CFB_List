@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Starkville Homestand Planner (2026-2027)</title>
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --card-bg: #181920;
+      --card-border: #272935;
+      --text: #f8fafc;
+      --accent-maroon: #5d1725;
+      --subtext: #94a3b8;
+      --gold: #fbbf24;
+      --green: #22c55e;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 12px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--accent-maroon);
+    }
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .msu-logo {
+      height: 32px;
+      width: auto;
+      object-fit: contain;
+    }
+    h1 { margin: 0; font-size: 1rem; font-weight: 800; letter-spacing: -0.5px; }
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+    }
+    .nav-tabs a {
+      color: var(--subtext);
+      text-decoration: none;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      background: #181920;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .nav-tabs a.active, .nav-tabs a:hover {
+      color: #fff;
+      background: var(--accent-maroon);
+      border-color: #7d2033;
+    }
+
+    /* Filter Controls */
+    .filter-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8rem;
+    }
+    .filter-label {
+      font-weight: 700;
+      color: var(--gold);
+      min-width: 110px;
+    }
+    .days-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    input[type="number"] {
+      background: #12131a;
+      color: #fff;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 4px 8px;
+      width: 50px;
+      font-weight: bold;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+    .sports-toggles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .sports-toggles label {
+      background: #12131a;
+      border: 1px solid var(--card-border);
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .sports-toggles input:checked + span {
+      color: #fff;
+      font-weight: bold;
+    }
+    .search-btn {
+      background: var(--accent-maroon);
+      color: #fff;
+      border: 1px solid #7d2033;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 0.8rem;
+      cursor: pointer;
+      align-self: flex-start;
+      margin-top: 2px;
+    }
+
+    /* Candidate Cards */
+    .candidate-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      border-left: 4px solid var(--accent-maroon);
+    }
+    .candidate-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #222530;
+    }
+    .date-range {
+      font-weight: 800;
+      font-size: 0.85rem;
+      color: #fff;
+    }
+    .badge-group {
+      display: flex;
+      gap: 4px;
+    }
+    .badge {
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--gold);
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+    .badge-multi {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--green);
+      border-color: rgba(34, 19
+                         
