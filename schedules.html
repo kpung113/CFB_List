@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -173,7 +172,7 @@
     <button class="sport-tab" onclick="filterSport('baseball', this)">⚾ Baseball</button>
   </div>
 
-  <div id="schedule-container"></div>
+  <div id="schedule-container">Loading complete schedules...</div>
 
   <script>
     const sportLabels = {
@@ -284,4 +283,97 @@
       { sportKey: 'baseball', opponent: 'Georgia', isoDate: '2027-03-27', timeStr: 'TBD', isHome: false, location: 'Athens, Ga.', result: '' },
       { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-02', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
       { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-03', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
-      { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-04', timeStr: 'TBD', isHome: true, lo
+      { sportKey: 'baseball', opponent: 'Ole Miss', isoDate: '2027-04-04', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
+      { sportKey: 'baseball', opponent: 'Florida', isoDate: '2027-04-09', timeStr: 'TBD', isHome: false, location: 'Gainesville, Fla.', result: '' },
+      { sportKey: 'baseball', opponent: 'Florida', isoDate: '2027-04-10', timeStr: 'TBD', isHome: false, location: 'Gainesville, Fla.', result: '' },
+      { sportKey: 'baseball', opponent: 'Florida', isoDate: '2027-04-11', timeStr: 'TBD', isHome: false, location: 'Gainesville, Fla.', result: '' },
+      { sportKey: 'baseball', opponent: 'Texas A&M', isoDate: '2027-04-16', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
+      { sportKey: 'baseball', opponent: 'Texas A&M', isoDate: '2027-04-17', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
+      { sportKey: 'baseball', opponent: 'Texas A&M', isoDate: '2027-04-18', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
+      { sportKey: 'baseball', opponent: 'Vanderbilt', isoDate: '2027-04-23', timeStr: 'TBD', isHome: false, location: 'Nashville, Tenn.', result: '' },
+      { sportKey: 'baseball', opponent: 'Vanderbilt', isoDate: '2027-04-24', timeStr: 'TBD', isHome: false, location: 'Nashville, Tenn.', result: '' },
+      { sportKey: 'baseball', opponent: 'Vanderbilt', isoDate: '2027-04-25', timeStr: 'TBD', isHome: false, location: 'Nashville, Tenn.', result: '' },
+      { sportKey: 'baseball', opponent: 'Oklahoma', isoDate: '2027-04-30', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
+      { sportKey: 'baseball', opponent: 'Oklahoma', isoDate: '2027-05-01', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
+      { sportKey: 'baseball', opponent: 'Oklahoma', isoDate: '2027-05-02', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
+      { sportKey: 'baseball', opponent: 'Tennessee', isoDate: '2027-05-07', timeStr: 'TBD', isHome: false, location: 'Knoxville, Tenn.', result: '' },
+      { sportKey: 'baseball', opponent: 'Tennessee', isoDate: '2027-05-08', timeStr: 'TBD', isHome: false, location: 'Knoxville, Tenn.', result: '' },
+      { sportKey: 'baseball', opponent: 'Tennessee', isoDate: '2027-05-09', timeStr: 'TBD', isHome: false, location: 'Knoxville, Tenn.', result: '' },
+      { sportKey: 'baseball', opponent: 'LSU', isoDate: '2027-05-14', timeStr: 'TBD', isHome: false, location: 'Baton Rouge, La.', result: '' },
+      { sportKey: 'baseball', opponent: 'LSU', isoDate: '2027-05-15', timeStr: 'TBD', isHome: false, location: 'Baton Rouge, La.', result: '' },
+      { sportKey: 'baseball', opponent: 'LSU', isoDate: '2027-05-16', timeStr: 'TBD', isHome: false, location: 'Baton Rouge, La.', result: '' },
+      { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-20', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
+      { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-21', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
+      { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-22', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
+      { sportKey: 'baseball', opponent: 'SEC Tournament', isoDate: '2027-05-25', timeStr: 'TBD', isHome: false, location: 'Hoover, Ala. (Hoover Metropolitan Stadium)', result: '' }
+    ];
+
+    let currentFilter = 'all';
+
+    function renderSchedule() {
+      const container = document.getElementById("schedule-container");
+      if (!container) return;
+      container.innerHTML = "";
+
+      const filtered = masterDataset.filter(ev => {
+        if (currentFilter === 'all') return true;
+        return ev.sportKey === currentFilter;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = "<p style='color:var(--subtext);'>No games found for this selection.</p>";
+        return;
+      }
+
+      filtered.forEach(ev => {
+        const gameDate = new Date(ev.isoDate + 'T00:00:00');
+        const dateFormatted = gameDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+        let resultBadgeHtml = '';
+        if (ev.result) {
+          const isWin = ev.result.startsWith('W');
+          resultBadgeHtml = `<span class="result-badge ${isWin ? 'result-win' : 'result-loss'}">${ev.result}</span>`;
+        } else {
+          resultBadgeHtml = `<span class="game-date">${ev.timeStr}</span>`;
+        }
+
+        const card = document.createElement("div");
+        card.className = "schedule-card";
+        card.innerHTML = `
+          <div class="game-left">
+            <span class="sport-tag">${sportLabels[ev.sportKey]}</span>
+            <span class="game-date">${dateFormatted}</span>
+            <div class="opponent-name">
+              <span style="color:var(--subtext); font-size:0.75rem;">${ev.isHome ? 'vs' : '@'}</span>
+              ${ev.opponent}
+            </div>
+          </div>
+          <div class="game-right">
+            ${resultBadgeHtml}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function filterSport(sportKey, btnElement) {
+      currentFilter = sportKey;
+      document.querySelectorAll('.sport-tab').forEach(t => t.classList.remove('active'));
+      btnElement.classList.add('active');
+      renderSchedule();
+    }
+
+    // Run safely when window loads
+    window.onload = function() {
+      try {
+        masterDataset.sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
+        renderSchedule();
+      } catch (err) {
+        const container = document.getElementById("schedule-container");
+        if (container) container.innerHTML = "<p style='color:var(--subtext);'>Error loading schedule data.</p>";
+      }
+    };
+  </script>
+
+</body>
+</html>
