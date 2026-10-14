@@ -151,7 +151,6 @@
   <div id="schedule-container">Loading Schedule...</div>
 
   <script>
-    // Explicit map of completed 2026 games to ensure scores render cleanly regardless of API cache delays
     const completedGamesMap = {
       "2026-09-05": { isWin: true, score: "62-13" },
       "2026-09-12": { isWin: true, score: "38-13" },
@@ -195,12 +194,18 @@
             day: 'numeric'
           });
 
-          const formattedTime = gameDate.toLocaleTimeString('en-US', {
+          // Check time validity (ESPN sets timeValid = false for unset games)
+          const isTimeValid = event.timeValid !== false;
+          let formattedTime = gameDate.toLocaleTimeString('en-US', {
             hour: 'numeric',
             minute: '2-digit'
           });
 
-          // Standard YYYY-MM-DD key for static score lookup
+          // If time is invalid or default 12:00 AM, show TBD
+          if (!isTimeValid || formattedTime === "12:00 AM") {
+            formattedTime = "TBD";
+          }
+
           const isoDateKey = event.date.split("T")[0];
           const knownResult = completedGamesMap[isoDateKey];
 
@@ -215,14 +220,12 @@
           let resultHtml = '';
 
           if (knownResult) {
-            // Priority 1: Render verified score from map
             resultHtml = `
               <span class="result-badge ${knownResult.isWin ? 'result-win' : 'result-loss'}">
                 ${knownResult.isWin ? 'W' : 'L'} ${knownResult.score}
               </span>
             `;
           } else if (isCompletedApi || (msu.score && opp.score)) {
-            // Priority 2: Render dynamic score from ESPN API
             const getScoreStr = (c) => {
               if (c.score && typeof c.score.value !== 'undefined') return String(c.score.value);
               if (c.score && c.score.displayValue) return String(c.score.displayValue);
@@ -240,7 +243,6 @@
               </span>
             `;
           } else {
-            // Upcoming Game: Display time only (No TV TBD)
             resultHtml = `<span class="game-date">${formattedTime}</span>`;
           }
 
