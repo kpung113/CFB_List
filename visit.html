@@ -100,5 +100,341 @@
     input[type="number"] {
       background: #12131a;
       color: #fff;
-      border: 1
-      
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 4px 8px;
+      width: 50px;
+      font-weight: bold;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+    .sports-toggles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .sports-toggles label {
+      background: #12131a;
+      border: 1px solid var(--card-border);
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .sports-toggles input:checked + span {
+      color: #fff;
+      font-weight: bold;
+    }
+    .search-btn {
+      background: var(--accent-maroon);
+      color: #fff;
+      border: 1px solid #7d2033;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 0.8rem;
+      cursor: pointer;
+      align-self: flex-start;
+      margin-top: 2px;
+    }
+
+    /* Candidate Cards */
+    .candidate-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      border-left: 4px solid var(--accent-maroon);
+    }
+    .candidate-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #222530;
+    }
+    .date-range {
+      font-weight: 800;
+      font-size: 0.85rem;
+      color: #fff;
+    }
+    .badge-group {
+      display: flex;
+      gap: 4px;
+    }
+    .badge {
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--gold);
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+    .badge-multi {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--green);
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+    .game-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      padding: 3px 0;
+      color: var(--subtext);
+    }
+    .sport-title {
+      font-weight: 700;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header Section Goes Right Here -->
+  <header>
+    <div class="header-title">
+      <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" 
+           alt="MSU Logo" 
+           class="msu-logo">
+      <h1>Starkville Trip Planner</h1>
+    </div>
+    <nav class="nav-tabs">
+      <a href="index.html">Scores</a>
+      <a href="schedules.html">MSU Schedule</a>
+      <a href="visit.html" class="active">MSU Trip</a>
+    </nav>
+  </header>
+
+  <!-- Filter Controls -->
+  <div class="filter-panel">
+    <div class="filter-row">
+      <span class="filter-label">Days in Starkville:</span>
+      <div class="days-input-wrapper">
+        <input type="number" id="trip-days" min="1" max="5" value="2">
+        <span style="color:var(--subtext); font-size:0.75rem;">(1 to 5 days)</span>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <span class="filter-label">Sports Toggles:</span>
+      <div class="sports-toggles">
+        <label><input type="checkbox" value="football" checked> <span>🏈 Football</span></label>
+        <label><input type="checkbox" value="mens-basketball" checked> <span>🏀 Men's BB</span></label>
+        <label><input type="checkbox" value="womens-basketball" checked> <span>🏀 Women's BB</span></label>
+        <label><input type="checkbox" value="baseball" checked> <span>⚾ Baseball</span></label>
+        <label><input type="checkbox" value="softball" checked> <span>🥎 Softball</span></label>
+      </div>
+    </div>
+
+    <button class="search-btn" onclick="calculateHomestands()">Find Homestand Candidates</button>
+  </div>
+
+  <div id="results-container">Searching 2026 Fall & 2027 Spring home schedules...</div>
+
+  <script>
+    const sportEndpoints = {
+      'football': 'football/college-football',
+      'mens-basketball': 'basketball/mens-college-basketball',
+      'womens-basketball': 'basketball/womens-college-basketball',
+      'baseball': 'baseball/college-baseball',
+      'softball': 'softball/college-softball'
+    };
+
+    const sportLabels = {
+      'football': '🏈 Football',
+      'mens-basketball': '🏀 Men\'s Basketball',
+      'womens-basketball': '🏀 Women\'s Basketball',
+      'baseball': '⚾ Baseball',
+      'softball': '🥎 Softball'
+    };
+
+    const seasonsToQuery = [2026, 2027];
+
+    async function calculateHomestands() {
+      const container = document.getElementById("results-container");
+      container.innerHTML = "<p style='color:var(--subtext);'>Scanning 2026-2027 home schedules...</p>";
+
+      const daysInput = document.getElementById("trip-days");
+      let selectedDays = parseInt(daysInput.value);
+      if (isNaN(selectedDays) || selectedDays < 1) selectedDays = 1;
+      if (selectedDays > 5) selectedDays = 5;
+      daysInput.value = selectedDays;
+
+      const checkedSports = Array.from(document.querySelectorAll('.sports-toggles input:checked')).map(cb => cb.value);
+
+      if (checkedSports.length === 0) {
+        container.innerHTML = "<p style='color:var(--subtext);'>Please select at least one sport toggle.</p>";
+        return;
+      }
+
+      try {
+        let fetchTasks = [];
+
+        checkedSports.forEach(sportKey => {
+          const path = sportEndpoints[sportKey];
+          seasonsToQuery.forEach(season => {
+            const url = `https://site.api.espn.com/apis/site/v2/sports/${path}/teams/344/schedule?season=${season}`;
+            fetchTasks.push(
+              fetch(url)
+                .then(r => r.json())
+                .then(data => ({ sportKey, events: data.events || [] }))
+                .catch(() => ({ sportKey, events: [] }))
+            );
+          });
+        });
+
+        const responses = await Promise.all(fetchTasks);
+
+        const homeGamesMap = new Map();
+
+        responses.forEach(({ sportKey, events }) => {
+          events.forEach(event => {
+            const comp = event.competitions && event.competitions[0];
+            if (!comp) return;
+
+            const msu = comp.competitors.find(c => String(c.id) === '344') || comp.competitors[0];
+            const opp = comp.competitors.find(c => String(c.id) !== '344') || comp.competitors[1] || msu;
+
+            if (msu.homeAway === 'home') {
+              const gameDate = new Date(event.date);
+              const isoDate = event.date.split("T")[0];
+              const uniqueGameKey = `${event.id}_${sportKey}`;
+
+              const isTimeValid = event.timeValid !== false;
+              let timeStr = gameDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+              if (!isTimeValid || timeStr === "12:00 AM") timeStr = "TBD";
+
+              homeGamesMap.set(uniqueGameKey, {
+                id: event.id,
+                sportKey,
+                opponent: (opp.team && (opp.team.shortDisplayName || opp.team.name)) || "TBD",
+                date: gameDate,
+                isoDate: isoDate,
+                timeStr
+              });
+            }
+          });
+        });
+
+        const allHomeGames = Array.from(homeGamesMap.values());
+
+        if (allHomeGames.length === 0) {
+          container.innerHTML = "<p style='color:var(--subtext);'>No upcoming home games found for the selected toggles across 2026-2027.</p>";
+          return;
+        }
+
+        allHomeGames.sort((a, b) => a.date - b.date);
+
+        const gamesByDate = {};
+        allHomeGames.forEach(game => {
+          if (!gamesByDate[game.isoDate]) gamesByDate[game.isoDate] = [];
+          gamesByDate[game.isoDate].push(game);
+        });
+
+        const sortedIsoDates = Object.keys(gamesByDate).sort();
+        const candidateWindows = [];
+
+        for (let i = 0; i < sortedIsoDates.length; i++) {
+          const startDate = new Date(sortedIsoDates[i] + 'T00:00:00');
+          const windowEndDate = new Date(startDate);
+          windowEndDate.setDate(startDate.getDate() + (selectedDays - 1));
+
+          let windowGames = [];
+          sortedIsoDates.forEach(dateStr => {
+            const d = new Date(dateStr + 'T00:00:00');
+            if (d >= startDate && d <= windowEndDate) {
+              windowGames.push(...gamesByDate[dateStr]);
+            }
+          });
+
+          if (windowGames.length >= 2) {
+            const sportsSet = new Set(windowGames.map(g => g.sportKey));
+
+            candidateWindows.push({
+              startDate,
+              windowEndDate,
+              games: windowGames,
+              sportCount: sportsSet.size
+            });
+          }
+        }
+
+        const uniqueCandidates = [];
+        const seenSignatures = new Set();
+
+        candidateWindows.forEach(w => {
+          const sig = w.games.map(g => g.isoDate + g.sportKey + g.opponent).join('|');
+          if (!seenSignatures.has(sig)) {
+            seenSignatures.add(sig);
+            uniqueCandidates.push(w);
+          }
+        });
+
+        renderCandidates(uniqueCandidates, selectedDays);
+
+      } catch (err) {
+        container.innerHTML = "<p style='color:var(--subtext);'>Error fetching 2026-2027 schedules.</p>";
+      }
+    }
+
+    function renderCandidates(windows, tripDays) {
+      const container = document.getElementById("results-container");
+      container.innerHTML = "";
+
+      if (windows.length === 0) {
+        container.innerHTML = `<p style='color:var(--subtext);'>No multi-game homestands found for a ${tripDays}-day trip with the current sports selected.</p>`;
+        return;
+      }
+
+      windows.forEach(w => {
+        const startLabel = w.startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
+        const endLabel = w.windowEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
+
+        const dateHeaderStr = (tripDays === 1 || w.startDate.getTime() === w.windowEndDate.getTime())
+          ? startLabel
+          : `${startLabel} – ${endLabel}`;
+
+        const card = document.createElement("div");
+        card.className = "candidate-card";
+
+        let gamesHtml = w.games.map(g => {
+          const dayName = g.date.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
+          return `
+            <div class="game-line">
+              <span><strong class="sport-title">${sportLabels[g.sportKey]}</strong> vs ${g.opponent}</span>
+              <span>${dayName} • ${g.timeStr}</span>
+            </div>
+          `;
+        }).join('');
+
+        const multiSportBadge = w.sportCount > 1 
+          ? `<span class="badge badge-multi">${w.sportCount} Sports Crossover</span>` 
+          : '';
+
+        card.innerHTML = `
+          <div class="candidate-header">
+            <span class="date-range">${dateHeaderStr}</span>
+            <div class="badge-group">
+              ${multiSportBadge}
+              <span class="badge">${w.games.length} Home Games</span>
+            </div>
+          </div>
+          ${gamesHtml}
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    calculateHomestands();
+  </script>
+
+</body>
+</html>
