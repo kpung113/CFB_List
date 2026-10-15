@@ -179,7 +179,7 @@
 
   <div id="schedule-container">Loading complete schedules...</div>
 
-  <!-- Centralized dataset fallback -->
+  <!-- Centralized dataset -->
   <script src="data.js"></script>
 
   <script>
@@ -215,7 +215,7 @@
               const gameIso = event.date.split('T')[0];
               const matchedGame = masterDataset.find(g => g.sportKey === sport.key && g.isoDate === gameIso);
 
-              // 1. Sync TV Broadcast Info
+              // 1. Sync TV Broadcast Info for Upcoming Games
               let broadcastNet = '';
               if (comp.broadcasts && comp.broadcasts.length > 0 && comp.broadcasts[0].media && comp.broadcasts[0].media.shortName) {
                 broadcastNet = comp.broadcasts[0].media.shortName;
@@ -227,7 +227,7 @@
                 matchedGame.tv = broadcastNet;
               }
 
-              // 2. Sync Scores & Game Results
+              // 2. Sync Scores & Results
               if (event.status.type.state === 'post' && msuComp && oppComp) {
                 const msuScore = parseInt(msuComp.score.value || "0");
                 const oppScore = parseInt(oppComp.score.value || "0");
@@ -273,14 +273,19 @@
         const dateFormatted = gameDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
         let resultBadgeHtml = '';
+        let tvInfo = '';
+
         if (ev.result) {
+          // COMPLETED GAME: Show Win/Loss score badge, omit TV tag
           const isWin = ev.result.startsWith('W');
           resultBadgeHtml = `<span class="result-badge ${isWin ? 'result-win' : 'result-loss'}">${ev.result}</span>`;
         } else {
+          // UPCOMING GAME: Show Game Time and TV Network (if available)
           resultBadgeHtml = `<span class="game-date">${ev.timeStr}</span>`;
+          if (ev.tv) {
+            tvInfo = `<span class="tv-tag">📺 ${ev.tv}</span>`;
+          }
         }
-
-        const tvInfo = ev.tv ? `<span class="tv-tag">📺 ${ev.tv}</span>` : '';
 
         const card = document.createElement("div");
         card.className = "schedule-card";
