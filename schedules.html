@@ -146,6 +146,11 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
+    .tv-tag {
+      font-size: 0.65rem;
+      color: var(--subtext);
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -174,7 +179,7 @@
 
   <div id="schedule-container">Loading complete schedules...</div>
 
-  <!-- Include centralized dataset -->
+  <!-- Centralized dataset -->
   <script src="data.js"></script>
 
   <script>
@@ -186,6 +191,38 @@
     };
 
     let currentFilter = 'all';
+
+    async function syncEspnScores() {
+      try {
+        // Fetch Live Football Team Schedule from ESPN
+        const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule");
+        const data = await res.json();
+
+        if (data && data.events) {
+          data.events.forEach(event => {
+            const comp = event.competitions[0];
+            const msuComp = comp.competitors.find(c => c.id === '344');
+            const oppComp = comp.competitors.find(c => c.id !== '344');
+
+            if (event.status.type.state === 'post' && msuComp && oppComp) {
+              const msuScore = parseInt(msuComp.score.value || "0");
+              const oppScore = parseInt(oppComp.score.value || "0");
+              const isWin = msuComp.winner;
+              const resultStr = `${isWin ? 'W' : 'L'} ${msuScore}-${oppScore}`;
+
+              // Find matching game in masterDataset by date
+              const gameIso = event.date.split('T')[0];
+              const matchedGame = masterDataset.find(g => g.sportKey === 'football' && g.isoDate === gameIso);
+              if (matchedGame) {
+                matchedGame.result = resultStr;
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.log("ESPN sync skipped or offline:", err);
+      }
+    }
 
     function renderSchedule() {
       const container = document.getElementById("schedule-container");
@@ -219,6 +256,8 @@
           resultBadgeHtml = `<span class="game-date">${ev.timeStr}</span>`;
         }
 
+        const tvInfo = ev.tv ? `<span class="tv-tag">📺 ${ev.tv}</span>` : '';
+
         const card = document.createElement("div");
         card.className = "schedule-card";
         card.innerHTML = `
@@ -232,6 +271,7 @@
           </div>
           <div class="game-right">
             ${resultBadgeHtml}
+            ${tvInfo}
           </div>
         `;
         container.appendChild(card);
@@ -245,12 +285,12 @@
       renderSchedule();
     }
 
-    // Run safely when window loads
-    window.onload = function() {
+    window.onload = async function() {
       try {
         if (typeof masterDataset !== 'undefined') {
           masterDataset.sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
         }
+        await syncEspnScores();
         renderSchedule();
       } catch (err) {
         const container = document.getElementById("schedule-container");
