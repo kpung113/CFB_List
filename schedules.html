@@ -197,9 +197,13 @@
       { key: 'baseball', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule' }
     ];
 
+    let combinedDataset = [];
     let currentFilter = 'all';
 
-    async function syncEspnSchedules() {
+    async function loadMasterDataset() {
+      combinedDataset = [];
+
+      // 1. PRIMARY SOURCE: Query ESPN endpoints for each sport
       const promises = espnEndpoints.map(async (sport) => {
         try {
           const res = await fetch(sport.url);
@@ -212,40 +216,73 @@
               const msuComp = comp.competitors.find(c => c.id === '344');
               const oppComp = comp.competitors.find(c => c.id !== '344');
 
+              if (!oppComp) return;
+
               const gameIso = event.date.split('T')[0];
-              const matchedGame = masterDataset.find(g => g.sportKey === sport.key && g.isoDate === gameIso);
-
-              // 1. Sync TV Broadcast Info for Upcoming Games
+              
+              // Extract TV Broadcast from ESPN
               let broadcastNet = '';
-              if (comp.broadcasts && comp.broadcasts.length > 0 && comp.broadcasts[0].media && comp.broadcasts[0].media.shortName) {
-                broadcastNet = comp.broadcasts[0].media.shortName;
-              } else if (comp.broadcasts && comp.broadcasts.length > 0 && comp.broadcasts[0].names) {
-                broadcastNet = comp.broadcasts[0].names[0];
+              if (comp.broadcasts && comp.broadcasts.length > 0) {
+                const b = comp.broadcasts[0];
+                if (b.media && b.media.shortName) broadcastNet = b.media.shortName;
+                else if (b.names && b.names[0]) broadcastNet = b.names[0];
               }
 
-              if (matchedGame && broadcastNet) {
-                matchedGame.tv = broadcastNet;
-              }
-
-              // 2. Sync Scores & Results
-              if (event.status.type.state === 'post' && msuComp && oppComp) {
-                const msuScore = parseInt(msuComp.score.value || "0");
-                const oppScore = parseInt(oppComp.score.value || "0");
-                const isWin = msuComp.winner;
-                const resultStr = `${isWin ? 'W' : 'L'} ${msuScore}-${oppScore}`;
-
-                if (matchedGame) {
-                  matchedGame.result = resultStr;
+              // Extract Game Time
+              let timeStr = 'TBD';
+              if (event.date) {
+                const dateObj = new Date(event.date);
+                if (!isNaN(dateObj) && event.timeValid !== false) {
+                  timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
                 }
               }
+
+              // Extract Win/Loss Result
+              let resultStr = null;
+              if (event.status && event.status.type && event.status.type.state === 'post' && msuComp && oppComp) {
+                const msuScore = parseInt(msuComp.score?.value || "0");
+                const oppScore = parseInt(oppComp.score?.value || "0");
+                const isWin = msuComp.winner;
+                resultStr = `${isWin ? 'W' : 'L'} ${msuScore}-${oppScore}`;
+              }
+
+              combinedDataset.push({
+                sportKey: sport.key,
+                opponent: oppComp.team.displayName || oppComp.team.shortDisplayName || 'Opponent',
+                isoDate: gameIso,
+                timeStr: timeStr,
+                isHome: msuComp.homeAway === 'home',
+                tv: broadcastNet,
+                result: resultStr,
+                source: 'espn'
+              });
             });
           }
         } catch (err) {
-          console.log(`ESPN sync bypassed for ${sport.key}:`, err);
+          console.log(`ESPN sync failed for ${sport.key}:`, err);
         }
       });
 
       await Promise.all(promises);
+
+      // 2. SECONDARY SOURCE: Append games from data.js ONLY if they don't exist in ESPN feed
+      if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
+        masterDataset.forEach(localGame => {
+          const existsInEspn = combinedDataset.some(
+            espnGame => espnGame.sportKey === localGame.sportKey && espnGame.isoDate === localGame.isoDate
+          );
+
+          if (!existsInEspn) {
+            combinedDataset.push({
+              ...localGame,
+              source: 'js'
+            });
+          }
+        });
+      }
+
+      // Sort full list chronologically
+      combinedDataset.sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
     }
 
     function renderSchedule() {
@@ -253,15 +290,15 @@
       if (!container) return;
       container.innerHTML = "";
 
-      if (typeof masterDataset === 'undefined' || !masterDataset.length) {
-        container.innerHTML = "<p style='color:var(--subtext);'>Unable to load data from data.js.</p>";
+      if (!combinedDataset.length) {
+        container.innerHTML = "<p style='color:var(--subtext);'>Unable to load schedule data.</p>";
         return;
       }
 
       // Format current date as YYYY-MM-DD
       const todayIso = new Date().toLocaleDateString('en-CA');
 
-      const filtered = masterDataset.filter(ev => {
+      const filtered = combinedDataset.filter(ev => {
         // "All Sports" tab: show games on or after today's date only
         if (currentFilter === 'all') {
           return ev.isoDate >= todayIso;
@@ -298,7 +335,7 @@
         card.className = "schedule-card";
         card.innerHTML = `
           <div class="game-left">
-            <span class="sport-tag">${sportLabels[ev.sportKey]}</span>
+            <span class="sport-tag">${sportLabels[ev.sportKey] || 'Sports'}</span>
             <span class="game-date">${dateFormatted}</span>
             <div class="opponent-name">
               <span style="color:var(--subtext); font-size:0.75rem;">${ev.isHome ? 'vs' : '@'}</span>
@@ -323,10 +360,7 @@
 
     window.onload = async function() {
       try {
-        if (typeof masterDataset !== 'undefined') {
-          masterDataset.sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
-        }
-        await syncEspnSchedules();
+        await loadMasterDataset();
         renderSchedule();
       } catch (err) {
         const container = document.getElementById("schedule-container");
