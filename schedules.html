@@ -157,10 +157,9 @@
 
   <header>
     <div class="header-title">
-      <img src="https://a.espncdn.com/bin/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" 
+      <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" 
            alt="MSU Logo" 
-           class="msu-logo"
-           onerror="this.src='https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100'">
+           class="msu-logo">
       <h1>MSU Schedules</h1>
     </div>
     <nav class="nav-tabs">
@@ -176,11 +175,12 @@
     <button class="sport-tab" onclick="filterSport('mens-basketball', this)">🏀 Men's BB</button>
     <button class="sport-tab" onclick="filterSport('womens-basketball', this)">🏀 Women's BB</button>
     <button class="sport-tab" onclick="filterSport('baseball', this)">⚾ Baseball</button>
+    <button class="sport-tab" onclick="filterSport('softball', this)">🥎 Softball</button>
   </div>
 
   <div id="schedule-container">Loading complete schedules...</div>
 
-  <!-- Centralized dataset fallback -->
+  <!-- External fallback dataset -->
   <script src="data.js"></script>
 
   <script>
@@ -188,24 +188,49 @@
       'football': 'Football',
       'mens-basketball': 'Men\'s Basketball',
       'womens-basketball': 'Women\'s Basketball',
-      'baseball': 'Baseball'
+      'baseball': 'Baseball',
+      'softball': 'Softball'
     };
 
     const espnEndpoints = [
       { key: 'football', url: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule' },
       { key: 'mens-basketball', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule' },
       { key: 'womens-basketball', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule' },
-      { key: 'baseball', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule' }
+      { key: 'baseball', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule' },
+      { key: 'softball', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-softball/teams/344/schedule' }
     ];
 
     let combinedDataset = [];
     let currentFilter = 'all';
 
+    // Deep Broadcast Extractor (Scans broadcasts, geoBroadcasts, and media nodes)
+    function extractBroadcastNetwork(comp) {
+      if (!comp) return '';
+
+      // 1. Scan standard broadcasts array
+      if (comp.broadcasts && comp.broadcasts.length > 0) {
+        for (const b of comp.broadcasts) {
+          if (b.media && b.media.shortName) return b.media.shortName;
+          if (b.names && b.names[0]) return b.names[0];
+          if (b.station) return b.station;
+        }
+      }
+
+      // 2. Scan geoBroadcasts array (Crucial for SECN+, ESPN+, SEC Network Extra)
+      if (comp.geoBroadcasts && comp.geoBroadcasts.length > 0) {
+        for (const gb of comp.geoBroadcasts) {
+          if (gb.media && gb.media.shortName) return gb.media.shortName;
+          if (gb.type && gb.type.shortName) return gb.type.shortName;
+        }
+      }
+
+      return '';
+    }
+
     async function loadMasterDataset() {
       combinedDataset = [];
-      const todayIso = new Date().toLocaleDateString('en-CA');
 
-      // 1. PRIMARY SOURCE: Query ESPN endpoints for each sport
+      // 1. Query ESPN endpoints dynamically
       const promises = espnEndpoints.map(async (sport) => {
         try {
           const res = await fetch(sport.url);
@@ -221,23 +246,7 @@
               if (!oppComp) return;
 
               const gameIso = event.date.split('T')[0];
-              
-              // Enhanced TV Broadcast Extraction for Basketball & Football
-              let broadcastNet = '';
-              if (comp.broadcasts && comp.broadcasts.length > 0) {
-                for (const b of comp.broadcasts) {
-                  if (b.media && b.media.shortName) {
-                    broadcastNet = b.media.shortName;
-                    break;
-                  } else if (b.names && b.names.length > 0) {
-                    broadcastNet = b.names[0];
-                    break;
-                  } else if (b.station) {
-                    broadcastNet = b.station;
-                    break;
-                  }
-                }
-              }
+              const broadcastNet = extractBroadcastNetwork(comp);
 
               // Extract Game Time
               let timeStr = 'TBD';
@@ -276,7 +285,7 @@
 
       await Promise.all(promises);
 
-      // 2. ENRICH / MERGE WITH data.js
+      // 2. Fallback to data.js for missing non-conference or exhibition games
       if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
         masterDataset.forEach(localGame => {
           const matchedEspnGame = combinedDataset.find(
@@ -287,7 +296,6 @@
             if (localGame.result) {
               matchedEspnGame.result = localGame.result;
             }
-            // Fallback to local tv if ESPN didn't provide one
             if (!matchedEspnGame.tv && localGame.tv) {
               matchedEspnGame.tv = localGame.tv;
             }
@@ -317,11 +325,9 @@
       const todayIso = new Date().toLocaleDateString('en-CA');
 
       const filtered = combinedDataset.filter(ev => {
-        // "All Sports" tab: show games on or after today's date only
         if (currentFilter === 'all') {
           return ev.isoDate >= todayIso;
         }
-        // Specific sport tab: show full schedule (past + future)
         return ev.sportKey === currentFilter;
       });
 
