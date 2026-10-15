@@ -202,6 +202,7 @@
 
     async function loadMasterDataset() {
       combinedDataset = [];
+      const todayIso = new Date().toLocaleDateString('en-CA');
 
       // 1. PRIMARY SOURCE: Query ESPN endpoints for each sport
       const promises = espnEndpoints.map(async (sport) => {
@@ -237,7 +238,7 @@
                 }
               }
 
-              // Extract Win/Loss Result
+              // Extract Win/Loss Result from ESPN
               let resultStr = null;
               if (event.status && event.status.type && event.status.type.state === 'post' && msuComp && oppComp) {
                 const msuScore = parseInt(msuComp.score?.value || "0");
@@ -265,14 +266,20 @@
 
       await Promise.all(promises);
 
-      // 2. SECONDARY SOURCE: Append games from data.js ONLY if they don't exist in ESPN feed
+      // 2. ENRICH / MERGE WITH data.js
       if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
         masterDataset.forEach(localGame => {
-          const existsInEspn = combinedDataset.some(
+          const matchedEspnGame = combinedDataset.find(
             espnGame => espnGame.sportKey === localGame.sportKey && espnGame.isoDate === localGame.isoDate
           );
 
-          if (!existsInEspn) {
+          if (matchedEspnGame) {
+            // Overwrite result from data.js if ESPN missed it or for past games
+            if (localGame.result) {
+              matchedEspnGame.result = localGame.result;
+            }
+          } else {
+            // Append local game if missing entirely from ESPN
             combinedDataset.push({
               ...localGame,
               source: 'js'
@@ -295,7 +302,6 @@
         return;
       }
 
-      // Format current date as YYYY-MM-DD
       const todayIso = new Date().toLocaleDateString('en-CA');
 
       const filtered = combinedDataset.filter(ev => {
@@ -319,10 +325,15 @@
         let resultBadgeHtml = '';
         let tvInfo = '';
 
-        if (ev.result) {
-          // COMPLETED GAME: Show Win/Loss score badge, omit TV tag
+        const isPastGame = ev.isoDate < todayIso || Boolean(ev.result);
+
+        if (isPastGame && ev.result) {
+          // COMPLETED GAME: Show Win/Loss score badge, strictly omit TV tag
           const isWin = ev.result.startsWith('W');
           resultBadgeHtml = `<span class="result-badge ${isWin ? 'result-win' : 'result-loss'}">${ev.result}</span>`;
+        } else if (isPastGame) {
+          // PAST GAME (No score in dataset): Show date/time, no TV tag
+          resultBadgeHtml = `<span class="game-date">${ev.timeStr}</span>`;
         } else {
           // UPCOMING GAME: Show Game Time and TV Network (if available)
           resultBadgeHtml = `<span class="game-date">${ev.timeStr}</span>`;
