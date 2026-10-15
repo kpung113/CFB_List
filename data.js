@@ -121,5 +121,20 @@ const masterDataset = [
   { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-20', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-21', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'baseball', opponent: 'Arkansas', isoDate: '2027-05-22', timeStr: 'TBD', isHome: true, location: 'Starkville', result: '' },
-  { sportKey: 'baseball', opponent: 'SEC Tournament', isoDate: '2027-05-25', timeStr: 'TBD', isHome: false, location: 'Hoover, Ala. (Hoover Metropolitan Stadium)', result: '' }
-];
+  { sportKey: 'baseball', opponent: 'SEC Tournament', isoDate: '2027-05-25', timeStr: 'TBD', isHome: false, location: 'Hoover, Ala. (Hoover Metropolitan Stadium)', result: '' },
+
+  // SOFTBALL
+  { sportKey: 'softball', opponent: 'LIU', isoDate: '2027-02-11', timeStr: '2:00 PM', isHome: false, location: 'Clearwater, Fla.', tournament: 'NFCA Leadoff Classic', result: '' },
+  { sportKey: 'softball', opponent: 'Indiana', isoDate: '2027-02-11', timeStr: '5:00 PM', isHome: false, location: 'Clearwater, Fla.', tournament: 'NFCA Leadoff Classic', result: '' },
+  { sportKey: 'softball', opponent: 'Virginia Tech', isoDate: '2027-02-12', timeStr: '9:00 AM', isHome: false, location: 'Clearwater, Fla.', tournament: 'NFCA Leadoff Classic', result: '' },
+  { sportKey: 'softball', opponent: 'Liberty', isoDate: '2027-02-12', timeStr: '12:00 PM', isHome: false, location: 'Clearwater, Fla.', tournament: 'NFCA Leadoff Classic', result: '' },
+  { sportKey: 'softball', opponent: 'Nebraska', isoDate: '2027-02-13', timeStr: '12:00 PM', isHome: false, location: 'Clearwater, Fla.', tournament: 'NFCA Leadoff Classic', result: '' },
+  { sportKey: 'softball', opponent: 'Missouri', isoDate: '2027-03-12', timeStr: 'TBA', isHome: false, location: 'Columbia, Mo.', result: '' },
+  { sportKey: 'softball', opponent: 'Missouri', isoDate: '2027-03-13', timeStr: 'TBA', isHome: false, location: 'Columbia, Mo.', result: '' },
+  { sportKey: 'softball', opponent: 'Missouri', isoDate: '2027-03-14', timeStr: 'TBA', isHome: false, location: 'Columbia, Mo.', result: '' },
+  { sportKey: 'softball', opponent: 'Georgia', isoDate: '2027-03-19', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'softball', opponent: 'Georgia', isoDate: '2027-03-20', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'softball', opponent: 'Georgia', isoDate: '2027-03-21', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'softball', opponent: 'South Carolina', isoDate: '2027-04-02', timeStr: 'TBA', isHome: false, location: 'Columbia, S.C.', result: '' },
+  { sportKey: 'softball', opponent: 'South Carolina', isoDate: '2027-04-03', timeStr: 'TBA', isHome: false, location: 'Columbia, S.C.', result: '' },
+  { sportKey: 'softball', opponent: 'South Carolina', isoDate: '2027-04-04'
