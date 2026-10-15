@@ -179,7 +179,7 @@
 
   <div id="schedule-container">Loading complete schedules...</div>
 
-  <!-- Centralized dataset -->
+  <!-- Centralized dataset fallback -->
   <script src="data.js"></script>
 
   <script>
@@ -258,8 +258,15 @@
         return;
       }
 
+      // Format current date as YYYY-MM-DD
+      const todayIso = new Date().toLocaleDateString('en-CA');
+
       const filtered = masterDataset.filter(ev => {
-        if (currentFilter === 'all') return true;
+        // "All Sports" tab: show games on or after today's date only
+        if (currentFilter === 'all') {
+          return ev.isoDate >= todayIso;
+        }
+        // Specific sport tab: show full schedule (past + future)
         return ev.sportKey === currentFilter;
       });
 
