@@ -148,7 +148,7 @@
     }
     .tv-tag {
       font-size: 0.65rem;
-      color: var(--subtext);
+      color: var(--gold);
       font-weight: bold;
     }
   </style>
@@ -179,7 +179,7 @@
 
   <div id="schedule-container">Loading complete schedules...</div>
 
-  <!-- Centralized dataset -->
+  <!-- Centralized dataset fallback -->
   <script src="data.js"></script>
 
   <script>
@@ -190,38 +190,62 @@
       'baseball': 'Baseball'
     };
 
+    const espnEndpoints = [
+      { key: 'football', url: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule' },
+      { key: 'mens-basketball', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule' },
+      { key: 'womens-basketball', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule' },
+      { key: 'baseball', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule' }
+    ];
+
     let currentFilter = 'all';
 
-    async function syncEspnScores() {
-      try {
-        // Fetch Live Football Team Schedule from ESPN
-        const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule");
-        const data = await res.json();
+    async function syncEspnSchedules() {
+      const promises = espnEndpoints.map(async (sport) => {
+        try {
+          const res = await fetch(sport.url);
+          if (!res.ok) return;
+          const data = await res.json();
 
-        if (data && data.events) {
-          data.events.forEach(event => {
-            const comp = event.competitions[0];
-            const msuComp = comp.competitors.find(c => c.id === '344');
-            const oppComp = comp.competitors.find(c => c.id !== '344');
+          if (data && data.events) {
+            data.events.forEach(event => {
+              const comp = event.competitions[0];
+              const msuComp = comp.competitors.find(c => c.id === '344');
+              const oppComp = comp.competitors.find(c => c.id !== '344');
 
-            if (event.status.type.state === 'post' && msuComp && oppComp) {
-              const msuScore = parseInt(msuComp.score.value || "0");
-              const oppScore = parseInt(oppComp.score.value || "0");
-              const isWin = msuComp.winner;
-              const resultStr = `${isWin ? 'W' : 'L'} ${msuScore}-${oppScore}`;
-
-              // Find matching game in masterDataset by date
               const gameIso = event.date.split('T')[0];
-              const matchedGame = masterDataset.find(g => g.sportKey === 'football' && g.isoDate === gameIso);
-              if (matchedGame) {
-                matchedGame.result = resultStr;
+              const matchedGame = masterDataset.find(g => g.sportKey === sport.key && g.isoDate === gameIso);
+
+              // 1. Sync TV Broadcast Info
+              let broadcastNet = '';
+              if (comp.broadcasts && comp.broadcasts.length > 0 && comp.broadcasts[0].media && comp.broadcasts[0].media.shortName) {
+                broadcastNet = comp.broadcasts[0].media.shortName;
+              } else if (comp.broadcasts && comp.broadcasts.length > 0 && comp.broadcasts[0].names) {
+                broadcastNet = comp.broadcasts[0].names[0];
               }
-            }
-          });
+
+              if (matchedGame && broadcastNet) {
+                matchedGame.tv = broadcastNet;
+              }
+
+              // 2. Sync Scores & Game Results
+              if (event.status.type.state === 'post' && msuComp && oppComp) {
+                const msuScore = parseInt(msuComp.score.value || "0");
+                const oppScore = parseInt(oppComp.score.value || "0");
+                const isWin = msuComp.winner;
+                const resultStr = `${isWin ? 'W' : 'L'} ${msuScore}-${oppScore}`;
+
+                if (matchedGame) {
+                  matchedGame.result = resultStr;
+                }
+              }
+            });
+          }
+        } catch (err) {
+          console.log(`ESPN sync bypassed for ${sport.key}:`, err);
         }
-      } catch (err) {
-        console.log("ESPN sync skipped or offline:", err);
-      }
+      });
+
+      await Promise.all(promises);
     }
 
     function renderSchedule() {
@@ -290,7 +314,7 @@
         if (typeof masterDataset !== 'undefined') {
           masterDataset.sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
         }
-        await syncEspnScores();
+        await syncEspnSchedules();
         renderSchedule();
       } catch (err) {
         const container = document.getElementById("schedule-container");
