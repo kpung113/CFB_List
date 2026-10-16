@@ -84,8 +84,8 @@ const masterDataset = [
   { sportKey: 'womens-basketball', opponent: 'Kentucky', isoDate: '2027-02-28', timeStr: '1:00 PM', isHome: false, location: 'Lexington, Ky.', result: '' },
 
   // BASEBALL
-  { sportKey: 'baseball', opponent: 'Auburn (Exh.)', isoDate: '2026-10-08', timeStr: '6:00 PM', isHome: false, location: 'Biloxi (Keesler Federal Park)', result: '' },
-  { sportKey: 'baseball', opponent: 'Southern Miss (Exh.)', isoDate: '2026-10-10', timeStr: '2:00 PM', isHome: false, location: 'Biloxi (Keesler Federal Park)', result: '' },
+  { sportKey: 'baseball', opponent: 'Auburn (Exh.)', isoDate: '2026-10-08', timeStr: '6:00 PM', isHome: false, location: 'Biloxi (Keesler Federal Park)', result: 'W 1-0 / W 6-2' },
+  { sportKey: 'baseball', opponent: 'Southern Miss (Exh.)', isoDate: '2026-10-10', timeStr: '2:00 PM', isHome: false, location: 'Biloxi (Keesler Federal Park)', result: 'Canceled' },
   { sportKey: 'baseball', opponent: 'Western Kentucky (Exh.)', isoDate: '2026-10-18', timeStr: '1:00 PM', isHome: false, location: 'Jackson, Tenn. (Rockabillys Stadium)', result: '' },
   { sportKey: 'baseball', opponent: 'Little Rock (Exh.)', isoDate: '2026-10-30', timeStr: '6:00 PM', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'baseball', opponent: 'Dallas Baptist', isoDate: '2027-03-05', timeStr: '7:00 PM', isHome: false, location: 'Arlington, Texas (Globe Life Field)', result: '' },
