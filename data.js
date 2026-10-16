@@ -137,4 +137,21 @@ const masterDataset = [
   { sportKey: 'softball', opponent: 'Georgia', isoDate: '2027-03-21', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'softball', opponent: 'South Carolina', isoDate: '2027-04-02', timeStr: 'TBA', isHome: false, location: 'Columbia, S.C.', result: '' },
   { sportKey: 'softball', opponent: 'South Carolina', isoDate: '2027-04-03', timeStr: 'TBA', isHome: false, location: 'Columbia, S.C.', result: '' },
-  { sportKey: 'softball', opponent: 'South Carolina', isoDate: '2027-04-04'
+{ sportKey: 'softball', opponent: 'South Carolina', isoDate: '2027-04-04', timeStr: 'TBA', isHome: false, location: 'Columbia, S.C.', result: '' },
+  { sportKey: 'softball', opponent: 'Alabama', isoDate: '2027-04-09', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'softball', opponent: 'Alabama', isoDate: '2027-04-10', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'softball', opponent: 'Alabama', isoDate: '2027-04-11', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'softball', opponent: 'Oklahoma', isoDate: '2027-04-16', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'softball', opponent: 'Oklahoma', isoDate: '2027-04-17', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'softball', opponent: 'Oklahoma', isoDate: '2027-04-18', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'softball', opponent: 'Auburn', isoDate: '2027-04-23', timeStr: 'TBA', isHome: false, location: 'Auburn, Ala.', result: '' },
+  { sportKey: 'softball', opponent: 'Auburn', isoDate: '2027-04-24', timeStr: 'TBA', isHome: false, location: 'Auburn, Ala.', result: '' },
+  { sportKey: 'softball', opponent: 'Auburn', isoDate: '2027-04-25', timeStr: 'TBA', isHome: false, location: 'Auburn, Ala.', result: '' },
+  { sportKey: 'softball', opponent: 'Texas', isoDate: '2027-04-30', timeStr: 'TBA', isHome: false, location: 'Austin, Texas', result: '' },
+  { sportKey: 'softball', opponent: 'Texas', isoDate: '2027-05-01', timeStr: 'TBA', isHome: false, location: 'Austin, Texas', result: '' },
+  { sportKey: 'softball', opponent: 'Texas', isoDate: '2027-05-02', timeStr: 'TBA', isHome: false, location: 'Austin, Texas', result: '' },
+  { sportKey: 'softball', opponent: 'Kentucky', isoDate: '2027-05-06', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'softball', opponent: 'Kentucky', isoDate: '2027-05-07', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'softball', opponent: 'Kentucky', isoDate: '2027-05-08', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'softball', opponent: 'SEC Tournament', isoDate: '2027-05-11', timeStr: 'TBD', isHome: false, location: 'Madison, Ala. (Toyota Field)', tournament: 'SEC Tournament', result: '' }
+];
