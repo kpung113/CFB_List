@@ -95,6 +95,38 @@
       border-color: #7d2033;
     }
 
+    /* Record Banner Style */
+    .record-banner {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-left: 4px solid var(--gold);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .record-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .record-label {
+      font-size: 0.65rem;
+      color: var(--subtext);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .record-value {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
     .schedule-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -203,7 +235,6 @@
     let combinedDataset = [];
     let currentFilter = 'all';
 
-    // Deep Broadcast Extractor (Scans broadcasts, geoBroadcasts, and media nodes)
     function extractBroadcastNetwork(comp) {
       if (!comp) return '';
 
@@ -228,7 +259,6 @@
     async function loadMasterDataset() {
       combinedDataset = [];
 
-      // 1. Query ESPN endpoints dynamically
       const promises = espnEndpoints.map(async (sport) => {
         try {
           const res = await fetch(sport.url);
@@ -246,6 +276,10 @@
               const gameIso = event.date.split('T')[0];
               const broadcastNet = extractBroadcastNetwork(comp);
 
+              // Detect if game is an SEC conference matchup
+              const isSecGame = comp.conferenceCompetition === true || 
+                                (comp.notes && comp.notes.some(n => n.headline && n.headline.toLowerCase().includes('sec')));
+
               let timeStr = 'TBD';
               if (event.date) {
                 const dateObj = new Date(event.date);
@@ -254,7 +288,6 @@
                 }
               }
 
-              // Hands-off live & final score extraction directly from ESPN
               let resultStr = null;
               const gameState = event.status?.type?.state;
 
@@ -275,6 +308,7 @@
                 isoDate: gameIso,
                 timeStr: timeStr,
                 isHome: msuComp.homeAway === 'home',
+                isSec: isSecGame,
                 tv: broadcastNet,
                 result: resultStr,
                 source: 'espn'
@@ -288,7 +322,6 @@
 
       await Promise.all(promises);
 
-      // 2. Merge local data.js entries (fallback for exhibitions or unlisted ESPN games)
       if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
         masterDataset.forEach(localGame => {
           const matchedEspnGame = combinedDataset.find(
@@ -296,15 +329,18 @@
           );
 
           if (matchedEspnGame) {
-            // Keep manual result from data.js if ESPN didn't return one (e.g., fall exhibitions)
             if (!matchedEspnGame.result && localGame.result && localGame.result.trim() !== '') {
               matchedEspnGame.result = localGame.result;
             }
             if (!matchedEspnGame.tv && localGame.tv) {
               matchedEspnGame.tv = localGame.tv;
             }
+            if (localGame.isSec !== undefined) {
+              matchedEspnGame.isSec = localGame.isSec;
+            }
           } else {
             combinedDataset.push({
+              isSec: false,
               ...localGame,
               source: 'js'
             });
@@ -312,7 +348,6 @@
         });
       }
 
-      // Sort full list chronologically
       combinedDataset.sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
     }
 
@@ -328,6 +363,39 @@
 
       const todayIso = new Date().toLocaleDateString('en-CA');
 
+      // 1. Render Record Banner if viewing an individual sport tab
+      if (currentFilter !== 'all') {
+        const sportGames = combinedDataset.filter(ev => ev.sportKey === currentFilter);
+        
+        let overallWins = 0, overallLosses = 0;
+        let secWins = 0, secLosses = 0;
+
+        sportGames.forEach(ev => {
+          if (ev.result && (ev.result.startsWith('W') || ev.result.startsWith('L'))) {
+            const isWin = ev.result.startsWith('W');
+            if (isWin) overallWins++; else overallLosses++;
+            if (ev.isSec) {
+              if (isWin) secWins++; else secLosses++;
+            }
+          }
+        });
+
+        const bannerHtml = `
+          <div class="record-banner">
+            <div class="record-item">
+              <span class="record-label">Overall Record</span>
+              <span class="record-value">${overallWins}-${overallLosses}</span>
+            </div>
+            <div class="record-item">
+              <span class="record-label">SEC Record</span>
+              <span class="record-value">${secWins}-${secLosses}</span>
+            </div>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', bannerHtml);
+      }
+
+      // 2. Filter games list
       const filtered = combinedDataset.filter(ev => {
         if (currentFilter === 'all') {
           return ev.isoDate >= todayIso;
@@ -336,7 +404,10 @@
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = "<p style='color:var(--subtext);'>No games found for this selection.</p>";
+        const emptyMsg = document.createElement("p");
+        emptyMsg.style.color = "var(--subtext)";
+        emptyMsg.textContent = "No games found for this selection.";
+        container.appendChild(emptyMsg);
         return;
       }
 
