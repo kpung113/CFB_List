@@ -227,10 +227,11 @@
         <label><input type="checkbox" value="mens-basketball" checked> <span>🏀 Men's BB</span></label>
         <label><input type="checkbox" value="womens-basketball" checked> <span>🏀 Women's BB</span></label>
         <label><input type="checkbox" value="baseball" checked> <span>⚾ Baseball</span></label>
+        <label><input type="checkbox" value="softball" checked> <span>🥎 Softball</span></label>
       </div>
     </div>
 
-    <button class="search-btn" onclick="calculateHomestands()">Find Homestand Candidates</button>
+    <button class="search-btn" onclick="calculateHomestands()">Search Best Dates</button>
   </div>
 
   <div id="results-container">Scanning schedules...</div>
@@ -243,7 +244,8 @@
       'football': '🏈 Football',
       'mens-basketball': '🏀 Men\'s Basketball',
       'womens-basketball': '🏀 Women\'s Basketball',
-      'baseball': '⚾ Baseball'
+      'baseball': '⚾ Baseball',
+      'softball': '🥎 Softball'
     };
 
     function calculateHomestands() {
