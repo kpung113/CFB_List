@@ -203,11 +203,8 @@
     let combinedDataset = [];
     let currentFilter = 'all';
 
-    // Deep Broadcast Extractor (Scans broadcasts, geoBroadcasts, and media nodes)
     function extractBroadcastNetwork(comp) {
       if (!comp) return '';
-
-      // 1. Scan standard broadcasts array
       if (comp.broadcasts && comp.broadcasts.length > 0) {
         for (const b of comp.broadcasts) {
           if (b.media && b.media.shortName) return b.media.shortName;
@@ -215,15 +212,12 @@
           if (b.station) return b.station;
         }
       }
-
-      // 2. Scan geoBroadcasts array (Crucial for SECN+, ESPN+, SEC Network Extra)
       if (comp.geoBroadcasts && comp.geoBroadcasts.length > 0) {
         for (const gb of comp.geoBroadcasts) {
           if (gb.media && gb.media.shortName) return gb.media.shortName;
           if (gb.type && gb.type.shortName) return gb.type.shortName;
         }
       }
-
       return '';
     }
 
@@ -248,7 +242,6 @@
               const gameIso = event.date.split('T')[0];
               const broadcastNet = extractBroadcastNetwork(comp);
 
-              // Extract Game Time
               let timeStr = 'TBD';
               if (event.date) {
                 const dateObj = new Date(event.date);
@@ -257,7 +250,6 @@
                 }
               }
 
-              // Extract Win/Loss Result from ESPN
               let resultStr = null;
               if (event.status && event.status.type && event.status.type.state === 'post' && msuComp && oppComp) {
                 const msuScore = parseInt(msuComp.score?.value || "0");
@@ -285,7 +277,7 @@
 
       await Promise.all(promises);
 
-      // 2. Fallback to data.js for missing non-conference or exhibition games
+      // 2. Merge local data.js entries, giving strict priority to manual results and TV data
       if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
         masterDataset.forEach(localGame => {
           const matchedEspnGame = combinedDataset.find(
@@ -293,7 +285,8 @@
           );
 
           if (matchedEspnGame) {
-            if (localGame.result) {
+            // FIX: If data.js has a result (like W 62-13), keep it and don't let ESPN blank it out
+            if (localGame.result && localGame.result.trim() !== '') {
               matchedEspnGame.result = localGame.result;
             }
             if (!matchedEspnGame.tv && localGame.tv) {
