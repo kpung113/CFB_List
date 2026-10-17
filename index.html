@@ -1,92 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-  <script>
-  // Check localStorage immediately before page renders to avoid visual flicker
-  if (localStorage.getItem('dyslexiaMode') === 'enabled') {
-    document.documentElement.classList.add('dyslexia-font');
-  }
-  document.addEventListener('DOMContentLoaded', () => {
-    if (localStorage.getItem('dyslexiaMode') === 'enabled') {
-      document.body.classList.add('dyslexia-font');
-    }
-  });
-  </script>
-  <button id="fontToggleBtn" class="dyslexia-toggle" onclick="toggleDyslexiaFont()">Dyslexia Font: OFF</button>
-
-<script>
-  function updateToggleButtonState() {
-    const btn = document.getElementById('fontToggleBtn');
-    if (!btn) return;
-    const isEnabled = localStorage.getItem('dyslexiaMode') === 'enabled';
-    btn.innerText = isEnabled ? 'Dyslexia Font: ON' : 'Dyslexia Font: OFF';
-    btn.style.borderColor = isEnabled ? '#38bdf8' : '#334155';
-  }
-
-  function toggleDyslexiaFont() {
-    const isEnabled = localStorage.getItem('dyslexiaMode') === 'enabled';
-    if (isEnabled) {
-      localStorage.setItem('dyslexiaMode', 'disabled');
-      document.body.classList.remove('dyslexia-font');
-      document.documentElement.classList.remove('dyslexia-font');
-    } else {
-      localStorage.setItem('dyslexiaMode', 'enabled');
-      document.body.classList.add('dyslexia-font');
-      document.documentElement.classList.add('dyslexia-font');
-    }
-    updateToggleButtonState();
-  }
-
-  // Set initial button label on page load
-  document.addEventListener('DOMContentLoaded', updateToggleButtonState);
-</script>
-  
-
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-8695308WQ8');
-</script>
-
-
-  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bully's CFB Board</title>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-8695308WQ8');
+  </script>
+
+  <!-- Dyslexia Font Initializer Script -->
+  <script>
+    // Prevent screen flash by checking preference before DOM load
+    if (localStorage.getItem('dyslexiaMode') === 'enabled') {
+      document.documentElement.classList.add('dyslexia-font');
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('dyslexiaMode') === 'enabled') {
+        document.body.classList.add('dyslexia-font');
+      }
+    });
+  </script>
+
   <style>
-
     /* Dyslexic Friendly Global Override */
-body.dyslexia-font, 
-body.dyslexia-font *, 
-body.dyslexia-font .team-abbr, 
-body.dyslexia-font .game-card {
-  font-family: "Comic Sans MS", "Verdana", "OpenDyslexic", sans-serif !important;
-  letter-spacing: 0.05em !important;
-  word-spacing: 0.1em !important;
-}
+    body.dyslexia-font, 
+    body.dyslexia-font *, 
+    body.dyslexia-font .team-abbr, 
+    body.dyslexia-font .game-card {
+      font-family: "Comic Sans MS", "Verdana", "OpenDyslexic", sans-serif !important;
+      letter-spacing: 0.05em !important;
+      word-spacing: 0.1em !important;
+    }
 
-/* Toggle Button Styling for Header */
-.dyslexia-toggle {
-  background: #1e293b;
-  border: 1px solid #334155;
-  color: #38bdf8;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.dyslexia-toggle:hover {
-  background: #334155;
-  color: #fff;
-}
-    
+    /* Toggle Button Styling */
+    .dyslexia-toggle {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #38bdf8;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .dyslexia-toggle:hover {
+      background: #334155;
+      color: #fff;
+    }
+
     :root {
       --bg: #0b0c10;
       --card-bg: #181920;
@@ -137,6 +106,7 @@ body.dyslexia-font .game-card {
     .nav-tabs {
       display: flex;
       gap: 6px;
+      align-items: center;
     }
     .nav-tabs a {
       color: var(--subtext);
@@ -267,6 +237,7 @@ body.dyslexia-font .game-card {
     <a href="index.html" class="active">Scores</a>
     <a href="schedules.html">MSU Schedule</a>
     <a href="visit.html">MSU Trip</a>
+    <button id="fontToggleBtn" class="dyslexia-toggle" onclick="toggleDyslexiaFont()">Dyslexia Font: OFF</button>
   </nav>
   <span id="update-status" class="status-badge">Loading...</span>
 </header>
@@ -274,6 +245,32 @@ body.dyslexia-font .game-card {
   <div id="games-container"></div>
 
   <script>
+    // Dyslexia Toggle Functionality
+    function updateToggleButtonState() {
+      const btn = document.getElementById('fontToggleBtn');
+      if (!btn) return;
+      const isEnabled = localStorage.getItem('dyslexiaMode') === 'enabled';
+      btn.innerText = isEnabled ? 'Dyslexia Font: ON' : 'Dyslexia Font: OFF';
+      btn.style.borderColor = isEnabled ? '#38bdf8' : '#334155';
+    }
+
+    function toggleDyslexiaFont() {
+      const isEnabled = localStorage.getItem('dyslexiaMode') === 'enabled';
+      if (isEnabled) {
+        localStorage.setItem('dyslexiaMode', 'disabled');
+        document.body.classList.remove('dyslexia-font');
+        document.documentElement.classList.remove('dyslexia-font');
+      } else {
+        localStorage.setItem('dyslexiaMode', 'enabled');
+        document.body.classList.add('dyslexia-font');
+        document.documentElement.classList.add('dyslexia-font');
+      }
+      updateToggleButtonState();
+    }
+
+    document.addEventListener('DOMContentLoaded', updateToggleButtonState);
+
+    // Score Board Functionality
     async function fetchScores() {
       const statusElement = document.getElementById("update-status");
       statusElement.innerText = "Refreshing...";
@@ -372,7 +369,6 @@ body.dyslexia-font .game-card {
 
           const gameDate = new Date(event.date);
 
-          // Calculate end of the game week (Monday at 11:59:59 PM)
           const endOfWeekMonday = new Date(gameDate);
           const dayOfWeek = gameDate.getDay(); 
           const daysUntilMonday = (1 - dayOfWeek + 7) % 7;
@@ -411,14 +407,12 @@ body.dyslexia-font .game-card {
             gameObj.priority = 20000;
             liveGames.push(gameObj);
           } else if (statusState === 'post') {
-            // Keep in "Completed Games" section until Monday 11:59 PM passes
             if (now <= endOfWeekMonday) {
               recentFinalGames.push(gameObj);
             }
           }
         });
 
-        // Sort upcoming games chronologically / by tier
         upcomingGames.sort((a, b) => {
           const dateA = a.gameDate.toDateString();
           const dateB = b.gameDate.toDateString();
@@ -449,12 +443,10 @@ body.dyslexia-font .game-card {
         return;
       }
 
-      // 1. Render Live Games First
       liveGames.forEach(game => {
         container.appendChild(createGameCard(game));
       });
 
-      // 2. Group & Render Upcoming Games by Day
       if (upcomingGames.length > 0) {
         const gamesByDay = {};
         upcomingGames.forEach(game => {
@@ -515,7 +507,6 @@ body.dyslexia-font .game-card {
         });
       }
 
-      // 3. Render Completed / Final Games at the very bottom
       if (recentFinalGames.length > 0) {
         const finalHeader = document.createElement("div");
         finalHeader.className = "tier-header";
@@ -582,5 +573,3 @@ body.dyslexia-font .game-card {
 
 </body>
 </html>
-
-
