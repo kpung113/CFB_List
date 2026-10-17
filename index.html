@@ -2,6 +2,47 @@
 <html lang="en">
 <head>
 
+  <script>
+  // Check localStorage immediately before page renders to avoid visual flicker
+  if (localStorage.getItem('dyslexiaMode') === 'enabled') {
+    document.documentElement.classList.add('dyslexia-font');
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('dyslexiaMode') === 'enabled') {
+      document.body.classList.add('dyslexia-font');
+    }
+  });
+  </script>
+  <button id="fontToggleBtn" class="dyslexia-toggle" onclick="toggleDyslexiaFont()">Dyslexia Font: OFF</button>
+
+<script>
+  function updateToggleButtonState() {
+    const btn = document.getElementById('fontToggleBtn');
+    if (!btn) return;
+    const isEnabled = localStorage.getItem('dyslexiaMode') === 'enabled';
+    btn.innerText = isEnabled ? 'Dyslexia Font: ON' : 'Dyslexia Font: OFF';
+    btn.style.borderColor = isEnabled ? '#38bdf8' : '#334155';
+  }
+
+  function toggleDyslexiaFont() {
+    const isEnabled = localStorage.getItem('dyslexiaMode') === 'enabled';
+    if (isEnabled) {
+      localStorage.setItem('dyslexiaMode', 'disabled');
+      document.body.classList.remove('dyslexia-font');
+      document.documentElement.classList.remove('dyslexia-font');
+    } else {
+      localStorage.setItem('dyslexiaMode', 'enabled');
+      document.body.classList.add('dyslexia-font');
+      document.documentElement.classList.add('dyslexia-font');
+    }
+    updateToggleButtonState();
+  }
+
+  // Set initial button label on page load
+  document.addEventListener('DOMContentLoaded', updateToggleButtonState);
+</script>
+  
+
   <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
 <script>
@@ -18,6 +59,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bully's CFB Board</title>
   <style>
+
+    /* Dyslexic Friendly Global Override */
+body.dyslexia-font, 
+body.dyslexia-font *, 
+body.dyslexia-font .team-abbr, 
+body.dyslexia-font .game-card {
+  font-family: "Comic Sans MS", "Verdana", "OpenDyslexic", sans-serif !important;
+  letter-spacing: 0.05em !important;
+  word-spacing: 0.1em !important;
+}
+
+/* Toggle Button Styling for Header */
+.dyslexia-toggle {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #38bdf8;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.dyslexia-toggle:hover {
+  background: #334155;
+  color: #fff;
+}
+    
     :root {
       --bg: #0b0c10;
       --card-bg: #181920;
