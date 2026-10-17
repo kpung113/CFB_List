@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saturday Grid - Live Games</title>
+  <style>
+    /* Reset & Fullscreen Shell */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden; /* Enforce zero scrolling */
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Bar Header */
+    header {
+      height: 40px;
+      background-color: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid #334155;
+      flex-shrink: 0;
+    }
+
+    .title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #38bdf8;
+    }
+
+    .meta-info {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      display: flex;
+      gap: 16px;
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #ef4444;
+      font-weight: 600;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #ef4444;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    /* Dynamic Grid Layout */
+    #grid-container {
+      flex: 1;
+      display: grid;
+      gap: 8px;
+      padding: 8px;
+      width: 100%;
+      height: calc(100vh - 40px);
+    }
+
+    /* Game Card Styling */
+    .game-card {
+      background-color: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .game-card.sec-game {
+      border-left: 4px solid #f59e0b; /* Highlight SEC games */
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75em;
+      color: #94a3b8;
+      font-weight: 600;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 4px;
+    }
+
+    .broadcast {
+      color: #38bdf8;
+    }
+
+    .clock-status {
+      color: #ef4444;
+      font-weight: 700;
+    }
+
+    .teams-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+      flex: 1;
+      margin: 4px 0;
+    }
+
+    .team-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .team-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .team-rank {
+      font-size: 0.75em;
+      color: #94a3b8;
+      font-weight: 700;
+      min-width: 18px;
+    }
+
+    .team-name {
+      font-weight: 700;
+      font-size: 0.95em;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .team-score {
+      font-weight: 800;
+      font-size: 1.1em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .poss-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #f59e0b;
+      border-radius: 50%;
+    }
+
+    /* Empty state */
+    .no-games {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="title">Saturday Grid</div>
+    <div class="meta-info">
+      <span class="live-badge"><span class="pulse-dot"></span> <span id="live-count">0</span> LIVE</span>
+      <span id="last-updated">Updating...</span>
+    </div>
+  </header>
+
+  <div id="grid-container"></div>
+
+  <script>
+    const API_URL = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard';
+
+    // Helper: Check if team/game involves the SEC
+    function isSEC(game) {
+      const secConfIds = ['8']; // ESPN SEC Conference ID is 8
+      return game.competitions[0].competitors.some(c => 
+        c.team.conferenceId === '8' || 
+        (c.team.conference && c.team.conference.id === '8')
+      );
+    }
+
+    // Helper: Check if either team is AP Ranked
+    function isRanked(game) {
+      return game.competitions[0].competitors.some(c => 
+        c.curatedRank && c.curatedRank.current <= 25 && c.curatedRank.current > 0
+      );
+    }
+
+    // Sort Priority: SEC Games -> Ranked Games -> Everyone Else
+    function sortGames(games) {
+      return games.sort((a, b) => {
+        const aSEC = isSEC(a);
+        const bSEC = isSEC(b);
+        if (aSEC && !bSEC) return -1;
+        if (!aSEC && bSEC) return 1;
+
+        const aRanked = isRanked(a);
+        const bRanked = isRanked(b);
+        if (aRanked && !bRanked) return -1;
+        if (!aRanked && bRanked) return 1;
+
+        // Fallback: Order by start date / ID consistency
+        return new Date(a.date) - new Date(b.date);
+      });
+    }
+
+    // Dynamically adjust grid template CSS based on total active game count (N)
+    function adjustGridDimensions(count) {
+      const container = document.getElementById('grid-container');
+      if (count === 0) return;
+
+      let cols = 1;
+      let rows = 1;
+
+      // Optimize columns & rows for widescreen viewing without scrolling
+      if (count === 1) { cols = 1; rows = 1; }
+      else if (count === 2) { cols = 2; rows = 1; }
+      else if (count <= 4) { cols = 2; rows = 2; }
+      else if (count <= 6) { cols = 3; rows = 2; }
+      else if (count <= 9) { cols = 3; rows = 3; }
+      else if (count <= 12) { cols = 4; rows = 3; }
+      else if (count <= 16) { cols = 4; rows = 4; }
+      else if (count <= 20) { cols = 5; rows = 4; }
+      else { cols = 6; rows = Math.ceil(count / 6); }
+
+      container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      container.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+
+      // Dynamically scale font size based on screen capacity density
+      let baseFontSize = 16;
+      if (count > 8) baseFontSize = 14;
+      if (count > 12) baseFontSize = 12;
+      if (count > 18) baseFontSize = 10;
+      container.style.fontSize = `${baseFontSize}px`;
+    }
+
+    async function fetchLiveGrid() {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        
+        // Filter strictly for IN-PROGRESS games ("in")
+        const activeGames = (data.events || []).filter(e => {
+          const state = e.status.type.state;
+          return state === 'in'; // 'in' = Live / In Progress
+        });
+
+        const sortedActiveGames = sortGames(activeGames);
+        
+        document.getElementById('live-count').innerText = sortedActiveGames.length;
+        document.getElementById('last-updated').innerText = `Updated: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+
+        renderGrid(sortedActiveGames);
+      } catch (err) {
+        console.error('Error fetching live games:', err);
+      }
+    }
+
+    function renderGrid(games) {
+      const container = document.getElementById('grid-container');
+      container.innerHTML = '';
+
+      if (games.length === 0) {
+        container.style.gridTemplateColumns = '1fr';
+        container.style.gridTemplateRows = '1fr';
+        container.innerHTML = `<div class="no-games">No live games currently in progress.</div>`;
+        return;
+      }
+
+      adjustGridDimensions(games.length);
+
+      games.forEach(game => {
+        const comp = game.competitions[0];
+        const home = comp.competitors.find(c => c.homeAway === 'home');
+        const away = comp.competitors.find(c => c.homeAway === 'away');
+        const broadcast = comp.broadcasts && comp.broadcasts[0] ? comp.broadcasts[0].names[0] : '';
+        const isSecGame = isSEC(game);
+
+        const card = document.createElement('div');
+        card.className = `game-card ${isSecGame ? 'sec-game' : ''}`;
+
+        card.innerHTML = `
+          <div class="card-header">
+            <span class="clock-status">${game.status.type.detail}</span>
+            <span class="broadcast">${broadcast}</span>
+          </div>
+          <div class="teams-container">
+            <div class="team-row">
+              <div class="team-info">
+                <span class="team-rank">${away.curatedRank?.current <= 25 ? away.curatedRank.current : ''}</span>
+                <span class="team-name">${away.team.shortDisplayName || away.team.name}</span>
+                ${away.possess ? '<span class="poss-dot"></span>' : ''}
+              </div>
+              <span class="team-score">${away.score}</span>
+            </div>
+            <div class="team-row">
+              <div class="team-info">
+                <span class="team-rank">${home.curatedRank?.current <= 25 ? home.curatedRank.current : ''}</span>
+                <span class="team-name">${home.team.shortDisplayName || home.team.name}</span>
+                ${home.possess ? '<span class="poss-dot"></span>' : ''}
+              </div>
+              <span class="team-score">${home.score}</span>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Initial fetch & set 15-second refresh loop
+    fetchLiveGrid();
+    setInterval(fetchLiveGrid, 15000);
+  </script>
+</body>
+</html>
