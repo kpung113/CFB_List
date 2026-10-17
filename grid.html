@@ -20,42 +20,42 @@
 
     /* Top Bar Header */
     header {
-      height: 40px;
+      height: 36px;
       background-color: #1e293b;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 16px;
+      padding: 0 12px;
       border-bottom: 1px solid #334155;
       flex-shrink: 0;
     }
 
     .title {
       font-weight: 700;
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       letter-spacing: 0.05em;
       text-transform: uppercase;
       color: #38bdf8;
     }
 
     .meta-info {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: #94a3b8;
       display: flex;
-      gap: 16px;
+      gap: 12px;
     }
 
     .live-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       color: #ef4444;
       font-weight: 600;
     }
 
     .pulse-dot {
-      width: 8px;
-      height: 8px;
+      width: 6px;
+      height: 6px;
       background-color: #ef4444;
       border-radius: 50%;
       animation: pulse 1.5s infinite;
@@ -71,42 +71,46 @@
     #grid-container {
       flex: 1;
       display: grid;
-      gap: 8px;
-      padding: 8px;
+      gap: 6px;
+      padding: 6px;
       width: 100%;
-      height: calc(100vh - 40px);
+      height: calc(100vh - 36px);
     }
 
-    /* Game Card Styling */
+    /* Compact Game Card Styling */
     .game-card {
       background-color: #1e293b;
       border: 1px solid #334155;
-      border-radius: 6px;
-      padding: 8px 12px;
+      border-radius: 4px;
+      padding: 6px 8px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      position: relative;
       overflow: hidden;
     }
 
     .game-card.sec-game {
-      border-left: 4px solid #f59e0b; /* Highlight SEC games */
+      border-left: 3px solid #f59e0b; /* Highlight SEC games */
     }
 
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.75em;
+      font-size: 0.65rem;
       color: #94a3b8;
       font-weight: 600;
       border-bottom: 1px solid #334155;
-      padding-bottom: 4px;
+      padding-bottom: 2px;
+      margin-bottom: 4px;
     }
 
     .broadcast {
       color: #38bdf8;
+      max-width: 60px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .clock-status {
@@ -117,10 +121,9 @@
     .teams-container {
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      gap: 4px;
+      gap: 3px;
       flex: 1;
-      margin: 4px 0;
+      justify-content: center;
     }
 
     .team-row {
@@ -132,34 +135,32 @@
     .team-info {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       overflow: hidden;
-      white-space: nowrap;
     }
 
     .team-rank {
-      font-size: 0.75em;
+      font-size: 0.7rem;
       color: #94a3b8;
       font-weight: 700;
-      min-width: 18px;
+      min-width: 14px;
     }
 
-    .team-name {
+    .team-abbr {
       font-weight: 700;
-      font-size: 0.95em;
-      text-overflow: ellipsis;
-      overflow: hidden;
+      font-size: 0.85rem;
+      letter-spacing: 0.02em;
     }
 
     .team-score {
       font-weight: 800;
-      font-size: 1.1em;
+      font-size: 0.9rem;
       font-variant-numeric: tabular-nums;
     }
 
     .poss-dot {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       background-color: #f59e0b;
       border-radius: 50%;
     }
@@ -171,7 +172,7 @@
       align-items: center;
       justify-content: center;
       color: #64748b;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       font-weight: 600;
     }
   </style>
@@ -189,10 +190,8 @@
   <div id="grid-container"></div>
 
   <script>
-    // Updated API URL to pull full FBS slate
     const API_URL = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?limit=300&groups=80';
 
-    // Helper: Check if team/game involves the SEC
     function isSEC(game) {
       return game.competitions[0].competitors.some(c => 
         c.team.conferenceId === '8' || 
@@ -200,14 +199,12 @@
       );
     }
 
-    // Helper: Check if either team is AP Ranked
     function isRanked(game) {
       return game.competitions[0].competitors.some(c => 
         c.curatedRank && c.curatedRank.current <= 25 && c.curatedRank.current > 0
       );
     }
 
-    // Sort Priority: SEC Games -> Ranked Games -> Everyone Else
     function sortGames(games) {
       return games.sort((a, b) => {
         const aSEC = isSEC(a);
@@ -224,7 +221,6 @@
       });
     }
 
-    // Dynamically adjust grid template CSS based on total active game count (N)
     function adjustGridDimensions(count) {
       const container = document.getElementById('grid-container');
       if (count === 0) return;
@@ -232,6 +228,7 @@
       let cols = 1;
       let rows = 1;
 
+      // Scale columns tighter so cards fit comfortably without tall vertical stretching
       if (count === 1) { cols = 1; rows = 1; }
       else if (count === 2) { cols = 2; rows = 1; }
       else if (count <= 4) { cols = 2; rows = 2; }
@@ -240,16 +237,11 @@
       else if (count <= 12) { cols = 4; rows = 3; }
       else if (count <= 16) { cols = 4; rows = 4; }
       else if (count <= 20) { cols = 5; rows = 4; }
+      else if (count <= 24) { cols = 6; rows = 4; }
       else { cols = 6; rows = Math.ceil(count / 6); }
 
       container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
       container.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-
-      let baseFontSize = 16;
-      if (count > 8) baseFontSize = 14;
-      if (count > 12) baseFontSize = 12;
-      if (count > 18) baseFontSize = 10;
-      container.style.fontSize = `${baseFontSize}px`;
     }
 
     async function fetchLiveGrid() {
@@ -293,6 +285,10 @@
         const broadcast = comp.broadcasts && comp.broadcasts[0] ? comp.broadcasts[0].names[0] : '';
         const isSecGame = isSEC(game);
 
+        // Fallback abbreviation if team.abbreviation isn't present
+        const awayAbbr = away.team.abbreviation || away.team.shortDisplayName.substring(0, 3).toUpperCase();
+        const homeAbbr = home.team.abbreviation || home.team.shortDisplayName.substring(0, 3).toUpperCase();
+
         const card = document.createElement('div');
         card.className = `game-card ${isSecGame ? 'sec-game' : ''}`;
 
@@ -305,7 +301,7 @@
             <div class="team-row">
               <div class="team-info">
                 <span class="team-rank">${away.curatedRank?.current <= 25 ? away.curatedRank.current : ''}</span>
-                <span class="team-name">${away.team.shortDisplayName || away.team.name}</span>
+                <span class="team-abbr">${awayAbbr}</span>
                 ${away.possess ? '<span class="poss-dot"></span>' : ''}
               </div>
               <span class="team-score">${away.score}</span>
@@ -313,7 +309,7 @@
             <div class="team-row">
               <div class="team-info">
                 <span class="team-rank">${home.curatedRank?.current <= 25 ? home.curatedRank.current : ''}</span>
-                <span class="team-name">${home.team.shortDisplayName || home.team.name}</span>
+                <span class="team-abbr">${homeAbbr}</span>
                 ${home.possess ? '<span class="poss-dot"></span>' : ''}
               </div>
               <span class="team-score">${home.score}</span>
