@@ -189,11 +189,11 @@
   <div id="grid-container"></div>
 
   <script>
-    const API_URL = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard';
+    // Updated API URL to pull full FBS slate
+    const API_URL = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?limit=300&groups=80';
 
     // Helper: Check if team/game involves the SEC
     function isSEC(game) {
-      const secConfIds = ['8']; // ESPN SEC Conference ID is 8
       return game.competitions[0].competitors.some(c => 
         c.team.conferenceId === '8' || 
         (c.team.conference && c.team.conference.id === '8')
@@ -220,7 +220,6 @@
         if (aRanked && !bRanked) return -1;
         if (!aRanked && bRanked) return 1;
 
-        // Fallback: Order by start date / ID consistency
         return new Date(a.date) - new Date(b.date);
       });
     }
@@ -233,7 +232,6 @@
       let cols = 1;
       let rows = 1;
 
-      // Optimize columns & rows for widescreen viewing without scrolling
       if (count === 1) { cols = 1; rows = 1; }
       else if (count === 2) { cols = 2; rows = 1; }
       else if (count <= 4) { cols = 2; rows = 2; }
@@ -247,7 +245,6 @@
       container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
       container.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
-      // Dynamically scale font size based on screen capacity density
       let baseFontSize = 16;
       if (count > 8) baseFontSize = 14;
       if (count > 12) baseFontSize = 12;
@@ -260,10 +257,9 @@
         const res = await fetch(API_URL);
         const data = await res.json();
         
-        // Filter strictly for IN-PROGRESS games ("in")
         const activeGames = (data.events || []).filter(e => {
           const state = e.status.type.state;
-          return state === 'in'; // 'in' = Live / In Progress
+          return state === 'in';
         });
 
         const sortedActiveGames = sortGames(activeGames);
@@ -328,7 +324,6 @@
       });
     }
 
-    // Initial fetch & set 15-second refresh loop
     fetchLiveGrid();
     setInterval(fetchLiveGrid, 15000);
   </script>
