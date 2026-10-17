@@ -64,7 +64,7 @@
       --accent-maroon: #5d1725;
       --accent-red: #ef4444;
       --subtext: #94a3b8;
-      --gold: #fbbf24;
+      --gold: #84cc16; /* Updated from yellow to highlighter lime green */
     }
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -307,7 +307,7 @@
 
           const getRank = (c) => {
             const r = c.curatedRank && c.curatedRank.current;
-            return (r && r <= 25) ? `<span style="color:#fbbf24; font-weight:bold;">#${r}</span> ` : '';
+            return (r && r <= 25) ? `<span style="color:#84cc16; font-weight:bold;">#${r}</span> ` : '';
           };
 
           const tvNetwork = (comp.broadcasts && comp.broadcasts.length > 0 && comp.broadcasts[0].names)
@@ -539,7 +539,7 @@
         <div class="card-header">
           <span>${game.statusDetail} ${game.isSecGame ? '<strong style="color:#fff; background:#5d1725; padding:1px 5px; border-radius:3px; font-size:0.7rem;">SEC</strong>' : ''}</span>
           <span class="header-right">
-            <strong style="color:#fbbf24;">📺 ${game.tvNetwork}</strong>
+            <strong style="color:#84cc16;">📺 ${game.tvNetwork}</strong>
             <a href="https://www.espn.com/college-football/game/_/gameId/${game.gameId}" 
                target="_blank" 
                rel="noopener noreferrer" 
