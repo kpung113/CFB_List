@@ -90,7 +90,7 @@
     }
 
     .game-card.sec-game {
-      border-left: 3px solid #f59e0b; /* Highlight SEC games */
+      border-left: 3px solid #f59e0b;
     }
 
     .card-header {
@@ -107,7 +107,7 @@
 
     .broadcast {
       color: #38bdf8;
-      max-width: 60px;
+      max-width: 55px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -121,7 +121,7 @@
     .teams-container {
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 4px;
       flex: 1;
       justify-content: center;
     }
@@ -130,39 +130,50 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 4px;
     }
 
     .team-info {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
+      flex: 1;
+      min-width: 0; /* Critical: allows text truncation without overlapping score */
       overflow: hidden;
     }
 
     .team-rank {
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       color: #94a3b8;
       font-weight: 700;
-      min-width: 14px;
+      flex-shrink: 0;
+      min-width: 12px;
     }
 
     .team-abbr {
       font-weight: 700;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       letter-spacing: 0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .team-score {
       font-weight: 800;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
+      flex-shrink: 0; /* Score never gets squished */
       font-variant-numeric: tabular-nums;
+      min-width: 16px;
+      text-align: right;
     }
 
     .poss-dot {
-      width: 5px;
-      height: 5px;
+      width: 4px;
+      height: 4px;
       background-color: #f59e0b;
       border-radius: 50%;
+      flex-shrink: 0;
     }
 
     /* Empty state */
@@ -228,7 +239,6 @@
       let cols = 1;
       let rows = 1;
 
-      // Scale columns tighter so cards fit comfortably without tall vertical stretching
       if (count === 1) { cols = 1; rows = 1; }
       else if (count === 2) { cols = 2; rows = 1; }
       else if (count <= 4) { cols = 2; rows = 2; }
@@ -285,7 +295,6 @@
         const broadcast = comp.broadcasts && comp.broadcasts[0] ? comp.broadcasts[0].names[0] : '';
         const isSecGame = isSEC(game);
 
-        // Fallback abbreviation if team.abbreviation isn't present
         const awayAbbr = away.team.abbreviation || away.team.shortDisplayName.substring(0, 3).toUpperCase();
         const homeAbbr = home.team.abbreviation || home.team.shortDisplayName.substring(0, 3).toUpperCase();
 
