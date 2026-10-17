@@ -99,6 +99,7 @@
       width: 18px;
       height: 14px;
       padding: 0;
+      z-index: 101;
     }
 
     .menu-btn span {
@@ -121,16 +122,18 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background-color: rgba(0, 0, 0, 0.5);
+      background-color: rgba(0, 0, 0, 0.6);
       z-index: 99;
       opacity: 0;
       visibility: hidden;
+      pointer-events: none;
       transition: opacity 0.2s ease, visibility 0.2s ease;
     }
 
     .nav-overlay.open {
       opacity: 1;
       visibility: visible;
+      pointer-events: auto;
     }
 
     .nav-drawer {
@@ -153,9 +156,9 @@
     }
 
     .drawer-header {
-      padding: 12px;
-      font-weight: 700;
-      font-size: 0.85rem;
+      padding: 14px 16px;
+      font-weight: 800;
+      font-size: 0.9rem;
       text-transform: uppercase;
       color: #38bdf8;
       border-bottom: 1px solid #334155;
@@ -168,7 +171,7 @@
       background: none;
       border: none;
       color: #94a3b8;
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       cursor: pointer;
     }
 
@@ -179,16 +182,17 @@
     .drawer-links {
       list-style: none;
       padding: 8px 0;
+      margin: 0;
       display: flex;
       flex-direction: column;
     }
 
     .drawer-links a {
-      padding: 10px 16px;
+      padding: 12px 18px;
       color: #f8fafc;
       text-decoration: none;
       font-size: 0.85rem;
-      font-weight: 600;
+      font-weight: 700;
       display: block;
       border-left: 3px solid transparent;
       transition: background 0.2s, border-color 0.2s;
@@ -213,6 +217,7 @@
       color: #94a3b8;
       display: flex;
       gap: 12px;
+      align-items: center;
     }
 
     .live-badge {
@@ -399,11 +404,14 @@
   <div class="nav-overlay" id="navOverlay" onclick="toggleMenu()"></div>
   <nav class="nav-drawer" id="navDrawer">
     <div class="drawer-header">
-      <span>Menu</span>
+      <span>Navigation</span>
       <button class="drawer-close" onclick="toggleMenu()">&times;</button>
     </div>
     <ul class="drawer-links">
+      <li><a href="index.html">Scores Board</a></li>
       <li><a href="grid.html" class="active">Saturday Game Grid</a></li>
+      <li><a href="schedules.html">MSU Schedule</a></li>
+      <li><a href="visit.html">MSU Trip</a></li>
     </ul>
   </nav>
 
@@ -417,6 +425,7 @@
       <div class="title">Saturday Grid</div>
     </div>
     <div class="meta-info">
+      <button id="fontToggleBtn" class="dyslexia-toggle" onclick="toggleDyslexiaFont()">Kate Button: OFF</button>
       <span class="live-badge"><span class="pulse-dot"></span> <span id="live-count">0</span> LIVE</span>
       <span id="last-updated">Updating...</span>
     </div>
