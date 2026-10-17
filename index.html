@@ -1,3 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bully's CFB Board</title>
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --card-bg: #181920;
+      --card-border: #272935;
+      --text: #f8fafc;
+      --accent-maroon: #5d1725;
+      --accent-red: #ef4444;
+      --subtext: #94a3b8;
+      --gold: #fbbf24;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--accent-maroon);
+    }
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .msu-logo {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+      filter: 
+        drop-shadow( 3px  0px 0px #ffffff)
+        drop-shadow(-3px  0px 0px #ffffff)
+        drop-shadow( 0px  3px 0px #ffffff)
+        drop-shadow( 0px -3px 0px #ffffff)
+        drop-shadow( 2px  2px 0px #ffffff)
+        drop-shadow(-2px -2px 0px #ffffff)
+        drop-shadow( 2px -2px 0px #ffffff)
+        drop-shadow(-2px  2px 0px #ffffff);
+    }
+    h1 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px; }
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+    }
+    .nav-tabs a {
+      color: var(--subtext);
+      text-decoration: none;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 5px 10px;
+      background: #181920;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .nav-tabs a.active, .nav-tabs a:hover {
+      color: #fff;
+      background: var(--accent-maroon);
+      border-color: #7d2033;
+    }
+    .status-badge {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      background: #222530;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      color: var(--subtext);
+    }
+    .day-header {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text);
+      background: #12131a;
+      border-left: 4px solid var(--accent-maroon);
+      padding: 8px 12px;
+      margin: 24px 0 10px 0;
+      border-radius: 4px;
+      letter-spacing: -0.3px;
+    }
+    .tier-header {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--gold);
+      margin: 14px 0 8px 4px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #222530;
+    }
+    .game-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-left: 5px solid var(--card-border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .game-card.live-4q { border-left-color: var(--accent-red); background: linear-gradient(135deg, #181920 0%, #221518 100%); }
+    .game-card.live { border-left-color: var(--accent-maroon); background: linear-gradient(135deg, #181920 0%, #1f1418 100%); }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--subtext);
+      margin-bottom: 8px;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .team-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 6px 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .score { font-size: 1.25rem; font-weight: bold; }
+    .drive-banner {
+      font-size: 0.75rem;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      padding: 4px 8px;
+      border-radius: 6px;
+      margin: 8px 0;
+      font-weight: 600;
+    }
+    .game-meta {
+      font-size: 0.75rem;
+      color: var(--subtext);
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+    }
+    .watch-btn {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.75rem;
+      background: var(--accent-maroon);
+      border: 1px solid #7d2033;
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      transition: background 0.2s;
+    }
+    .watch-btn:active {
+      background: #3b0e17;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">
+    <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" 
+         alt="MSU Logo" 
+         class="msu-logo">
+    <h1>Bully's CFB Board</h1>
+  </div>
+  <nav class="nav-tabs">
+    <a href="index.html" class="active">Scores</a>
+    <a href="schedules.html">MSU Schedule</a>
+    <a href="visit.html">MSU Trip</a>
+  </nav>
+  <span id="update-status" class="status-badge">Loading...</span>
+</header>
+  
+  <div id="games-container"></div>
+
   <script>
     async function fetchScores() {
       const statusElement = document.getElementById("update-status");
@@ -99,7 +292,7 @@
 
           // Calculate end of the game week (Monday at 11:59:59 PM)
           const endOfWeekMonday = new Date(gameDate);
-          const dayOfWeek = gameDate.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+          const dayOfWeek = gameDate.getDay(); 
           const daysUntilMonday = (1 - dayOfWeek + 7) % 7;
           endOfWeekMonday.setDate(gameDate.getDate() + daysUntilMonday);
           endOfWeekMonday.setHours(23, 59, 59, 999);
@@ -304,4 +497,6 @@
     fetchScores();
     setInterval(fetchScores, 30000);
   </script>
-  
+
+</body>
+</html>
