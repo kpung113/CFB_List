@@ -11,7 +11,6 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-8695308WQ8');
   </script>
 
@@ -20,11 +19,6 @@
     if (localStorage.getItem('dyslexiaMode') === 'enabled') {
       document.documentElement.classList.add('dyslexia-font');
     }
-    document.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem('dyslexiaMode') === 'enabled') {
-        document.body.classList.add('dyslexia-font');
-      }
-    });
   </script>
 
   <style>
@@ -98,15 +92,15 @@
       flex-direction: column;
       justify-content: center;
       gap: 4px;
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       padding: 4px;
-      z-index: 10;
+      z-index: 1001;
     }
     .menu-btn span {
       display: block;
       width: 100%;
-      height: 2px;
+      height: 3px;
       background-color: #38bdf8;
       border-radius: 2px;
       transition: all 0.2s;
@@ -115,7 +109,7 @@
       background-color: #ffffff;
     }
 
-    /* Slide-Out Navigation Drawer */
+    /* Slide-Out Navigation Drawer & Overlay */
     .nav-overlay {
       position: fixed;
       top: 0;
@@ -137,8 +131,8 @@
     .nav-drawer {
       position: fixed;
       top: 0;
-      left: -260px;
-      width: 260px;
+      left: -280px;
+      width: 280px;
       height: 100vh;
       background-color: #181920;
       border-right: 1px solid var(--card-border);
@@ -152,9 +146,9 @@
       left: 0;
     }
     .drawer-header {
-      padding: 14px 16px;
+      padding: 16px;
       font-weight: 800;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       text-transform: uppercase;
       color: #38bdf8;
       border-bottom: 1px solid var(--card-border);
@@ -166,8 +160,9 @@
       background: none;
       border: none;
       color: var(--subtext);
-      font-size: 1.3rem;
+      font-size: 1.5rem;
       cursor: pointer;
+      padding: 0 4px;
     }
     .drawer-close:hover {
       color: #fff;
@@ -180,10 +175,10 @@
       flex-direction: column;
     }
     .drawer-links a {
-      padding: 12px 18px;
+      padding: 14px 20px;
       color: var(--text);
       text-decoration: none;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       font-weight: 700;
       display: block;
       border-left: 3px solid transparent;
@@ -315,7 +310,6 @@
       display: inline-flex;
       align-items: center;
       gap: 3px;
-      transition: background 0.2s;
     }
   </style>
 </head>
@@ -391,7 +385,14 @@
       updateToggleButtonState();
     }
 
-    document.addEventListener('DOMContentLoaded', updateToggleButtonState);
+    document.addEventListener('DOMContentLoaded', () => {
+      updateToggleButtonState();
+      if (localStorage.getItem('dyslexiaMode') === 'enabled') {
+        document.body.classList.add('dyslexia-font');
+      }
+      fetchScores();
+      setInterval(fetchScores, 30000);
+    });
 
     async function fetchScores() {
       const statusElement = document.getElementById("update-status");
@@ -419,7 +420,6 @@
             const period = event.status?.period || 0;
             const homeScore = parseInt(home.score || "0");
             const awayScore = parseInt(away.score || "0");
-            const diff = Math.abs(homeScore - awayScore);
 
             const isSecGame = (home.team?.conferenceId === "8" || away.team?.conferenceId === "8");
             
@@ -456,7 +456,6 @@
 
             if (statusState === 'in' && situation) {
               possessionTeamId = situation.possession;
-
               const down = situation.down;
               const distance = situation.distance;
               const posText = situation.possessionText || '';
@@ -494,7 +493,6 @@
             }
 
             const gameDate = new Date(event.date);
-
             const endOfWeekMonday = new Date(gameDate);
             const dayOfWeek = gameDate.getDay(); 
             const daysUntilMonday = (1 - dayOfWeek + 7) % 7;
@@ -514,7 +512,6 @@
               statusState,
               statusDetail: event.status?.type?.shortDetail || '',
               period,
-              diff,
               isSecGame,
               hasRankedTeam,
               bestRank,
@@ -523,14 +520,12 @@
               winProbText,
               possessionTeamId,
               driveText,
-              gameDate,
-              priority: 0
+              gameDate
             };
 
             if (statusState === 'pre') {
               upcomingGames.push(gameObj);
             } else if (statusState === 'in') {
-              gameObj.priority = 20000;
               liveGames.push(gameObj);
             } else if (statusState === 'post') {
               if (now <= endOfWeekMonday) {
@@ -545,9 +540,7 @@
         upcomingGames.sort((a, b) => {
           const dateA = a.gameDate.toDateString();
           const dateB = b.gameDate.toDateString();
-          if (dateA !== dateB) {
-            return a.gameDate - b.gameDate;
-          }
+          if (dateA !== dateB) return a.gameDate - b.gameDate;
           const getUpcomingTier = (g) => g.isSecGame ? 1 : (g.hasRankedTeam ? 2 : 3);
           const tierA = getUpcomingTier(a);
           const tierB = getUpcomingTier(b);
@@ -574,9 +567,7 @@
         return;
       }
 
-      liveGames.forEach(game => {
-        container.appendChild(createGameCard(game));
-      });
+      liveGames.forEach(game => container.appendChild(createGameCard(game)));
 
       if (upcomingGames.length > 0) {
         const gamesByDay = {};
@@ -621,4 +612,8 @@
               tierHeader.className = "tier-header";
               tierHeader.innerText = "Ranked Matchups - sorted by time";
               container.appendChild(tierHeader);
-     
+              rankedGames.forEach(game => container.appendChild(createGameCard(game)));
+            }
+
+            if (otherGames.length > 0) {
+              const tierHeader = document.c
