@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Saturday Grid - Live Games</title>
+  <title>Saturday Grid - Live & Completed Games</title>
   
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
@@ -57,7 +57,6 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
-    /* REMOVED 100vh height lock so page can flow naturally */
     html, body {
       width: 100vw;
       min-height: 100vh;
@@ -81,6 +80,124 @@
       position: sticky;
       top: 0;
       z-index: 10;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Hamburger Menu Button */
+    .menu-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 18px;
+      height: 14px;
+      padding: 0;
+    }
+
+    .menu-btn span {
+      display: block;
+      width: 100%;
+      height: 2px;
+      background-color: #38bdf8;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .menu-btn:hover span {
+      background-color: #ffffff;
+    }
+
+    /* Navigation Overlay / Drawer */
+    .nav-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 99;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+
+    .nav-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .nav-drawer {
+      position: fixed;
+      top: 0;
+      left: -260px;
+      width: 260px;
+      height: 100vh;
+      background-color: #1e293b;
+      border-right: 1px solid #334155;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      transition: left 0.3s ease;
+      box-shadow: 4px 0 15px rgba(0,0,0,0.5);
+    }
+
+    .nav-drawer.open {
+      left: 0;
+    }
+
+    .drawer-header {
+      padding: 12px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      color: #38bdf8;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .drawer-close {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .drawer-close:hover {
+      color: #fff;
+    }
+
+    .drawer-links {
+      list-style: none;
+      padding: 8px 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .drawer-links a {
+      padding: 10px 16px;
+      color: #f8fafc;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: block;
+      border-left: 3px solid transparent;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .drawer-links a:hover, .drawer-links a.active {
+      background-color: #334155;
+      border-left-color: #38bdf8;
+      color: #38bdf8;
     }
 
     .title {
@@ -120,7 +237,29 @@
       100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
     }
 
-    /* GRID CONTAINER: Uses max-content rows so cards never stretch */
+    /* Section Divider Headers */
+    .section-divider {
+      grid-column: 1 / -1;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #38bdf8;
+      background-color: #0f172a;
+      padding: 6px 4px 2px 4px;
+      border-bottom: 1px solid #334155;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-divider.completed-title {
+      color: #94a3b8;
+      margin-top: 12px;
+    }
+
+    /* GRID CONTAINER */
     #grid-container {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -131,7 +270,7 @@
       width: 100%;
     }
 
-    /* COMPACT CARD: Hugs text height strictly */
+    /* COMPACT CARD */
     .game-card {
       background-color: #1e293b;
       border: 1px solid #334155;
@@ -147,6 +286,11 @@
 
     .game-card.sec-game {
       border-left: 3px solid #f59e0b;
+    }
+
+    .game-card.completed-card {
+      opacity: 0.85;
+      background-color: #172033;
     }
 
     .card-header {
@@ -178,6 +322,10 @@
       text-overflow: ellipsis;
     }
 
+    .clock-status.completed-status {
+      color: #94a3b8;
+    }
+
     .teams-container {
       display: flex;
       flex-direction: column;
@@ -189,6 +337,15 @@
       justify-content: space-between;
       align-items: center;
       gap: 2px;
+    }
+
+    .team-row.winner {
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .team-row.loser {
+      color: #64748b;
     }
 
     .team-info {
@@ -230,16 +387,35 @@
       align-items: center;
       justify-content: center;
       color: #64748b;
-      font-size: 1.1rem;
+      font-size: 0.85rem;
       font-weight: 600;
-      padding: 40px;
+      padding: 16px;
     }
   </style>
 </head>
 <body>
 
+  <!-- Slide-out Menu Overlay and Drawer -->
+  <div class="nav-overlay" id="navOverlay" onclick="toggleMenu()"></div>
+  <nav class="nav-drawer" id="navDrawer">
+    <div class="drawer-header">
+      <span>Menu</span>
+      <button class="drawer-close" onclick="toggleMenu()">&times;</button>
+    </div>
+    <ul class="drawer-links">
+      <li><a href="grid.html" class="active">Saturday Game Grid</a></li>
+    </ul>
+  </nav>
+
   <header>
-    <div class="title">Saturday Grid</div>
+    <div class="header-left">
+      <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="title">Saturday Grid</div>
+    </div>
     <div class="meta-info">
       <span class="live-badge"><span class="pulse-dot"></span> <span id="live-count">0</span> LIVE</span>
       <span id="last-updated">Updating...</span>
@@ -249,6 +425,13 @@
   <div id="grid-container"></div>
 
   <script>
+    function toggleMenu() {
+      const drawer = document.getElementById('navDrawer');
+      const overlay = document.getElementById('navOverlay');
+      drawer.classList.toggle('open');
+      overlay.classList.toggle('open');
+    }
+
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
       if (!btn) return;
@@ -304,8 +487,12 @@
       });
     }
 
-    function formatShortStatus(detail) {
+    function formatShortStatus(detail, state) {
       if (!detail) return '';
+      if (state === 'post') {
+        if (detail.includes('OT')) return 'FINAL/OT';
+        return 'FINAL';
+      }
       return detail
         .replace(/ - /g, ' ')
         .replace(/1st Quarter/g, '1Q')
@@ -324,68 +511,103 @@
         const res = await fetch(API_URL);
         const data = await res.json();
         
-        const activeGames = (data.events || []).filter(e => {
-          const state = e.status.type.state;
-          return state === 'in';
-        });
+        const activeGames = (data.events || []).filter(e => e.status.type.state === 'in');
+        const completedGames = (data.events || []).filter(e => e.status.type.state === 'post');
 
         const sortedActiveGames = sortGames(activeGames);
+        const sortedCompletedGames = sortGames(completedGames);
         
         document.getElementById('live-count').innerText = sortedActiveGames.length;
         document.getElementById('last-updated').innerText = `Updated: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
 
-        renderGrid(sortedActiveGames);
+        renderGrid(sortedActiveGames, sortedCompletedGames);
       } catch (err) {
         console.error('Error fetching live games:', err);
       }
     }
 
-    function renderGrid(games) {
+    function createGameCard(game, isCompleted = false) {
+      const comp = game.competitions[0];
+      const home = comp.competitors.find(c => c.homeAway === 'home');
+      const away = comp.competitors.find(c => c.homeAway === 'away');
+      const broadcast = comp.broadcasts && comp.broadcasts[0] ? comp.broadcasts[0].names[0] : '';
+      const isSecGame = isSEC(game);
+
+      const awayAbbr = away.team.abbreviation || away.team.shortDisplayName || away.team.name;
+      const homeAbbr = home.team.abbreviation || home.team.shortDisplayName || home.team.name;
+
+      const card = document.createElement('div');
+      card.className = `game-card ${isSecGame ? 'sec-game' : ''} ${isCompleted ? 'completed-card' : ''}`;
+
+      let awayClass = '';
+      let homeClass = '';
+      if (isCompleted) {
+        if (away.winner) {
+          awayClass = 'winner';
+          homeClass = 'loser';
+        } else if (home.winner) {
+          homeClass = 'winner';
+          awayClass = 'loser';
+        }
+      }
+
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="clock-status ${isCompleted ? 'completed-status' : ''}">${formatShortStatus(game.status.type.detail, game.status.type.state)}</span>
+          <span class="broadcast">${broadcast}</span>
+        </div>
+        <div class="teams-container">
+          <div class="team-row ${awayClass}">
+            <div class="team-info">
+              ${away.curatedRank?.current <= 25 ? `<span class="team-rank">#${away.curatedRank.current}</span>` : ''}
+              <span class="team-abbr">${awayAbbr}</span>
+            </div>
+            <span class="team-score">${away.score}</span>
+          </div>
+          <div class="team-row ${homeClass}">
+            <div class="team-info">
+              ${home.curatedRank?.current <= 25 ? `<span class="team-rank">#${home.curatedRank.current}</span>` : ''}
+              <span class="team-abbr">${homeAbbr}</span>
+            </div>
+            <span class="team-score">${home.score}</span>
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    function renderGrid(activeGames, completedGames) {
       const container = document.getElementById('grid-container');
       container.innerHTML = '';
 
-      if (games.length === 0) {
-        container.innerHTML = `<div class="no-games">No live games currently in progress.</div>`;
-        return;
+      // Render Live Games Section
+      const liveHeader = document.createElement('div');
+      liveHeader.className = 'section-divider';
+      liveHeader.innerHTML = `<span>Live Games</span><span>(${activeGames.length})</span>`;
+      container.appendChild(liveHeader);
+
+      if (activeGames.length === 0) {
+        const noLive = document.createElement('div');
+        noLive.className = 'no-games';
+        noLive.innerText = 'No live games in progress.';
+        container.appendChild(noLive);
+      } else {
+        activeGames.forEach(game => {
+          container.appendChild(createGameCard(game, false));
+        });
       }
 
-      games.forEach(game => {
-        const comp = game.competitions[0];
-        const home = comp.competitors.find(c => c.homeAway === 'home');
-        const away = comp.competitors.find(c => c.homeAway === 'away');
-        const broadcast = comp.broadcasts && comp.broadcasts[0] ? comp.broadcasts[0].names[0] : '';
-        const isSecGame = isSEC(game);
+      // Render Completed Games Section
+      if (completedGames.length > 0) {
+        const completedHeader = document.createElement('div');
+        completedHeader.className = 'section-divider completed-title';
+        completedHeader.innerHTML = `<span>Completed Games</span><span>(${completedGames.length})</span>`;
+        container.appendChild(completedHeader);
 
-        const awayAbbr = away.team.abbreviation || away.team.shortDisplayName || away.team.name;
-        const homeAbbr = home.team.abbreviation || home.team.shortDisplayName || home.team.name;
-
-        const card = document.createElement('div');
-        card.className = `game-card ${isSecGame ? 'sec-game' : ''}`;
-
-        card.innerHTML = `
-          <div class="card-header">
-            <span class="clock-status">${formatShortStatus(game.status.type.detail)}</span>
-            <span class="broadcast">${broadcast}</span>
-          </div>
-          <div class="teams-container">
-            <div class="team-row">
-              <div class="team-info">
-                ${away.curatedRank?.current <= 25 ? `<span class="team-rank">#${away.curatedRank.current}</span>` : ''}
-                <span class="team-abbr">${awayAbbr}</span>
-              </div>
-              <span class="team-score">${away.score}</span>
-            </div>
-            <div class="team-row">
-              <div class="team-info">
-                ${home.curatedRank?.current <= 25 ? `<span class="team-rank">#${home.curatedRank.current}</span>` : ''}
-                <span class="team-abbr">${homeAbbr}</span>
-              </div>
-              <span class="team-score">${home.score}</span>
-            </div>
-          </div>
-        `;
-        container.appendChild(card);
-      });
+        completedGames.forEach(game => {
+          container.appendChild(createGameCard(game, true));
+        });
+      }
     }
 
     fetchLiveGrid();
