@@ -17,7 +17,6 @@
 
   <!-- Dyslexia Font Initializer Script -->
   <script>
-    // Prevent screen flash by checking preference before DOM load
     if (localStorage.getItem('dyslexiaMode') === 'enabled') {
       document.documentElement.classList.add('dyslexia-font');
     }
@@ -39,7 +38,6 @@
       word-spacing: 0.1em !important;
     }
 
-    /* Toggle Button Styling */
     .dyslexia-toggle {
       background: #181920;
       border: 1px solid var(--card-border);
@@ -74,7 +72,7 @@
       padding: 16px;
     }
 
-    /* Header & Navigation Styling */
+    /* Header Styling */
     header {
       display: flex;
       justify-content: space-between;
@@ -98,10 +96,12 @@
       cursor: pointer;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      width: 20px;
-      height: 16px;
-      padding: 0;
+      justify-content: center;
+      gap: 4px;
+      width: 28px;
+      height: 28px;
+      padding: 4px;
+      z-index: 10;
     }
     .menu-btn span {
       display: block;
@@ -122,15 +122,17 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background-color: rgba(0, 0, 0, 0.6);
-      z-index: 99;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 998;
       opacity: 0;
       visibility: hidden;
+      pointer-events: none;
       transition: opacity 0.2s ease, visibility 0.2s ease;
     }
     .nav-overlay.open {
       opacity: 1;
       visibility: visible;
+      pointer-events: auto;
     }
     .nav-drawer {
       position: fixed;
@@ -140,7 +142,7 @@
       height: 100vh;
       background-color: #181920;
       border-right: 1px solid var(--card-border);
-      z-index: 100;
+      z-index: 999;
       display: flex;
       flex-direction: column;
       transition: left 0.3s ease;
@@ -315,14 +317,11 @@
       gap: 3px;
       transition: background 0.2s;
     }
-    .watch-btn:active {
-      background: #3b0e17;
-    }
   </style>
 </head>
 <body>
 
-  <!-- Navigation Backdrop and Drawer -->
+  <!-- Drawer Menu -->
   <div class="nav-overlay" id="navOverlay" onclick="toggleMenu()"></div>
   <nav class="nav-drawer" id="navDrawer">
     <div class="drawer-header">
@@ -337,39 +336,39 @@
     </ul>
   </nav>
 
-<header>
-  <div class="header-left">
-    <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-    <div class="header-title">
-      <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" 
-           alt="MSU Logo" 
-           class="msu-logo">
-      <h1>Bully's CFB Board</h1>
+  <header>
+    <div class="header-left">
+      <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Navigation Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="header-title">
+        <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" 
+             alt="MSU Logo" 
+             class="msu-logo">
+        <h1>Bully's CFB Board</h1>
+      </div>
     </div>
-  </div>
 
-  <div class="header-right">
-    <button id="fontToggleBtn" class="dyslexia-toggle" onclick="toggleDyslexiaFont()">Dyslexia Font: OFF</button>
-    <span id="update-status" class="status-badge">Loading...</span>
-  </div>
-</header>
+    <div class="header-right">
+      <button id="fontToggleBtn" class="dyslexia-toggle" onclick="toggleDyslexiaFont()">Dyslexia Font: OFF</button>
+      <span id="update-status" class="status-badge">Loading...</span>
+    </div>
+  </header>
   
   <div id="games-container"></div>
 
   <script>
-    // Navigation Drawer Toggle Function
     function toggleMenu() {
       const drawer = document.getElementById('navDrawer');
       const overlay = document.getElementById('navOverlay');
-      drawer.classList.toggle('open');
-      overlay.classList.toggle('open');
+      if (drawer && overlay) {
+        drawer.classList.toggle('open');
+        overlay.classList.toggle('open');
+      }
     }
 
-    // Dyslexia Toggle Functionality
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
       if (!btn) return;
@@ -394,10 +393,9 @@
 
     document.addEventListener('DOMContentLoaded', updateToggleButtonState);
 
-    // Score Board Functionality
     async function fetchScores() {
       const statusElement = document.getElementById("update-status");
-      statusElement.innerText = "Refreshing...";
+      if (statusElement) statusElement.innerText = "Refreshing...";
       
       try {
         const response = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=300");
@@ -408,132 +406,139 @@
         const recentFinalGames = [];
         const now = new Date();
 
-        data.events.forEach(event => {
-          const comp = event.competitions[0];
-          const home = comp.competitors.find(c => c.homeAway === 'home');
-          const away = comp.competitors.find(c => c.homeAway === 'away');
-          
-          const statusState = event.status.type.state; 
-          const period = event.status.period;
-          const homeScore = parseInt(home.score || "0");
-          const awayScore = parseInt(away.score || "0");
-          const diff = Math.abs(homeScore - awayScore);
+        (data.events || []).forEach(event => {
+          try {
+            const comp = event.competitions?.[0];
+            if (!comp) return;
 
-          const isSecGame = (home.team.conferenceId === "8" || away.team.conferenceId === "8");
-          
-          const homeRankNum = home.curatedRank && home.curatedRank.current;
-          const awayRankNum = away.curatedRank && away.curatedRank.current;
-          const hasRankedTeam = (homeRankNum && homeRankNum <= 25) || (awayRankNum && awayRankNum <= 25);
-
-          let bestRank = 99;
-          if (homeRankNum && homeRankNum <= 25) bestRank = Math.min(bestRank, homeRankNum);
-          if (awayRankNum && awayRankNum <= 25) bestRank = Math.min(bestRank, awayRankNum);
-
-          const getRank = (c) => {
-            const r = c.curatedRank && c.curatedRank.current;
-            return (r && r <= 25) ? `<span style="color:#fbbf24; font-weight:bold;">#${r}</span> ` : '';
-          };
-
-          const tvNetwork = (comp.broadcasts && comp.broadcasts.length > 0 && comp.broadcasts[0].names)
-            ? comp.broadcasts[0].names[0] 
-            : "TV TBD";
-
-          let spread = '';
-          if (comp.odds && comp.odds.length > 0) {
-            const oddsObj = comp.odds[0];
-            if (oddsObj.details && oddsObj.details !== 'null' && oddsObj.details !== 'EVEN') {
-              spread = oddsObj.details;
-            } else if (oddsObj.summary) {
-              spread = oddsObj.summary;
-            }
-          }
-
-          const situation = comp.situation;
-          let possessionTeamId = null;
-          let driveText = '';
-
-          if (statusState === 'in' && situation) {
-            possessionTeamId = situation.possession;
-
-            const down = situation.down;
-            const distance = situation.distance;
-            const posText = situation.possessionText || '';
-
-            let downText = '';
-            if (situation.downText && !situation.downText.includes('-1')) {
-              downText = situation.downText;
-            } else if (down && down > 0 && distance && distance > 0) {
-              downText = `${down} & ${distance}`;
-            }
+            const home = comp.competitors?.find(c => c.homeAway === 'home');
+            const away = comp.competitors?.find(c => c.homeAway === 'away');
+            if (!home || !away) return;
             
-            if (downText || (posText && !posText.includes('-1'))) {
-              driveText = `${downText}${downText && posText ? ' at ' : ''}${posText}`;
+            const statusState = event.status?.type?.state; 
+            const period = event.status?.period || 0;
+            const homeScore = parseInt(home.score || "0");
+            const awayScore = parseInt(away.score || "0");
+            const diff = Math.abs(homeScore - awayScore);
+
+            const isSecGame = (home.team?.conferenceId === "8" || away.team?.conferenceId === "8");
+            
+            const homeRankNum = home.curatedRank?.current;
+            const awayRankNum = away.curatedRank?.current;
+            const hasRankedTeam = (homeRankNum && homeRankNum <= 25) || (awayRankNum && awayRankNum <= 25);
+
+            let bestRank = 99;
+            if (homeRankNum && homeRankNum <= 25) bestRank = Math.min(bestRank, homeRankNum);
+            if (awayRankNum && awayRankNum <= 25) bestRank = Math.min(bestRank, awayRankNum);
+
+            const getRank = (c) => {
+              const r = c.curatedRank?.current;
+              return (r && r <= 25) ? `<span style="color:#fbbf24; font-weight:bold;">#${r}</span> ` : '';
+            };
+
+            const tvNetwork = (comp.broadcasts?.length > 0 && comp.broadcasts[0].names)
+              ? comp.broadcasts[0].names[0] 
+              : "TV TBD";
+
+            let spread = '';
+            if (comp.odds?.length > 0) {
+              const oddsObj = comp.odds[0];
+              if (oddsObj.details && oddsObj.details !== 'null' && oddsObj.details !== 'EVEN') {
+                spread = oddsObj.details;
+              } else if (oddsObj.summary) {
+                spread = oddsObj.summary;
+              }
             }
-          }
 
-          let winProbText = '';
-          if (situation && situation.lastPlay && situation.lastPlay.probability) {
-            const prob = situation.lastPlay.probability;
-            const homeWp = Math.round(prob.homeWinPercentage * 100);
-            const awayWp = 100 - homeWp;
-            if (homeWp >= awayWp) {
-              winProbText = `${home.team.abbreviation || 'HOME'} ${homeWp}%`;
-            } else {
-              winProbText = `${away.team.abbreviation || 'AWAY'} ${awayWp}%`;
+            const situation = comp.situation;
+            let possessionTeamId = null;
+            let driveText = '';
+
+            if (statusState === 'in' && situation) {
+              possessionTeamId = situation.possession;
+
+              const down = situation.down;
+              const distance = situation.distance;
+              const posText = situation.possessionText || '';
+
+              let downText = '';
+              if (situation.downText && !situation.downText.includes('-1')) {
+                downText = situation.downText;
+              } else if (down && down > 0 && distance && distance > 0) {
+                downText = `${down} & ${distance}`;
+              }
+              
+              if (downText || (posText && !posText.includes('-1'))) {
+                driveText = `${downText}${downText && posText ? ' at ' : ''}${posText}`;
+              }
             }
-          } else if (situation && typeof situation.homeWinPercentage !== 'undefined') {
-            const homeWp = Math.round(situation.homeWinPercentage * 100);
-            const awayWp = 100 - homeWp;
-            if (homeWp >= awayWp) {
-              winProbText = `${home.team.abbreviation || 'HOME'} ${homeWp}%`;
-            } else {
-              winProbText = `${away.team.abbreviation || 'AWAY'} ${awayWp}%`;
+
+            let winProbText = '';
+            if (situation?.lastPlay?.probability) {
+              const prob = situation.lastPlay.probability;
+              const homeWp = Math.round((prob.homeWinPercentage || 0) * 100);
+              const awayWp = 100 - homeWp;
+              if (homeWp >= awayWp) {
+                winProbText = `${home.team?.abbreviation || 'HOME'} ${homeWp}%`;
+              } else {
+                winProbText = `${away.team?.abbreviation || 'AWAY'} ${awayWp}%`;
+              }
+            } else if (situation && typeof situation.homeWinPercentage !== 'undefined') {
+              const homeWp = Math.round(situation.homeWinPercentage * 100);
+              const awayWp = 100 - homeWp;
+              if (homeWp >= awayWp) {
+                winProbText = `${home.team?.abbreviation || 'HOME'} ${homeWp}%`;
+              } else {
+                winProbText = `${away.team?.abbreviation || 'AWAY'} ${awayWp}%`;
+              }
             }
-          }
 
-          const gameDate = new Date(event.date);
+            const gameDate = new Date(event.date);
 
-          const endOfWeekMonday = new Date(gameDate);
-          const dayOfWeek = gameDate.getDay(); 
-          const daysUntilMonday = (1 - dayOfWeek + 7) % 7;
-          endOfWeekMonday.setDate(gameDate.getDate() + daysUntilMonday);
-          endOfWeekMonday.setHours(23, 59, 59, 999);
+            const endOfWeekMonday = new Date(gameDate);
+            const dayOfWeek = gameDate.getDay(); 
+            const daysUntilMonday = (1 - dayOfWeek + 7) % 7;
+            endOfWeekMonday.setDate(gameDate.getDate() + daysUntilMonday);
+            endOfWeekMonday.setHours(23, 59, 59, 999);
 
-          const gameObj = {
-            gameId: event.id,
-            homeId: home.id,
-            awayId: away.id,
-            homeTeam: home.team.shortDisplayName || home.team.name,
-            awayTeam: away.team.shortDisplayName || away.team.name,
-            homeRank: getRank(home),
-            awayRank: getRank(away),
-            homeScore,
-            awayScore,
-            statusState,
-            statusDetail: event.status.type.shortDetail,
-            period,
-            diff,
-            isSecGame,
-            hasRankedTeam,
-            bestRank,
-            tvNetwork,
-            spread,
-            winProbText,
-            possessionTeamId,
-            driveText,
-            gameDate,
-            priority: 0
-          };
+            const gameObj = {
+              gameId: event.id,
+              homeId: home.id,
+              awayId: away.id,
+              homeTeam: home.team?.shortDisplayName || home.team?.name || 'Home',
+              awayTeam: away.team?.shortDisplayName || away.team?.name || 'Away',
+              homeRank: getRank(home),
+              awayRank: getRank(away),
+              homeScore,
+              awayScore,
+              statusState,
+              statusDetail: event.status?.type?.shortDetail || '',
+              period,
+              diff,
+              isSecGame,
+              hasRankedTeam,
+              bestRank,
+              tvNetwork,
+              spread,
+              winProbText,
+              possessionTeamId,
+              driveText,
+              gameDate,
+              priority: 0
+            };
 
-          if (statusState === 'pre') {
-            upcomingGames.push(gameObj);
-          } else if (statusState === 'in') {
-            gameObj.priority = 20000;
-            liveGames.push(gameObj);
-          } else if (statusState === 'post') {
-            if (now <= endOfWeekMonday) {
-              recentFinalGames.push(gameObj);
+            if (statusState === 'pre') {
+              upcomingGames.push(gameObj);
+            } else if (statusState === 'in') {
+              gameObj.priority = 20000;
+              liveGames.push(gameObj);
+            } else if (statusState === 'post') {
+              if (now <= endOfWeekMonday) {
+                recentFinalGames.push(gameObj);
+              }
             }
+          } catch (e) {
+            console.error("Error processing event:", e);
           }
         });
 
@@ -552,18 +557,20 @@
         });
 
         renderGames(liveGames, upcomingGames, recentFinalGames);
-        statusElement.innerText = "Live • 30s";
+        if (statusElement) statusElement.innerText = "Live • 30s";
       } catch (err) {
-        statusElement.innerText = "Error Loading";
+        console.error("Fetch error:", err);
+        if (statusElement) statusElement.innerText = "Error Loading";
       }
     }
 
     function renderGames(liveGames, upcomingGames, recentFinalGames) {
       const container = document.getElementById("games-container");
+      if (!container) return;
       container.innerHTML = "";
 
       if (liveGames.length === 0 && upcomingGames.length === 0 && recentFinalGames.length === 0) {
-        container.innerHTML = "<p>No games found.</p>";
+        container.innerHTML = "<p style='padding:20px; text-align:center; color:#94a3b8;'>No games found.</p>";
         return;
       }
 
@@ -614,12 +621,4 @@
               tierHeader.className = "tier-header";
               tierHeader.innerText = "Ranked Matchups - sorted by time";
               container.appendChild(tierHeader);
-              rankedGames.forEach(game => container.appendChild(createGameCard(game)));
-            }
-
-            if (otherGames.length > 0) {
-              const tierHeader = document.createElement("div");
-              tierHeader.className = "tier-header";
-              tierHeader.innerText = "All Other Matchups - sorted by time";
-              container.appendChild(tierHeader);
-              otherGames.forEach(game =>
+     
