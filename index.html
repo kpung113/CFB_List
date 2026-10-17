@@ -64,7 +64,7 @@
       --accent-maroon: #5d1725;
       --accent-red: #ef4444;
       --subtext: #94a3b8;
-      --gold: #84cc16; /* Updated from yellow to highlighter lime green */
+      --gold: #84cc16; /* Highlighter lime green */
     }
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -237,7 +237,7 @@
     <a href="index.html" class="active">Scores</a>
     <a href="schedules.html">MSU Schedule</a>
     <a href="visit.html">MSU Trip</a>
-    <button id="fontToggleBtn" class="dyslexia-toggle" onclick="toggleDyslexiaFont()">Dyslexia Font: OFF</button>
+    <button id="fontToggleBtn" class="dyslexia-toggle" onclick="toggleDyslexiaFont()">Kate Button: OFF</button>
   </nav>
   <span id="update-status" class="status-badge">Loading...</span>
 </header>
@@ -245,12 +245,12 @@
   <div id="games-container"></div>
 
   <script>
-    // Dyslexia Toggle Functionality
+    // Dyslexia Toggle Functionality (Kate Button)
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
       if (!btn) return;
       const isEnabled = localStorage.getItem('dyslexiaMode') === 'enabled';
-      btn.innerText = isEnabled ? 'Dyslexia Font: ON' : 'Dyslexia Font: OFF';
+      btn.innerText = isEnabled ? 'Kate Button: ON' : 'Kate Button: OFF';
       btn.style.borderColor = isEnabled ? '#38bdf8' : '#334155';
     }
 
