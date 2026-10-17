@@ -15,8 +15,49 @@
     gtag('config', 'G-8695308WQ8');
   </script>
 
+  <!-- Dyslexia Font Initializer Script -->
+  <script>
+    if (localStorage.getItem('dyslexiaMode') === 'enabled') {
+      document.documentElement.classList.add('dyslexia-font');
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('dyslexiaMode') === 'enabled') {
+        document.body.classList.add('dyslexia-font');
+      }
+    });
+  </script>
+
   <style>
+    /* Dyslexic Friendly Global Override */
+    body.dyslexia-font, 
+    body.dyslexia-font *, 
+    body.dyslexia-font .team-abbr, 
+    body.dyslexia-font .game-card {
+      font-family: "Comic Sans MS", "Verdana", "OpenDyslexic", sans-serif !important;
+      letter-spacing: 0.05em !important;
+      word-spacing: 0.1em !important;
+    }
+
+    /* Toggle Button Styling */
+    .dyslexia-toggle {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #38bdf8;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .dyslexia-toggle:hover {
+      background: #334155;
+      color: #fff;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    /* REMOVED 100vh height lock so page can flow naturally */
     html, body {
       width: 100vw;
       min-height: 100vh;
@@ -27,6 +68,7 @@
       flex-direction: column;
     }
 
+    /* Sticky Header */
     header {
       height: 36px;
       background-color: #1e293b;
@@ -78,7 +120,7 @@
       100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
     }
 
-    /* GRID CONTAINER: Pure CSS layout, no vertical stretching */
+    /* GRID CONTAINER: Uses max-content rows so cards never stretch */
     #grid-container {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -89,7 +131,7 @@
       width: 100%;
     }
 
-    /* COMPACT CARD: Hugs text height only */
+    /* COMPACT CARD: Hugs text height strictly */
     .game-card {
       background-color: #1e293b;
       border: 1px solid #334155;
@@ -122,7 +164,7 @@
     }
 
     .broadcast {
-      color: #38bdf8;
+      color: #84cc16;
       font-size: 0.55rem;
       flex-shrink: 0;
       text-align: right;
@@ -160,7 +202,7 @@
 
     .team-rank {
       font-size: 0.55rem;
-      color: #fbbf24;
+      color: #84cc16;
       font-weight: 800;
       flex-shrink: 0;
     }
@@ -180,14 +222,6 @@
       font-variant-numeric: tabular-nums;
       min-width: 14px;
       text-align: right;
-    }
-
-    .poss-dot {
-      width: 3px;
-      height: 3px;
-      background-color: #f59e0b;
-      border-radius: 50%;
-      flex-shrink: 0;
     }
 
     .no-games {
@@ -215,6 +249,30 @@
   <div id="grid-container"></div>
 
   <script>
+    function updateToggleButtonState() {
+      const btn = document.getElementById('fontToggleBtn');
+      if (!btn) return;
+      const isEnabled = localStorage.getItem('dyslexiaMode') === 'enabled';
+      btn.innerText = isEnabled ? 'Kate Button: ON' : 'Kate Button: OFF';
+      btn.style.borderColor = isEnabled ? '#38bdf8' : '#334155';
+    }
+
+    function toggleDyslexiaFont() {
+      const isEnabled = localStorage.getItem('dyslexiaMode') === 'enabled';
+      if (isEnabled) {
+        localStorage.setItem('dyslexiaMode', 'disabled');
+        document.body.classList.remove('dyslexia-font');
+        document.documentElement.classList.remove('dyslexia-font');
+      } else {
+        localStorage.setItem('dyslexiaMode', 'enabled');
+        document.body.classList.add('dyslexia-font');
+        document.documentElement.classList.add('dyslexia-font');
+      }
+      updateToggleButtonState();
+    }
+
+    document.addEventListener('DOMContentLoaded', updateToggleButtonState);
+
     const API_URL = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?limit=300&groups=80';
 
     function isSEC(game) {
@@ -314,7 +372,6 @@
               <div class="team-info">
                 ${away.curatedRank?.current <= 25 ? `<span class="team-rank">#${away.curatedRank.current}</span>` : ''}
                 <span class="team-abbr">${awayAbbr}</span>
-                ${away.possess ? '<span class="poss-dot"></span>' : ''}
               </div>
               <span class="team-score">${away.score}</span>
             </div>
@@ -322,7 +379,6 @@
               <div class="team-info">
                 ${home.curatedRank?.current <= 25 ? `<span class="team-rank">#${home.curatedRank.current}</span>` : ''}
                 <span class="team-abbr">${homeAbbr}</span>
-                ${home.possess ? '<span class="poss-dot"></span>' : ''}
               </div>
               <span class="team-score">${home.score}</span>
             </div>
