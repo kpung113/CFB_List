@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bully's CFB Board</title>
+  <title>Mississippi State Scores</title>
   <style>
     :root {
       --bg: #0b0c10;
@@ -11,47 +11,44 @@
       --card-border: #272935;
       --text: #f8fafc;
       --accent-maroon: #5d1725;
-      --accent-red: #ef4444;
       --subtext: #94a3b8;
       --gold: #fbbf24;
+      --win-green: #22c55e;
+      --loss-red: #ef4444;
     }
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background-color: var(--bg);
       color: var(--text);
       margin: 0;
-      padding: 16px;
+      padding: 12px;
     }
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
       border-bottom: 2px solid var(--accent-maroon);
     }
     .header-title {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
     }
     .msu-logo {
-      height: 38px;
+      height: 32px;
       width: auto;
       object-fit: contain;
       filter: 
-        drop-shadow( 3px  0px 0px #ffffff)
-        drop-shadow(-3px  0px 0px #ffffff)
-        drop-shadow( 0px  3px 0px #ffffff)
-        drop-shadow( 0px -3px 0px #ffffff)
-        drop-shadow( 2px  2px 0px #ffffff)
-        drop-shadow(-2px -2px 0px #ffffff)
-        drop-shadow( 2px -2px 0px #ffffff)
-        drop-shadow(-2px  2px 0px #ffffff);
+        drop-shadow( 2px  0px 0px #ffffff)
+        drop-shadow(-2px  0px 0px #ffffff)
+        drop-shadow( 0px  2px 0px #ffffff)
+        drop-shadow( 0px -2px 0px #ffffff);
     }
-    h1 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px; }
+    h1 { margin: 0; font-size: 1rem; font-weight: 800; letter-spacing: -0.5px; }
     .nav-tabs {
       display: flex;
       gap: 6px;
@@ -61,7 +58,7 @@
       text-decoration: none;
       font-size: 0.75rem;
       font-weight: 700;
-      padding: 5px 10px;
+      padding: 4px 8px;
       background: #181920;
       border: 1px solid var(--card-border);
       border-radius: 6px;
@@ -72,493 +69,289 @@
       background: var(--accent-maroon);
       border-color: #7d2033;
     }
-    .status-badge {
-      font-size: 0.75rem;
-      padding: 4px 10px;
-      background: #222530;
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      color: var(--subtext);
+
+    .scores-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
-    .day-header {
-      font-size: 1.05rem;
-      font-weight: 800;
-      color: var(--text);
-      background: #12131a;
-      border-left: 4px solid var(--accent-maroon);
-      padding: 8px 12px;
-      margin: 24px 0 10px 0;
-      border-radius: 4px;
-      letter-spacing: -0.3px;
-    }
-    .tier-header {
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--gold);
-      margin: 14px 0 8px 4px;
-      padding-bottom: 4px;
-      border-bottom: 1px solid #222530;
-    }
-    .game-card {
+    .score-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 12px;
-      border-left: 5px solid var(--card-border);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-    .game-card.live-4q { border-left-color: var(--accent-red); background: linear-gradient(135deg, #181920 0%, #221518 100%); }
-    .game-card.live { border-left-color: var(--accent-maroon); background: linear-gradient(135deg, #181920 0%, #1f1418 100%); }
-    .game-card.archived { opacity: 0.75; }
-    .card-header {
+      border-radius: 8px;
+      padding: 10px 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.85rem;
-      color: var(--subtext);
-      margin-bottom: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
-    .header-right {
+    .game-info {
       display: flex;
-      align-items: center;
-      gap: 6px;
+      flex-direction: column;
+      gap: 2px;
     }
-    .team-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 6px 0;
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-    .score { font-size: 1.25rem; font-weight: bold; }
-    .drive-banner {
-      font-size: 0.75rem;
-      color: #38bdf8;
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.2);
-      padding: 4px 8px;
-      border-radius: 6px;
-      margin: 8px 0;
-      font-weight: 600;
-    }
-    .game-meta {
-      font-size: 0.75rem;
-      color: var(--subtext);
-      margin-top: 8px;
-      padding-top: 6px;
-      border-top: 1px solid var(--card-border);
-      display: flex;
-      justify-content: space-between;
-    }
-    .watch-btn {
-      color: #fff;
-      text-decoration: none;
+    .sport-tag {
+      font-size: 0.65rem;
+      color: var(--gold);
       font-weight: bold;
-      font-size: 0.75rem;
-      background: var(--accent-maroon);
-      border: 1px solid #7d2033;
-      padding: 3px 8px;
-      border-radius: 4px;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      transition: background 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    .watch-btn:active {
-      background: #3b0e17;
+    .matchup {
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+    .game-status {
+      font-size: 0.7rem;
+      color: var(--subtext);
+      font-weight: 600;
+    }
+    .score-right {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+    .result-badge {
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .result-win { background: rgba(34, 197, 94, 0.2); color: var(--win-green); border: 1px solid rgba(34, 197, 94, 0.4); }
+    .result-loss { background: rgba(239, 68, 68, 0.2); color: var(--loss-red); border: 1px solid rgba(239, 68, 68, 0.4); }
+    .tv-tag {
+      font-size: 0.65rem;
+      color: var(--gold);
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
-<header>
-  <div class="header-title">
-    <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" 
-         alt="MSU Logo" 
-         class="msu-logo">
-    <h1>Bully's CFB Board</h1>
-  </div>
-  <nav class="nav-tabs">
-    <a href="index.html" class="active">Scores</a>
-    <a href="schedules.html">MSU Schedule</a>
-    <a href="visit.html">MSU Trip</a>
-  </nav>
-  <span id="update-status" class="status-badge">Loading...</span>
-</header>
-  
+  <header>
+    <div class="header-title">
+      <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" 
+           alt="MSU Logo" 
+           class="msu-logo">
+      <h1>MSU Scores</h1>
+    </div>
+    <nav class="nav-tabs">
+      <a href="index.html" class="active">Scores</a>
+      <a href="schedules.html">MSU Schedule</a>
+      <a href="visit.html">MSU Trip</a>
+    </nav>
+  </header>
 
-  <div id="games-container"></div>
+  <div id="scores-container" class="scores-container">
+    <p style="color: var(--subtext); font-size: 0.8rem;">Loading recent and live scores...</p>
+  </div>
+
+  <!-- Include centralized dataset -->
+  <script src="data.js"></script>
 
   <script>
-    async function fetchScores() {
-      const statusElement = document.getElementById("update-status");
-      statusElement.innerText = "Refreshing...";
-      
-      try {
-        const response = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=300");
-        const data = await response.json();
+    const sportLabels = {
+      'football': 'Football',
+      'mens-basketball': 'Men\'s Basketball',
+      'womens-basketball': 'Women\'s Basketball',
+      'baseball': 'Baseball',
+      'softball': 'Softball'
+    };
 
-        const liveOrFinalGames = [];
-        const upcomingGames = [];
-        const pastDeadlineGames = [];
-        const now = new Date();
+    const espnEndpoints = [
+      { key: 'football', url: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule' },
+      { key: 'mens-basketball', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule' },
+      { key: 'womens-basketball', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule' },
+      { key: 'baseball', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule' },
+      { key: 'softball', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-softball/teams/344/schedule' }
+    ];
 
-        data.events.forEach(event => {
-          const comp = event.competitions[0];
-          const home = comp.competitors.find(c => c.homeAway === 'home');
-          const away = comp.competitors.find(c => c.homeAway === 'away');
-          
-          const statusState = event.status.type.state; 
-          const period = event.status.period;
-          const homeScore = parseInt(home.score || "0");
-          const awayScore = parseInt(away.score || "0");
-          const diff = Math.abs(homeScore - awayScore);
-
-          const gameDate = new Date(event.date);
-
-          // CHECK DROP DEADLINE: 12:00 PM (noon) the day after game date
-          const dropDeadline = new Date(gameDate);
-          dropDeadline.setDate(dropDeadline.getDate() + 1);
-          dropDeadline.setHours(12, 0, 0, 0);
-
-          const isPastDeadline = (statusState === 'post' && now > dropDeadline);
-
-          const isSecGame = (home.team.conferenceId === "8" || away.team.conferenceId === "8");
-          
-          const homeRankNum = home.curatedRank && home.curatedRank.current;
-          const awayRankNum = away.curatedRank && away.curatedRank.current;
-          const hasRankedTeam = (homeRankNum && homeRankNum <= 25) || (awayRankNum && awayRankNum <= 25);
-
-          let bestRank = 99;
-          if (homeRankNum && homeRankNum <= 25) bestRank = Math.min(bestRank, homeRankNum);
-          if (awayRankNum && awayRankNum <= 25) bestRank = Math.min(bestRank, awayRankNum);
-
-          const getRank = (c) => {
-            const r = c.curatedRank && c.curatedRank.current;
-            return (r && r <= 25) ? `<span style="color:#fbbf24; font-weight:bold;">#${r}</span> ` : '';
-          };
-
-          const tvNetwork = (comp.broadcasts && comp.broadcasts.length > 0 && comp.broadcasts[0].names)
-            ? comp.broadcasts[0].names[0] 
-            : "TV TBD";
-
-          let spread = '';
-          if (comp.odds && comp.odds.length > 0) {
-            const oddsObj = comp.odds[0];
-            if (oddsObj.details && oddsObj.details !== 'null' && oddsObj.details !== 'EVEN') {
-              spread = oddsObj.details;
-            } else if (oddsObj.summary) {
-              spread = oddsObj.summary;
-            }
-          }
-
-          const situation = comp.situation;
-          let possessionTeamId = null;
-          let driveText = '';
-
-          if (statusState === 'in' && situation) {
-            possessionTeamId = situation.possession;
-
-            const down = situation.down;
-            const distance = situation.distance;
-            const posText = situation.possessionText || '';
-
-            let downText = '';
-            if (situation.downText && !situation.downText.includes('-1')) {
-              downText = situation.downText;
-            } else if (down && down > 0 && distance && distance > 0) {
-              downText = `${down} & ${distance}`;
-            }
-            
-            if (downText || (posText && !posText.includes('-1'))) {
-              driveText = `${downText}${downText && posText ? ' at ' : ''}${posText}`;
-            }
-          }
-
-          let winProbText = '';
-          if (situation && situation.lastPlay && situation.lastPlay.probability) {
-            const prob = situation.lastPlay.probability;
-            const homeWp = Math.round(prob.homeWinPercentage * 100);
-            const awayWp = 100 - homeWp;
-            if (homeWp >= awayWp) {
-              winProbText = `${home.team.abbreviation || 'HOME'} ${homeWp}%`;
-            } else {
-              winProbText = `${away.team.abbreviation || 'AWAY'} ${awayWp}%`;
-            }
-          } else if (situation && typeof situation.homeWinPercentage !== 'undefined') {
-            const homeWp = Math.round(situation.homeWinPercentage * 100);
-            const awayWp = 100 - homeWp;
-            if (homeWp >= awayWp) {
-              winProbText = `${home.team.abbreviation || 'HOME'} ${homeWp}%`;
-            } else {
-              winProbText = `${away.team.abbreviation || 'AWAY'} ${awayWp}%`;
-            }
-          }
-
-          const gameObj = {
-            gameId: event.id,
-            homeId: home.id,
-            awayId: away.id,
-            homeTeam: home.team.shortDisplayName || home.team.name,
-            awayTeam: away.team.shortDisplayName || away.team.name,
-            homeRank: getRank(home),
-            awayRank: getRank(away),
-            homeScore,
-            awayScore,
-            statusState,
-            statusDetail: event.status.type.shortDetail,
-            period,
-            diff,
-            isSecGame,
-            hasRankedTeam,
-            bestRank,
-            tvNetwork,
-            spread,
-            winProbText,
-            possessionTeamId,
-            driveText,
-            gameDate,
-            isPastDeadline,
-            priority: 0
-          };
-
-          if (isPastDeadline) {
-            pastDeadlineGames.push(gameObj);
-          } else if (statusState === 'pre') {
-            upcomingGames.push(gameObj);
-          } else {
-            let priority = 0;
-            const isCloseFourthQuarter = (statusState === 'in' && period >= 4 && diff < 15);
-
-            let displayClockSeconds = 900; 
-            if (event.status && typeof event.status.clock !== 'undefined') {
-              displayClockSeconds = event.status.clock;
-            }
-
-            if (statusState === 'post') {
-              priority += 0;
-            } else if (statusState === 'in') {
-              priority += 20000;
-
-              if (isCloseFourthQuarter) {
-                if (isSecGame) {
-                  priority += 15000;
-                } else if (hasRankedTeam) {
-                  priority += 12000;
-                } else {
-                  priority += 10000;
-                }
-
-                const periodBonus = (period - 4) * 1000;
-                const timeFactor = (900 - displayClockSeconds);
-                priority += periodBonus + timeFactor;
-
-              } else if (isSecGame) {
-                priority += 5000;
-                priority += (period * 500);
-                priority += Math.max(0, (35 - diff) * 50);
-
-              } else if (hasRankedTeam) {
-                priority += 2500;
-                priority += (period * 400);
-                priority += Math.max(0, (35 - diff) * 50);
-
-              } else {
-                let periodMultiplier = 1.0;
-                if (period === 3) periodMultiplier = 1.3;
-                if (period === 2) periodMultiplier = 1.1;
-                if (period === 1) periodMultiplier = 1.0;
-
-                const rawCloseness = Math.max(0, (35 - diff) * 100);
-                priority += Math.round(rawCloseness * periodMultiplier);
-              }
-            }
-            gameObj.priority = priority;
-            liveOrFinalGames.push(gameObj);
-          }
-        });
-
-        // Sort Live/Active Final games by priority
-        liveOrFinalGames.sort((a, b) => b.priority - a.priority);
-
-        // Sort Past-Deadline games chronologically
-        pastDeadlineGames.sort((a, b) => b.gameDate - a.gameDate);
-
-        // Sort Upcoming games
-        upcomingGames.sort((a, b) => {
-          const dateA = a.gameDate.toDateString();
-          const dateB = b.gameDate.toDateString();
-          if (dateA !== dateB) {
-            return a.gameDate - b.gameDate;
-          }
-
-          const getUpcomingTier = (g) => g.isSecGame ? 1 : (g.hasRankedTeam ? 2 : 3);
-          const tierA = getUpcomingTier(a);
-          const tierB = getUpcomingTier(b);
-
-          if (tierA !== tierB) {
-            return tierA - tierB;
-          }
-
-          if (a.gameDate.getTime() !== b.gameDate.getTime()) {
-            return a.gameDate - b.gameDate;
-          }
-
-          return a.bestRank - b.bestRank;
-        });
-
-        renderGames(liveOrFinalGames, upcomingGames, pastDeadlineGames);
-        statusElement.innerText = "Live • 30s";
-      } catch (err) {
-        statusElement.innerText = "Error Loading";
+    function extractBroadcastNetwork(comp) {
+      if (!comp) return '';
+      if (comp.broadcasts && comp.broadcasts.length > 0) {
+        for (const b of comp.broadcasts) {
+          if (b.media && b.media.shortName) return b.media.shortName;
+          if (b.names && b.names[0]) return b.names[0];
+          if (b.station) return b.station;
+        }
       }
+      if (comp.geoBroadcasts && comp.geoBroadcasts.length > 0) {
+        for (const gb of comp.geoBroadcasts) {
+          if (gb.media && gb.media.shortName) return gb.media.shortName;
+          if (gb.type && gb.type.shortName) return gb.type.shortName;
+        }
+      }
+      return '';
     }
 
-    function renderGames(liveOrFinalGames, upcomingGames, pastDeadlineGames) {
-      const container = document.getElementById("games-container");
+    async function loadScores() {
+      const container = document.getElementById("scores-container");
+      let liveOrRecentGames = [];
+
+      const now = new Date();
+      // Cutoff time: Today at 11:00 AM
+      const cutoff11amToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 11, 0, 0);
+
+      const promises = espnEndpoints.map(async (sport) => {
+        try {
+          const res = await fetch(sport.url);
+          if (!res.ok) return;
+          const data = await res.json();
+
+          if (data && data.events) {
+            data.events.forEach(event => {
+              const comp = event.competitions[0];
+              const msuComp = comp.competitors.find(c => c.id === '344');
+              const oppComp = comp.competitors.find(c => c.id !== '344');
+              if (!oppComp) return;
+
+              const gameDate = new Date(event.date);
+              const gameIso = event.date.split('T')[0];
+              
+              // Expiration check: Keep live games, games happening today, or completed games until 11:00 AM the next day
+              const gameDayAfter = new Date(gameIso + 'T11:00:00');
+              gameDayAfter.setDate(gameDayAfter.getDate() + 1);
+
+              const gameState = event.status?.type?.state; // 'pre', 'in', 'post'
+
+              // If it's a past game and current time is past 11:00 AM the day after, skip it
+              if (gameState === 'post' && now > gameDayAfter) return;
+              if (gameState === 'pre' && gameDate < cutoff11amToday && !isToday(gameDate)) return;
+
+              let resultStr = null;
+              if (gameState === 'post' && msuComp && oppComp) {
+                const msuScore = parseInt(msuComp.score?.value || msuComp.score || "0");
+                const oppScore = parseInt(oppComp.score?.value || oppComp.score || "0");
+                const isWin = msuComp.winner ?? (msuScore > oppScore);
+                resultStr = `${isWin ? 'W' : 'L'} ${msuScore}-${oppScore}`;
+              } else if (gameState === 'in' && msuComp && oppComp) {
+                const msuScore = msuComp.score?.value || msuComp.score || "0";
+                const oppScore = oppComp.score?.value || oppComp.score || "0";
+                resultStr = `LIVE ${msuScore}-${oppScore}`;
+              }
+
+              let timeStr = 'TBD';
+              if (!isNaN(gameDate)) {
+                timeStr = gameDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+              }
+
+              liveOrRecentGames.push({
+                sportKey: sport.key,
+                opponent: oppComp.team.displayName || oppComp.team.shortDisplayName || 'Opponent',
+                dateObj: gameDate,
+                isoDate: gameIso,
+                timeStr: timeStr,
+                isHome: msuComp.homeAway === 'home',
+                tv: extractBroadcastNetwork(comp),
+                result: resultStr,
+                state: gameState,
+                source: 'espn'
+              });
+            });
+          }
+        } catch (err) {
+          console.log(`Failed fetching scores for ${sport.key}:`, err);
+        }
+      });
+
+      await Promise.all(promises);
+
+      // Merge data.js fallback entries (e.g. exhibition matches)
+      if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
+        masterDataset.forEach(localGame => {
+          const gameDate = new Date(localGame.isoDate + 'T00:00:00');
+          const gameDayAfter = new Date(localGame.isoDate + 'T11:00:00');
+          gameDayAfter.setDate(gameDayAfter.getDate() + 1);
+
+          if (localGame.result && localGame.result.trim() !== '' && now > gameDayAfter) {
+            return; // Skip expired local result
+          }
+
+          const exists = liveOrRecentGames.some(
+            g => g.sportKey === localGame.sportKey && g.isoDate === localGame.isoDate
+          );
+
+          if (!exists) {
+            // Include if it's today, live, or recently completed before next day 11am
+            if (isToday(gameDate) || (localGame.result && now <= gameDayAfter)) {
+              liveOrRecentGames.push({
+                ...localGame,
+                dateObj: gameDate,
+                state: localGame.result ? 'post' : 'pre',
+                source: 'js'
+              });
+            }
+          }
+        });
+      }
+
+      // Filter to show active/recent display window (Today +/- recent)
+      const relevantGames = liveOrRecentGames.filter(g => {
+        const gameDayAfter = new Date(g.isoDate + 'T11:00:00');
+        gameDayAfter.setDate(gameDayAfter.getDate() + 1);
+        return g.state === 'in' || g.state === 'post' || isToday(g.dateObj) || (g.dateObj >= cutoff11amToday && g.dateObj <= new Date(now.getTime() + 86400000));
+      });
+
+      relevantGames.sort((a, b) => a.dateObj - b.dateObj);
+
+      renderScores(relevantGames, container);
+    }
+
+    function isToday(date) {
+      const today = new Date();
+      return date.getDate() === today.getDate() &&
+             date.getMonth() === today.getMonth() &&
+             date.getFullYear() === today.getFullYear();
+    }
+
+    function renderScores(games, container) {
       container.innerHTML = "";
 
-      if (liveOrFinalGames.length === 0 && upcomingGames.length === 0 && pastDeadlineGames.length === 0) {
-        container.innerHTML = "<p>No games found.</p>";
+      if (games.length === 0) {
+        container.innerHTML = "<p style='color: var(--subtext); font-size: 0.8rem;'>No live or recent games right now.</p>";
         return;
       }
 
-      // 1. Render Live & Recent Final Games First
-      liveOrFinalGames.forEach(game => {
-        container.appendChild(createGameCard(game));
+      games.forEach(g => {
+        const card = document.createElement("div");
+        card.className = "score-card";
+
+        let statusText = g.timeStr;
+        let rightSideHtml = '';
+
+        if (g.state === 'in') {
+          statusText = '🔴 LIVE';
+          const isWin = g.result.startsWith('LIVE W');
+          rightSideHtml = `<span class="result-badge result-win">${g.result}</span>`;
+        } else if (g.result) {
+          statusText = 'Final';
+          const isWin = g.result.startsWith('W');
+          rightSideHtml = `<span class="result-badge ${isWin ? 'result-win' : 'result-loss'}">${g.result}</span>`;
+        } else {
+          statusText = g.timeStr;
+          rightSideHtml = g.tv ? `<span class="tv-tag">📺 ${g.tv}</span>` : '';
+        }
+
+        card.innerHTML = `
+          <div class="game-info">
+            <span class="sport-tag">${sportLabels[g.sportKey] || 'Sport'}</span>
+            <span class="matchup">${g.isHome ? 'vs' : '@'} ${g.opponent}</span>
+            <span class="game-status">${statusText}</span>
+          </div>
+          <div class="score-right">
+            ${rightSideHtml}
+          </div>
+        `;
+        container.appendChild(card);
       });
-
-      // 2. Group & Render Upcoming Games by Day
-      if (upcomingGames.length > 0) {
-        const gamesByDay = {};
-        upcomingGames.forEach(game => {
-          const dayString = game.gameDate.toDateString();
-          if (!gamesByDay[dayString]) gamesByDay[dayString] = [];
-          gamesByDay[dayString].push(game);
-        });
-
-        Object.keys(gamesByDay).forEach(dayString => {
-          const dayGames = gamesByDay[dayString];
-          const firstGame = dayGames[0];
-
-          const dayLabel = firstGame.gameDate.toLocaleDateString('en-US', {
-            weekday: 'long',
-            month: 'short',
-            day: 'numeric'
-          });
-
-          const dayHeader = document.createElement("div");
-          dayHeader.className = "day-header";
-          dayHeader.innerText = dayLabel;
-          container.appendChild(dayHeader);
-
-          const isSaturday = firstGame.gameDate.getDay() === 6;
-
-          if (isSaturday) {
-            const secGames = dayGames.filter(g => g.isSecGame);
-            const rankedGames = dayGames.filter(g => !g.isSecGame && g.hasRankedTeam);
-            const otherGames = dayGames.filter(g => !g.isSecGame && !g.hasRankedTeam);
-
-            if (secGames.length > 0) {
-              const tierHeader = document.createElement("div");
-              tierHeader.className = "tier-header";
-              tierHeader.innerText = "SEC Games - sorted by start time";
-              container.appendChild(tierHeader);
-              secGames.forEach(game => container.appendChild(createGameCard(game)));
-            }
-
-            if (rankedGames.length > 0) {
-              const tierHeader = document.createElement("div");
-              tierHeader.className = "tier-header";
-              tierHeader.innerText = "Ranked Matchups - sorted by time";
-              container.appendChild(tierHeader);
-              rankedGames.forEach(game => container.appendChild(createGameCard(game)));
-            }
-
-            if (otherGames.length > 0) {
-              const tierHeader = document.createElement("div");
-              tierHeader.className = "tier-header";
-              tierHeader.innerText = "All Other Matchups - sorted by time";
-              container.appendChild(tierHeader);
-              otherGames.forEach(game => container.appendChild(createGameCard(game)));
-            }
-
-          } else {
-            dayGames.forEach(game => container.appendChild(createGameCard(game)));
-          }
-        });
-      }
-
-      // 3. Render Past Deadline Games at the Very Bottom
-      if (pastDeadlineGames.length > 0) {
-        const pastHeader = document.createElement("div");
-        pastHeader.className = "day-header";
-        pastHeader.style.borderColor = "var(--subtext)";
-        pastHeader.innerText = "Earlier Results";
-        container.appendChild(pastHeader);
-
-        pastDeadlineGames.forEach(game => {
-          container.appendChild(createGameCard(game));
-        });
-      }
     }
 
-    function createGameCard(game) {
-      const card = document.createElement("div");
-      card.className = "game-card";
-      if (game.isPastDeadline) {
-        card.classList.add("archived");
-      } else if (game.statusState === 'in' && game.period >= 4) {
-        card.classList.add("live-4q");
-      } else if (game.statusState === 'in') {
-        card.classList.add("live");
-      }
-
-      const posId = String(game.possessionTeamId || '');
-      const homeId = String(game.homeId || '');
-      const awayId = String(game.awayId || '');
-
-      const isAwayPossession = posId && posId === awayId;
-      const isHomePossession = posId && posId === homeId;
-
-      card.innerHTML = `
-        <div class="card-header">
-          <span>${game.statusDetail} ${game.isSecGame ? '<strong style="color:#fff; background:#5d1725; padding:1px 5px; border-radius:3px; font-size:0.7rem;">SEC</strong>' : ''}</span>
-          <span class="header-right">
-            <strong style="color:#fbbf24;">📺 ${game.tvNetwork}</strong>
-            <a href="https://www.espn.com/college-football/game/_/gameId/${game.gameId}" 
-               target="_blank" 
-               rel="noopener noreferrer" 
-               class="watch-btn">
-              Gamecast
-            </a>
-          </span>
-        </div>
-        <div class="team-row">
-          <span>${isAwayPossession ? '🏈 ' : ''}${game.awayRank}${game.awayTeam}</span>
-          <span class="score">${game.statusState === 'pre' ? '' : game.awayScore}</span>
-        </div>
-        <div class="team-row">
-          <span>${isHomePossession ? '🏈 ' : ''}${game.homeRank}${game.homeTeam}</span>
-          <span class="score">${game.statusState === 'pre' ? '' : game.homeScore}</span>
-        </div>
-        ${game.driveText ? `<div class="drive-banner">Drive: ${game.driveText}</div>` : ''}
-        ${(game.spread || game.winProbText) ? `
-        <div class="game-meta">
-          <span>${game.spread ? `<strong>Line:</strong> ${game.spread}` : ''}</span>
-          <span>${game.winProbText ? `<strong>Win Prob:</strong> ${game.winProbText}` : ''}</span>
-        </div>
-        ` : ''}
-      `;
-      return card;
-    }
-
-    fetchScores();
-    setInterval(fetchScores, 30000);
+    window.onload = function() {
+      loadScores();
+    };
   </script>
 
 </body>
