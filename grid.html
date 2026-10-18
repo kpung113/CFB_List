@@ -320,6 +320,18 @@
       font-size: 0.55rem;
       flex-shrink: 0;
       text-align: right;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .sort-tag {
+      background: #334155;
+      color: #38bdf8;
+      font-size: 0.5rem;
+      padding: 1px 3px;
+      border-radius: 3px;
+      font-weight: 700;
     }
 
     .clock-status {
@@ -485,6 +497,17 @@
       return 5;
     }
 
+    // Returns sorting badge tag matching the strict hierarchy order
+    function getGameSortTag(game) {
+      if (isSEC(game)) return 'SEC';
+      if (isRanked(game)) return 'RNK';
+      const tier = getGameConfTier(game);
+      if (tier === 2) return 'BTN';
+      if (tier === 3) return 'B12';
+      if (tier === 4) return 'ACC';
+      return 'OTHR';
+    }
+
     // Standard sort for active live games
     function sortGames(games) {
       return games.sort((a, b) => {
@@ -589,10 +612,12 @@
         }
       }
 
+      const sortTagHtml = isCompleted ? `<span class="sort-tag">${getGameSortTag(game)}</span>` : '';
+
       card.innerHTML = `
         <div class="card-header">
           <span class="clock-status ${isCompleted ? 'completed-status' : ''}">${formatShortStatus(game.status.type.detail, game.status.type.state)}</span>
-          <span class="broadcast">${broadcast}</span>
+          <span class="broadcast">${sortTagHtml} ${broadcast}</span>
         </div>
         <div class="teams-container">
           <div class="team-row ${awayClass}">
