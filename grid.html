@@ -461,6 +461,31 @@
       );
     }
 
+    // Helper to map team conference to Power 4 tiers
+    function getConfKey(team) {
+      if (!team) return 'other';
+      const confId = String(team.conferenceId || team.conference?.id || '');
+      const confName = String(team.conference?.name || team.conference?.abbreviation || team.conference || '').toLowerCase();
+      
+      if (confId === '8' || confName.includes('sec') || confName.includes('southeastern')) return 'sec';
+      if (confId === '5' || confName.includes('big ten') || confName.includes('b1g')) return 'bigten';
+      if (confId === '151' || confName.includes('big 12') || confName.includes('b12')) return 'big12';
+      if (confId === '1' || confName.includes('acc') || confName.includes('atlantic coast')) return 'acc';
+      return 'other';
+    }
+
+    // Determines highest priority conference tier involved in a game
+    function getGameConfTier(game) {
+      const comps = game.competitions[0].competitors;
+      const confs = comps.map(c => getConfKey(c.team));
+      if (confs.includes('sec')) return 1;
+      if (confs.includes('bigten')) return 2;
+      if (confs.includes('big12')) return 3;
+      if (confs.includes('acc')) return 4;
+      return 5;
+    }
+
+    // Standard sort for active live games
     function sortGames(games) {
       return games.sort((a, b) => {
         const aSEC = isSEC(a);
@@ -472,6 +497,29 @@
         const bRanked = isRanked(b);
         if (aRanked && !bRanked) return -1;
         if (!aRanked && bRanked) return 1;
+
+        return new Date(a.date) - new Date(b.date);
+      });
+    }
+
+    // Custom sort specifically for completed games: SEC -> Ranked -> Power 4 Tiers (Big Ten -> Big 12 -> ACC -> Other)
+    function sortCompletedGames(games) {
+      return games.sort((a, b) => {
+        const aSEC = isSEC(a);
+        const bSEC = isSEC(b);
+        if (aSEC && !bSEC) return -1;
+        if (!aSEC && bSEC) return 1;
+
+        const aRanked = isRanked(a);
+        const bRanked = isRanked(b);
+        if (aRanked && !bRanked) return -1;
+        if (!aRanked && bRanked) return 1;
+
+        const aTier = getGameConfTier(a);
+        const bTier = getGameConfTier(b);
+        if (aTier !== bTier) {
+          return aTier - bTier;
+        }
 
         return new Date(a.date) - new Date(b.date);
       });
@@ -505,7 +553,7 @@
         const completedGames = (data.events || []).filter(e => e.status.type.state === 'post');
 
         const sortedActiveGames = sortGames(activeGames);
-        const sortedCompletedGames = sortGames(completedGames);
+        const sortedCompletedGames = sortCompletedGames(completedGames);
         
         document.getElementById('live-count').innerText = sortedActiveGames.length;
         document.getElementById('last-updated').innerText = `Updated: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
