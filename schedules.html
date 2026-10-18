@@ -95,8 +95,10 @@
     }
 
     const sportLabels = { 'football': 'Football', 'mens-basketball': "Men's Basketball", 'womens-basketball': "Women's Basketball", 'baseball': 'Baseball', 'softball': 'Softball' };
+    
+    // Option A: Appending ?season=2026 to force ESPN team endpoints to return the full season history
     const espnEndpoints = ['football', 'mens-basketball', 'womens-basketball', 'baseball', 'softball'].map(key => ({
-      key, url: `https://site.api.espn.com/apis/site/v2/sports/${key.includes('basketball') ? 'basketball/' + (key.includes('womens') ? 'womens-college-basketball' : 'mens-college-basketball') : key === 'football' ? 'football/college-football' : 'baseball/college-' + key}/teams/344/schedule`
+      key, url: `https://site.api.espn.com/apis/site/v2/sports/${key.includes('basketball') ? 'basketball/' + (key.includes('womens') ? 'womens-college-basketball' : 'mens-college-basketball') : key === 'football' ? 'football/college-football' : 'baseball/college-' + key}/teams/344/schedule?season=2026`
     }));
 
     let combinedDataset = [], currentFilter = 'all';
