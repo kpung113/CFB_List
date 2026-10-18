@@ -7,7 +7,7 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag(){dataLayer.push(arguments);} 
     gtag('js', new Date()); gtag('config', 'G-8695308WQ8');
     if (localStorage.getItem('dyslexiaMode') === 'enabled') document.documentElement.classList.add('dyslexia-font');
   </script>
@@ -19,7 +19,7 @@
     .dyslexia-toggle { background: var(--card); border: 1px solid var(--border); color: #38bdf8; font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
     .nav-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99; opacity: 0; visibility: hidden; transition: 0.2s; }
     .nav-overlay.open { opacity: 1; visibility: visible; }
-    .nav-drawer { position: fixed; top: 0; left: -260px; width: 260px; height: 100vh; background: var(--card); border-right: 1px solid var(--border); z-index: 100; display: flex; flex-direction: column; transition: 0.3s; box-shadow: 4px 0 15px rgba(0,0,0,0.5); }
+    .nav-drawer { position: fixed; top: 0; left: -260px; width: 260px; height: 100vh; background: var(--card); border-right: 1px solid var(--border); z-index: 100; display: flex; flex-direction: column; transition: 0.3s; }
     .nav-drawer.open { left: 0; }
     .drawer-header { padding: 14px 16px; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; color: #38bdf8; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     .drawer-close { background: none; border: none; color: var(--sub); font-size: 1.3rem; cursor: pointer; }
@@ -34,13 +34,13 @@
     .msu-logo { height: 38px; width: auto; object-fit: contain; filter: drop-shadow(0 0 2px #fff); }
     h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
     .sport-filter-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; white-space: nowrap; }
-    .sport-tab { background: var(--card); border: 1px solid var(--border); color: var(--sub); font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+    .sport-tab { background: var(--card); border: 1px solid var(--border); color: var(--sub); font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: .15s; }
     .sport-tab.active, .sport-tab:hover { background: var(--maroon); color: #fff; border-color: #7d2033; }
-    .record-banner { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--gold); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .record-banner { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--gold); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; }
     .record-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
     .record-label { font-size: 0.65rem; color: var(--sub); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
     .record-value { font-size: 0.95rem; font-weight: 800; color: #fff; }
-    .schedule-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .schedule-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
     .game-left, .game-right { display: flex; flex-direction: column; gap: 2px; }
     .game-right { text-align: right; align-items: flex-end; }
     .game-date { font-size: 0.7rem; color: var(--sub); font-weight: 600; }
@@ -98,7 +98,7 @@
     
     // Using schedule endpoints with season=2026&seasontype=2 to fetch full season history and scores dynamically
     const espnEndpoints = ['football', 'mens-basketball', 'womens-basketball', 'baseball', 'softball'].map(key => ({
-      key, url: `https://site.api.espn.com/apis/site/v2/sports/${key.includes('basketball') ? 'basketball/' + (key.includes('womens') ? 'womens-college-basketball' : 'mens-college-basketball') : key === 'football' ? 'football/college-football' : 'baseball/college-' + key}/teams/344/schedule?season=2026&seasontype=2`
+      key, url: `https://site.api.espn.com/apis/site/v2/sports/${key.includes('basketball') ? 'basketball/' + (key.includes('womens') ? 'womens-college-basketball' : 'mens-college-basketball') : key}/teams/344/schedule?season=2026&seasontype=2&limit=300`
     }));
 
     let combinedDataset = [], currentFilter = 'all';
@@ -120,6 +120,48 @@
       return id === '8' || name.includes('sec') || name.includes('southeastern');
     }
 
+    function normalizeOpponent(value) {
+      return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+    }
+
+    async function fetchFinalScoresForFootball() {
+      try {
+        const res = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=300');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        (data.events || []).forEach(e => {
+          const comp = e.competitions?.[0]; if (!comp) return;
+          const dateIso = new Date(e.date).toISOString().split('T')[0];
+          const msu = comp.competitors?.find(c => String(c.id) === '344' || String(c.team?.id) === '344');
+          if (!msu) return;
+          const opp = comp.competitors?.find(c => String(c.id) !== '344' && String(c.team?.id) !== '344');
+          if (!opp) return;
+
+          const mScore = parseScore(msu.score);
+          const oScore = parseScore(opp.score);
+          if (mScore == null || oScore == null) return;
+
+          const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
+          const result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
+
+          combinedDataset.forEach(cd => {
+            if (cd.sportKey !== 'football') return;
+            if (cd.isoDate !== dateIso) return;
+
+            const cdOpp = normalizeOpponent(cd.opponent);
+            const oppName = normalizeOpponent(opp.team?.displayName || opp.team?.shortDisplayName || opp.team?.name);
+            if (cdOpp && oppName && cdOpp === oppName) {
+              cd.result = result;
+              if (!cd.tv) cd.tv = getBroadcast(comp);
+            }
+          });
+        });
+      } catch (err) {
+        console.error('fetchFinalScoresForFootball error', err);
+      }
+    }
+
     async function loadMasterDataset() {
       combinedDataset = [];
       await Promise.all(espnEndpoints.map(async sport => {
@@ -129,8 +171,7 @@
           const data = await res.json();
           const eventsList = data?.events || data?.team?.schedule;
           eventsList?.forEach(event => {
-            const comp = event.competitions?.[0];
-            if (!comp || !comp.competitors) return;
+            const comp = event.competitions?.[0]; if (!comp || !comp.competitors) return;
 
             const msu = comp.competitors.find(c => String(c.id || c.team?.id) === '344');
             const opp = comp.competitors.find(c => String(c.id || c.team?.id) !== '344');
@@ -169,7 +210,6 @@
         } catch (e) {}
       }));
 
-      // INTELLIGENT FALLBACK MERGE: If a game from data.js isn't in ESPN yet (e.g. 2027 Softball), keep it as a fallback.
       if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
         masterDataset.forEach(local => {
           const match = combinedDataset.find(e => e.sportKey === local.sportKey && e.isoDate === local.isoDate);
@@ -182,6 +222,7 @@
         });
       }
 
+      await fetchFinalScoresForFootball();
       combinedDataset.sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
     }
 
@@ -206,7 +247,6 @@
         container.insertAdjacentHTML('beforeend', `<div class="record-banner"><div class="record-item"><span class="record-label">Overall Record</span><span class="record-value">${wins}-${losses}</span></div><div class="record-item"><span class="record-label">SEC Record</span><span class="record-value">${secWins}-${secLosses}</span></div></div>`);
       }
 
-      // Filter: 'all' shows upcoming games from today forward; individual tabs show full sport history
       const filtered = combinedDataset.filter(e => currentFilter === 'all' ? e.isoDate >= todayIso : e.sportKey === currentFilter);
       if (!filtered.length) { container.innerHTML = "<p style='color:var(--sub);'>No games found for this selection.</p>"; return; }
 
@@ -218,7 +258,7 @@
 
         const card = document.createElement("div");
         card.className = "schedule-card";
-        card.innerHTML = `<div class="game-left"><span class="sport-tag">${sportLabels[e.sportKey] || 'Sports'}</span><span class="game-date">${dateStr}</span><div class="opponent-name"><span style="color:var(--sub); font-size:0.75rem;">${e.isHome ? 'vs' : '@'}</span>${e.opponent}</div></div><div class="game-right">${badge}${tv}</div>`;
+        card.innerHTML = `<div class="game-left"><span class="sport-tag">${sportLabels[e.sportKey] || 'Sports'}</span><span class="game-date">${dateStr}</span><div class="opponent-name"><span style="color:var(--text);font-weight:800">${e.isHome ? 'vs' : '@'} ${e.opponent}</span></div></div><div class="game-right">${badge}${tv}</div>`;
         container.appendChild(card);
       });
     }
