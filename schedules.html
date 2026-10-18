@@ -162,7 +162,7 @@
         masterDataset.forEach(local => {
           const match = combinedDataset.find(e => e.sportKey === local.sportKey && e.isoDate === local.isoDate);
           if (match) {
-            if (local.result) match.result = local.result; // Force local result update (e.g. L 0-31)
+            if (local.result) match.result = local.result;
             if (local.isSec !== undefined) match.isSec = local.isSec;
             if (!match.tv && local.tv) match.tv = local.tv;
           } else {
@@ -194,8 +194,8 @@
         container.insertAdjacentHTML('beforeend', `<div class="record-banner"><div class="record-item"><span class="record-label">Overall Record</span><span class="record-value">${wins}-${losses}</span></div><div class="record-item"><span class="record-label">SEC Record</span><span class="record-value">${secWins}-${secLosses}</span></div></div>`);
       }
 
-      // Filter games: Include past completed games in 'all' view if they have a result
-      const filtered = combinedDataset.filter(e => currentFilter === 'all' ? (e.isoDate >= todayIso || Boolean(e.result)) : e.sportKey === currentFilter);
+      // Filter: 'all' shows upcoming games from today forward; individual tabs show full sport history
+      const filtered = combinedDataset.filter(e => currentFilter === 'all' ? e.isoDate >= todayIso : e.sportKey === currentFilter);
       if (!filtered.length) { container.innerHTML = "<p style='color:var(--sub);'>No games found for this selection.</p>"; return; }
 
       filtered.forEach(e => {
