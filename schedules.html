@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mississippi State Schedules</title>
+  <title>Mississippi State Football Schedule</title>
   <script src="nav.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
@@ -17,15 +17,6 @@
     body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 16px; }
     body.dyslexia-font, body.dyslexia-font * { font-family: "Comic Sans MS", Verdana, sans-serif !important; letter-spacing: 0.05em !important; word-spacing: 0.1em !important; }
     .dyslexia-toggle { background: var(--card); border: 1px solid var(--border); color: #38bdf8; font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
-    .nav-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99; opacity: 0; visibility: hidden; transition: 0.2s; }
-    .nav-overlay.open { opacity: 1; visibility: visible; }
-    .nav-drawer { position: fixed; top: 0; left: -260px; width: 260px; height: 100vh; background: var(--card); border-right: 1px solid var(--border); z-index: 100; display: flex; flex-direction: column; }
-    .nav-drawer.open { left: 0; }
-    .drawer-header { padding: 14px 16px; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; color: #38bdf8; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .drawer-close { background: none; border: none; color: var(--sub); font-size: 1.3rem; cursor: pointer; }
-    .drawer-links { list-style: none; padding: 8px 0; margin: 0; display: flex; flex-direction: column; }
-    .drawer-links a { padding: 12px 18px; color: var(--text); text-decoration: none; font-size: 0.85rem; font-weight: 700; display: block; border-left: 3px solid transparent; }
-    .drawer-links a:hover, .drawer-links a.active { background: #222530; border-left-color: #38bdf8; color: #38bdf8; }
     header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--maroon); }
     .header-left, .header-right, .header-title { display: flex; align-items: center; gap: 8px; }
     .header-left { gap: 12px; }
@@ -33,9 +24,6 @@
     .menu-btn span { display: block; width: 100%; height: 2px; background: #38bdf8; border-radius: 2px; }
     .msu-logo { height: 38px; width: auto; object-fit: contain; filter: drop-shadow(0 0 2px #fff); }
     h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
-    .sport-filter-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; white-space: nowrap; }
-    .sport-tab { background: var(--card); border: 1px solid var(--border); color: var(--sub); font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: 0.12s ease; }
-    .sport-tab.active, .sport-tab:hover { background: var(--maroon); color: #fff; border-color: #7d2033; }
     .record-banner { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--gold); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
     .record-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
     .record-label { font-size: 0.65rem; color: var(--sub); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
@@ -45,7 +33,7 @@
     .game-right { text-align: right; align-items: flex-end; }
     .game-date { font-size: 0.7rem; color: var(--sub); font-weight: 600; }
     .opponent-name { font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-    .result-badge { font-weight: 800; font-size: 0.8rem; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+    .result-badge { font-weight: 800; font-size: 0.85rem; padding: 3px 8px; border-radius: 4px; display: inline-block; }
     .result-win { background: rgba(34, 197, 94, 0.2); color: var(--green); border: 1px solid rgba(34, 197, 94, 0.4); }
     .result-loss { background: rgba(239, 68, 68, 0.2); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.4); }
     .sport-tag, .tv-tag { font-size: 0.65rem; color: var(--gold); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -57,7 +45,7 @@
       <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
       <div class="header-title">
         <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" alt="MSU Logo" class="msu-logo">
-        <h1>MSU Schedules</h1>
+        <h1>2026 Football Schedule</h1>
       </div>
     </div>
     <div class="header-right">
@@ -65,16 +53,7 @@
     </div>
   </header>
 
-  <div class="sport-filter-bar">
-    <button class="sport-tab active" onclick="filterSport('all', this)">All Sports</button>
-    <button class="sport-tab" onclick="filterSport('football', this)">🏈 Football</button>
-    <button class="sport-tab" onclick="filterSport('mens-basketball', this)">🏀 Men's BB</button>
-    <button class="sport-tab" onclick="filterSport('womens-basketball', this)">🏀 Women's BB</button>
-    <button class="sport-tab" onclick="filterSport('baseball', this)">⚾ Baseball</button>
-    <button class="sport-tab" onclick="filterSport('softball', this)">🥎 Softball</button>
-  </div>
-
-  <div id="schedule-container">Loading complete schedules...</div>
+  <div id="schedule-container">Loading 2026 Football Schedule...</div>
 
   <script src="data.js"></script>
   <script>
@@ -94,18 +73,8 @@
       updateToggleButtonState();
     }
 
-    const sportLabels = { 'football': 'Football', 'mens-basketball': "Men's Basketball", 'womens-basketball': "Women's Basketball", 'baseball': 'Baseball', 'softball': 'Softball' };
-    
-    const espnEndpoints = ['football', 'mens-basketball', 'womens-basketball', 'baseball', 'softball'].map(key => ({
-      key, 
-      url: `https://site.api.espn.com/apis/site/v2/sports/${key.includes('basketball') ? 'basketball/' + (key.includes('womens') ? 'womens-college-basketball' : 'mens-college-basketball') : key === 'football' ? 'football/college-football' : 'baseball/college-' + key}/teams/344/schedule?season=2026&seasontype=2`
-    }));
-
-    let combinedDataset = [], currentFilter = 'all';
-
-    function getBroadcast(comp) {
-      return comp?.broadcasts?.[0]?.media?.shortName || comp?.broadcasts?.[0]?.names?.[0] || comp?.geoBroadcasts?.[0]?.media?.shortName || '';
-    }
+    const FOOTBALL_URL = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?season=2026&seasontype=2';
+    let combinedDataset = [];
 
     function parseScore(scoreObj) {
       if (scoreObj == null) return null;
@@ -113,32 +82,22 @@
       return scoreObj.value !== undefined ? String(scoreObj.value) : scoreObj.displayValue !== undefined ? String(scoreObj.displayValue) : null;
     }
 
-    function isSec(oppComp, comp) {
-      if (comp.conferenceCompetition === true || (comp.notes && comp.notes.some(n => n.headline?.toLowerCase().includes('sec')))) return true;
-      const id = String(oppComp.team?.conferenceId || oppComp.team?.conference?.id || '');
-      const name = String(oppComp.team?.conference?.name || oppComp.team?.conference?.abbreviation || '').toLowerCase();
-      return id === '8' || name.includes('sec') || name.includes('southeastern');
-    }
-
-    async function loadMasterDataset() {
+    async function loadFootballDataset() {
       combinedDataset = [];
 
-      // 1. Load baseline schedule framework from data.js first (ensuring far-future & unindexed schedules exist)
+      // 1. Pull baseline football entries from data.js
       if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
-        masterDataset.forEach(local => {
-          combinedDataset.push({ isSec: false, result: '', ...local, source: 'js' });
+        masterDataset.filter(d => d.sportKey === 'football').forEach(local => {
+          combinedDataset.push({ ...local, result: '' });
         });
       }
 
-      // 2. Fetch live and historical schedules from ESPN API and merge/update data
-      await Promise.all(espnEndpoints.map(async sport => {
-        try {
-          const res = await fetch(sport.url);
-          if (!res.ok) return;
+      // 2. Fetch live and historical results from ESPN
+      try {
+        const res = await fetch(FOOTBALL_URL);
+        if (res.ok) {
           const data = await res.json();
-          
-          const eventsList = data?.events || data?.team?.schedule || data?.schedule;
-          if (!Array.isArray(eventsList)) return;
+          const eventsList = data?.events || data?.team?.schedule || data?.schedule || [];
 
           eventsList.forEach(event => {
             const comp = event.competitions?.[0];
@@ -148,59 +107,55 @@
             const opp = comp.competitors.find(c => String(c.id || c.team?.id) !== '344');
             if (!msu || !opp) return;
 
-            const dateObj = new Date(event.date);
             const isoDate = event.date.split('T')[0];
-            const timeStr = (!isNaN(dateObj) && event.timeValid !== false) ? dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'TBD';
-            
+            const dateObj = new Date(event.date);
+            const timeStr = (!isNaN(dateObj) && event.timeValid !== false) 
+              ? dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) 
+              : 'TBD';
+
             let result = null;
             const statusType = event.status?.type;
             const isCompleted = statusType?.completed === true || statusType?.state === 'post';
-            
+
             if (isCompleted) {
               const mScore = parseScore(msu.score);
               const oScore = parseScore(opp.score);
               if (mScore !== null && oScore !== null) {
                 const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
                 result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
-              } else if (msu.winner !== undefined) {
-                result = msu.winner ? 'W' : 'L';
               }
             } else if (statusType?.state === 'in') {
               result = `LIVE ${parseScore(msu.score) || 0}-${parseScore(opp.score) || 0}`;
             }
 
-            const tv = getBroadcast(comp);
-            const isSecGame = isSec(opp, comp);
-            const opponentName = opp.team?.displayName || opp.team?.shortDisplayName || opp.team?.name || 'Opponent';
+            const tv = comp?.broadcasts?.[0]?.media?.shortName || comp?.broadcasts?.[0]?.names?.[0] || '';
             const isHomeGame = msu.homeAway === 'home';
 
-            // Match against data.js framework by sportKey and isoDate
-            const existingIndex = combinedDataset.findIndex(e => e.sportKey === sport.key && e.isoDate === isoDate);
+            // Match back to data.js array by isoDate
+            const existingIndex = combinedDataset.findIndex(e => e.isoDate === isoDate);
 
             if (existingIndex !== -1) {
               if (result) combinedDataset[existingIndex].result = result;
               if (tv) combinedDataset[existingIndex].tv = tv;
               combinedDataset[existingIndex].timeStr = timeStr;
-              combinedDataset[existingIndex].isSec = isSecGame;
               combinedDataset[existingIndex].isHome = isHomeGame;
             } else {
+              // Push if game was missing in data.js
               combinedDataset.push({
-                sportKey: sport.key, 
-                opponent: opponentName, 
-                isoDate, 
-                timeStr, 
-                isHome: isHomeGame, 
-                isSec: isSecGame, 
-                tv, 
-                result, 
-                source: 'espn'
+                sportKey: 'football',
+                opponent: opp.team?.displayName || opp.team?.shortDisplayName || 'Opponent',
+                isoDate,
+                timeStr,
+                isHome: isHomeGame,
+                tv,
+                result
               });
             }
           });
-        } catch (e) {
-          console.warn(`Error loading schedule for ${sport.key}:`, e);
         }
-      }));
+      } catch (err) {
+        console.warn('Error loading ESPN football data:', err);
+      }
 
       combinedDataset.sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
     }
@@ -209,56 +164,58 @@
       const container = document.getElementById("schedule-container");
       if (!container) return;
       container.innerHTML = "";
-      if (!combinedDataset.length) { container.innerHTML = "<p style='color:var(--sub);'>Unable to load schedule data.</p>"; return; }
 
-      const todayIso = new Date().toLocaleDateString('en-CA');
+      let wins = 0, losses = 0;
+      combinedDataset.forEach(e => {
+        if (e.result?.startsWith('W')) wins++;
+        if (e.result?.startsWith('L')) losses++;
+      });
 
-      if (currentFilter !== 'all') {
-        const games = combinedDataset.filter(e => e.sportKey === currentFilter);
-        let wins = 0, losses = 0, secWins = 0, secLosses = 0;
-        games.forEach(e => {
-          if (e.result?.startsWith('W') || e.result?.startsWith('L')) {
-            const w = e.result.startsWith('W');
-            w ? wins++ : losses++;
-            if (e.isSec) w ? secWins++ : secLosses++;
-          }
-        });
-        container.insertAdjacentHTML('beforeend', `<div class="record-banner"><div class="record-item"><span class="record-label">Overall Record</span><span class="record-value">${wins}-${losses}</span></div><div class="record-item"><span class="record-label">SEC Record</span><span class="record-value">${secWins}-${secLosses}</span></div></div>`);
-      }
+      // Show top record banner
+      container.insertAdjacentHTML('beforeend', `
+        <div class="record-banner">
+          <div class="record-item">
+            <span class="record-label">2026 Football Record</span>
+            <span class="record-value">${wins}-${losses}</span>
+          </div>
+        </div>
+      `);
 
-      // Filter: 'all' shows upcoming games from today forward; individual tabs show full sport history
-      const filtered = combinedDataset.filter(e => currentFilter === 'all' ? e.isoDate >= todayIso : e.sportKey === currentFilter);
-      if (!filtered.length) { container.innerHTML = "<p style='color:var(--sub);'>No games found for this selection.</p>"; return; }
-
-      filtered.forEach(e => {
+      combinedDataset.forEach(e => {
         const dateStr = new Date(e.isoDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-        const past = e.isoDate < todayIso || Boolean(e.result);
-        const badge = past && e.result ? `<span class="result-badge ${e.result.startsWith('W') ? 'result-win' : 'result-loss'}">${e.result}</span>` : `<span class="game-date">${e.timeStr}</span>`;
-        const tv = !past && e.tv ? `<span class="tv-tag">📺 ${e.tv}</span>` : '';
+        
+        // Display score badge if available, otherwise display kickoff time
+        const badge = e.result 
+          ? `<span class="result-badge ${e.result.startsWith('W') ? 'result-win' : 'result-loss'}">${e.result}</span>` 
+          : `<span class="game-date">${e.timeStr}</span>`;
+
+        const tv = e.tv && !e.result ? `<span class="tv-tag">📺 ${e.tv}</span>` : '';
 
         const card = document.createElement("div");
         card.className = "schedule-card";
-        card.innerHTML = `<div class="game-left"><span class="sport-tag">${sportLabels[e.sportKey] || 'Sports'}</span><span class="game-date">${dateStr}</span><div class="opponent-name"><span style="color:var(--sub); font-size:0.75rem;">${e.isHome ? 'vs' : '@'}</span>${e.opponent}</div></div><div class="game-right">${badge}${tv}</div>`;
+        card.innerHTML = `
+          <div class="game-left">
+            <span class="sport-tag">Football</span>
+            <span class="game-date">${dateStr}</span>
+            <div class="opponent-name">
+              <span style="color:var(--sub); font-size:0.75rem;">${e.isHome ? 'vs' : '@'}</span>
+              ${e.opponent}
+            </div>
+          </div>
+          <div class="game-right">
+            ${badge}
+            ${tv}
+          </div>
+        `;
         container.appendChild(card);
       });
-    }
-
-    function filterSport(sportKey, btn) {
-      currentFilter = sportKey;
-      document.querySelectorAll('.sport-tab').forEach(t => t.classList.remove('active'));
-      btn.classList.add('active');
-      renderSchedule();
     }
 
     window.onload = async () => {
       updateToggleButtonState();
       if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
-      try { 
-        await loadMasterDataset(); 
-        renderSchedule(); 
-      } catch (e) {
-        document.getElementById("schedule-container").innerHTML = "<p style='color:var(--sub);'>Error rendering schedule data.</p>";
-      }
+      await loadFootballDataset(); 
+      renderSchedule(); 
     };
   </script>
 </body>
