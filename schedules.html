@@ -376,6 +376,14 @@
       return '';
     }
 
+    function parseScore(scoreObj) {
+      if (scoreObj === undefined || scoreObj === null) return null;
+      if (typeof scoreObj === 'number' || typeof scoreObj === 'string') return String(scoreObj);
+      if (scoreObj.value !== undefined) return String(scoreObj.value);
+      if (scoreObj.displayValue !== undefined) return String(scoreObj.displayValue);
+      return null;
+    }
+
     async function loadMasterDataset() {
       combinedDataset = [];
 
@@ -413,13 +421,20 @@
               const isCompleted = event.status?.type?.completed === true || gameState === 'post';
 
               if (isCompleted && msuComp && oppComp) {
-                const msuScore = parseInt(msuComp.score?.value || msuComp.score || "0");
-                const oppScore = parseInt(oppComp.score?.value || oppComp.score || "0");
-                const isWin = msuComp.winner ?? (msuScore > oppScore);
-                resultStr = `${isWin ? 'W' : 'L'} ${msuScore}-${oppScore}`;
+                const msuScoreStr = parseScore(msuComp.score);
+                const oppScoreStr = parseScore(oppComp.score);
+
+                if (msuScoreStr !== null && oppScoreStr !== null) {
+                  const msuScore = parseInt(msuScoreStr, 10);
+                  const oppScore = parseInt(oppScoreStr, 10);
+                  const isWin = msuComp.winner ?? (msuScore > oppScore);
+                  resultStr = `${isWin ? 'W' : 'L'} ${msuScore}-${oppScore}`;
+                } else if (msuComp.winner !== undefined) {
+                  resultStr = msuComp.winner ? 'W' : 'L';
+                }
               } else if (gameState === 'in' && msuComp && oppComp) {
-                const msuScore = msuComp.score?.value || msuComp.score || "0";
-                const oppScore = oppComp.score?.value || oppComp.score || "0";
+                const msuScore = parseScore(msuComp.score) || "0";
+                const oppScore = parseScore(oppComp.score) || "0";
                 resultStr = `LIVE ${msuScore}-${oppScore}`;
               }
 
