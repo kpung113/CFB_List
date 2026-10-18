@@ -1,19 +1,17 @@
 const masterDataset = [
-  // FOOTBALL (Live scores auto-handled by ESPN API; data.js supplies metadata & upcoming schedule)
-  { sportKey: 'football', opponent: 'ULM', isoDate: '2026-09-05', timeStr: '6:30 PM', isHome: true, location: 'Starkville' },
-  { sportKey: 'football', opponent: 'Minnesota', isoDate: '2026-09-12', timeStr: '2:30 PM', isHome: false, location: 'Minneapolis, Minn.' },
-  { sportKey: 'football', opponent: 'South Carolina', isoDate: '2026-09-19', timeStr: '3:15 PM', isHome: false, location: 'Columbia, S.C.' },
-  { sportKey: 'football', opponent: 'Missouri', isoDate: '2026-09-26', timeStr: '6:45 PM', isHome: true, location: 'Starkville' },
-  { sportKey: 'football', opponent: 'Alabama', isoDate: '2026-10-03', timeStr: '11:00 AM', isHome: true, location: 'Starkville' },
-  { sportKey: 'football', opponent: 'LSU', isoDate: '2026-10-17', timeStr: '11:00 AM', isHome: false, location: 'Baton Rouge, La.' },
-  { sportKey: 'football', opponent: 'Oklahoma', isoDate: '2026-10-24', timeStr: 'TBD (Flex Window)', isHome: true, location: 'Starkville' },
-  { sportKey: 'football', opponent: 'Texas', isoDate: '2026-10-31', timeStr: 'TBD (Night Window)', isHome: false, location: 'Austin, Texas' },
-  { sportKey: 'football', opponent: 'Vanderbilt', isoDate: '2026-11-07', timeStr: 'TBD (Flex Window)', isHome: true, location: 'Starkville' },
-  { sportKey: 'football', opponent: 'Auburn', isoDate: '2026-11-14', timeStr: 'TBD (Early Window)', isHome: true, location: 'Starkville' },
-  { sportKey: 'football', opponent: 'Tennessee Tech', isoDate: '2026-11-21', timeStr: '12:00 PM', isHome: true, location: 'Starkville' },
-  { sportKey: 'football', opponent: 'Ole Miss', isoDate: '2026-11-27', timeStr: '11:00 AM', isHome: false, location: 'Oxford, Miss.' },
-  
-
+  // FOOTBALL
+  { sportKey: 'football', opponent: 'ULM', isoDate: '2026-09-05', timeStr: '6:30 PM', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'football', opponent: 'Minnesota', isoDate: '2026-09-12', timeStr: '2:30 PM', isHome: false, location: 'Minneapolis, Minn.', result: '' },
+  { sportKey: 'football', opponent: 'South Carolina', isoDate: '2026-09-19', timeStr: '3:15 PM', isHome: false, location: 'Columbia, S.C.', result: '' },
+  { sportKey: 'football', opponent: 'Missouri', isoDate: '2026-09-26', timeStr: '6:45 PM', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'football', opponent: 'Alabama', isoDate: '2026-10-03', timeStr: '11:00 AM', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'football', opponent: 'LSU', isoDate: '2026-10-17', timeStr: '11:00 AM', isHome: false, location: 'Baton Rouge, La.', result: '' },
+  { sportKey: 'football', opponent: 'Oklahoma', isoDate: '2026-10-24', timeStr: 'TBD (Flex Window)', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'football', opponent: 'Texas', isoDate: '2026-10-31', timeStr: 'TBD (Night Window)', isHome: false, location: 'Austin, Texas', result: '' },
+  { sportKey: 'football', opponent: 'Vanderbilt', isoDate: '2026-11-07', timeStr: 'TBD (Flex Window)', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'football', opponent: 'Auburn', isoDate: '2026-11-14', timeStr: 'TBD (Early Window)', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'football', opponent: 'Tennessee Tech', isoDate: '2026-11-21', timeStr: '12:00 PM', isHome: true, location: 'Starkville', result: '' },
+  { sportKey: 'football', opponent: 'Ole Miss', isoDate: '2026-11-27', timeStr: '11:00 AM', isHome: false, location: 'Oxford, Miss.', result: '' },
 
   // MEN'S BASKETBALL
   { sportKey: 'mens-basketball', opponent: 'North Carolina State (Exh.)', isoDate: '2026-10-18', timeStr: '3:00 PM', isHome: false, location: 'Greensboro, N.C.', result: '' },
@@ -73,7 +71,7 @@ const masterDataset = [
   { sportKey: 'womens-basketball', opponent: 'South Carolina', isoDate: '2027-01-07', timeStr: '6:00 PM', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'womens-basketball', opponent: 'Vanderbilt', isoDate: '2027-01-10', timeStr: '5:00 PM', isHome: false, location: 'Nashville, Tenn.', result: '' },
   { sportKey: 'womens-basketball', opponent: 'LSU', isoDate: '2027-01-14', timeStr: '7:00 PM', isHome: false, location: 'Baton Rouge, La.', result: '' },
-  { sportKey: 'womens-basketball', opponent: 'Oklahoma', isoDate: '2027-01-21', timeStr: '6:30 PM', isHome: true, location: 'Starkville', result: '' },
+ { sportKey: 'womens-basketball', opponent: 'Oklahoma', isoDate: '2027-01-21', timeStr: '6:30 PM', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'womens-basketball', opponent: 'Texas', isoDate: '2027-01-24', timeStr: '4:00 PM', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'womens-basketball', opponent: 'Arkansas', isoDate: '2027-01-28', timeStr: '6:30 PM', isHome: false, location: 'Fayetteville, Ark.', result: '' },
   { sportKey: 'womens-basketball', opponent: 'Georgia', isoDate: '2027-01-31', timeStr: '11:00 AM', isHome: false, location: 'Athens, Ga.', result: '' },
@@ -86,8 +84,8 @@ const masterDataset = [
   { sportKey: 'womens-basketball', opponent: 'Kentucky', isoDate: '2027-02-28', timeStr: '1:00 PM', isHome: false, location: 'Lexington, Ky.', result: '' },
 
   // BASEBALL
-  { sportKey: 'baseball', opponent: 'Auburn (Exh.)', isoDate: '2026-10-08', timeStr: '6:00 PM', isHome: false, location: 'Biloxi (Keesler Federal Park)', result: 'W 1-0 / W 6-2' },
-  { sportKey: 'baseball', opponent: 'Southern Miss (Exh.)', isoDate: '2026-10-10', timeStr: '2:00 PM', isHome: false, location: 'Biloxi (Keesler Federal Park)', result: 'Canceled' },
+  { sportKey: 'baseball', opponent: 'Auburn (Exh.)', isoDate: '2026-10-08', timeStr: '6:00 PM', isHome: false, location: 'Biloxi (Keesler Federal Park)', result: '' },
+  { sportKey: 'baseball', opponent: 'Southern Miss (Exh.)', isoDate: '2026-10-10', timeStr: '2:00 PM', isHome: false, location: 'Biloxi (Keesler Federal Park)', result: '' },
   { sportKey: 'baseball', opponent: 'Western Kentucky (Exh.)', isoDate: '2026-10-18', timeStr: '1:00 PM', isHome: false, location: 'Jackson, Tenn. (Rockabillys Stadium)', result: '' },
   { sportKey: 'baseball', opponent: 'Little Rock (Exh.)', isoDate: '2026-10-30', timeStr: '6:00 PM', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'baseball', opponent: 'Dallas Baptist', isoDate: '2027-03-05', timeStr: '7:00 PM', isHome: false, location: 'Arlington, Texas (Globe Life Field)', result: '' },
@@ -139,7 +137,7 @@ const masterDataset = [
   { sportKey: 'softball', opponent: 'Georgia', isoDate: '2027-03-21', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'softball', opponent: 'South Carolina', isoDate: '2027-04-02', timeStr: 'TBA', isHome: false, location: 'Columbia, S.C.', result: '' },
   { sportKey: 'softball', opponent: 'South Carolina', isoDate: '2027-04-03', timeStr: 'TBA', isHome: false, location: 'Columbia, S.C.', result: '' },
-{ sportKey: 'softball', opponent: 'South Carolina', isoDate: '2027-04-04', timeStr: 'TBA', isHome: false, location: 'Columbia, S.C.', result: '' },
+  { sportKey: 'softball', opponent: 'South Carolina', isoDate: '2027-04-04', timeStr: 'TBA', isHome: false, location: 'Columbia, S.C.', result: '' },
   { sportKey: 'softball', opponent: 'Alabama', isoDate: '2027-04-09', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'softball', opponent: 'Alabama', isoDate: '2027-04-10', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'softball', opponent: 'Alabama', isoDate: '2027-04-11', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
@@ -157,3 +155,5 @@ const masterDataset = [
   { sportKey: 'softball', opponent: 'Kentucky', isoDate: '2027-05-08', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'softball', opponent: 'SEC Tournament', isoDate: '2027-05-11', timeStr: 'TBD', isHome: false, location: 'Madison, Ala. (Toyota Field)', tournament: 'SEC Tournament', result: '' }
 ];
+
+   
