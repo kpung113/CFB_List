@@ -7,47 +7,266 @@
   <script src="nav.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
-    window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
-    gtag('js',new Date());gtag('config','G-8695308WQ8');
-    if(localStorage.getItem('dyslexiaMode')==='enabled')document.documentElement.classList.add('dyslexia-font');
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-8695308WQ8');
+    if (localStorage.getItem('dyslexiaMode') === 'enabled') {
+      document.documentElement.classList.add('dyslexia-font');
+    }
   </script>
   <style>
-    :root{--bg:#0b0c10;--card-bg:#181920;--card-border:#272935;--text:#f8fafc;--accent-maroon:#5d1725;--subtext:#94a3b8;--gold:#84cc16}
-    *{box-sizing:border-box}
-    body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:16px}
-    body.dyslexia-font,body.dyslexia-font *{font-family:"Comic Sans MS","Verdana",sans-serif!important;letter-spacing:.05em!important;word-spacing:.1em!important}
-    .dyslexia-toggle{background:#181920;border:1px solid var(--card-border);color:#38bdf8;font-size:.75rem;font-weight:700;padding:5px 10px;border-radius:6px;cursor:pointer}
-    .nav-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.6);z-index:99;opacity:0;visibility:hidden;pointer-events:none;transition:.2s}
-    .nav-overlay.open{opacity:1;visibility:visible;pointer-events:auto}
-    .nav-drawer{position:fixed;top:0;left:-260px;width:260px;height:100vh;background:#181920;border-right:1px solid var(--card-border);z-index:100;display:flex;flex-direction:column;transition:.3s;box-shadow:4px 0 15px rgba(0,0,0,.5)}
-    .nav-drawer.open{left:0}
-    .drawer-header{padding:14px 16px;font-weight:800;font-size:.9rem;text-transform:uppercase;color:#38bdf8;border-bottom:1px solid var(--card-border);display:flex;justify-content:space-between;align-items:center}
-    .drawer-close{background:none;border:none;color:var(--subtext);font-size:1.3rem;cursor:pointer}
-    .drawer-links{list-style:none;padding:8px 0;margin:0;display:flex;flex-direction:column}
-    .drawer-links a{padding:12px 18px;color:var(--text);text-decoration:none;font-size:.85rem;font-weight:700;display:block;border-left:3px solid transparent}
-    .drawer-links a:hover,.drawer-links a.active{background-color:#222530;border-left-color:#38bdf8;color:#38bdf8}
-    header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--accent-maroon)}
-    .header-left,.header-right,.header-title{display:flex;align-items:center;gap:8px}
-    .header-left{gap:12px}
-    .menu-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;width:22px;height:18px;padding:0;z-index:101}
-    .menu-btn span{display:block;width:100%;height:2px;background-color:#38bdf8;border-radius:2px}
-    .msu-logo{height:38px;width:auto;object-fit:contain;filter:drop-shadow(0 0 2px #fff)}
-    h1{margin:0;font-size:1.25rem;font-weight:800}
-    .zip-control-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:16px;margin-bottom:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;box-shadow:0 4px 12px rgba(0,0,0,.4)}
-    .zip-input{background:#0b0c10;border:1px solid var(--card-border);color:var(--text);padding:8px 12px;border-radius:6px;width:110px;font-weight:700;font-size:1rem;text-align:center}
-    .calc-btn{background:var(--accent-maroon);color:#fff;border:1px solid #7d2033;padding:8px 16px;border-radius:6px;font-weight:700;cursor:pointer;font-size:.85rem;transition:background .2s}
-    .calc-btn:hover{background:#7d2033}
-    .zip-status{font-size:.8rem;color:var(--subtext);width:100%}
-    .game-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:16px;margin-bottom:12px;border-left:5px solid var(--accent-maroon);box-shadow:0 4px 12px rgba(0,0,0,.4)}
-    .card-header{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--subtext);margin-bottom:8px}
-    .team-row{display:flex;justify-content:space-between;align-items:center;margin:6px 0;font-size:1.1rem;font-weight:600}
-    .distance-badge{font-size:.8rem;background:rgba(132,204,22,.15);color:#84cc16;border:1px solid rgba(132,204,22,.3);padding:3px 8px;border-radius:6px;font-weight:700}
-    .sport-badge{font-size:.7rem;background:var(--accent-maroon);color:#fff;padding:2px 6px;border-radius:4px;font-weight:700}
-    .game-meta{font-size:.75rem;color:var(--subtext);margin-top:8px;padding-top:6px;border-top:1px solid var(--card-border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+    :root {
+      --bg:#0b0c10;
+      --card-bg:#181920;
+      --card-border:#272935;
+      --text:#f8fafc;
+      --accent-maroon:#5d1725;
+      --subtext:#94a3b8;
+      --gold:#84cc16;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+    }
+    body.dyslexia-font, body.dyslexia-font * {
+      font-family: "Comic Sans MS", "Verdana", sans-serif !important;
+      letter-spacing: .05em !important;
+      word-spacing: .1em !important;
+    }
+    .dyslexia-toggle {
+      background: #181920;
+      border: 1px solid var(--card-border);
+      color: #38bdf8;
+      font-size: .75rem;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .nav-overlay {
+      position: fixed;
+      top:0;
+      left:0;
+      width:100vw;
+      height:100vh;
+      background: rgba(0,0,0,.6);
+      z-index:99;
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+      transition:.2s;
+    }
+    .nav-overlay.open {
+      opacity:1;
+      visibility:visible;
+      pointer-events:auto;
+    }
+    .nav-drawer {
+      position: fixed;
+      top:0;
+      left:-260px;
+      width:260px;
+      height:100vh;
+      background:#181920;
+      border-right:1px solid var(--card-border);
+      z-index:100;
+      display:flex;
+      flex-direction:column;
+      transition:.3s;
+      box-shadow: 4px 0 15px rgba(0,0,0,.4);
+    }
+    .nav-drawer.open { left:0; }
+    .drawer-header {
+      padding:14px 16px;
+      font-weight:800;
+      font-size:.9rem;
+      text-transform:uppercase;
+      color:#38bdf8;
+      border-bottom:1px solid var(--card-border);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .drawer-close {
+      background:none;
+      border:none;
+      color: var(--subtext);
+      font-size:1.3rem;
+      cursor:pointer;
+    }
+    .drawer-links {
+      list-style:none;
+      padding:8px 0;
+      margin:0;
+      display:flex;
+      flex-direction:column;
+    }
+    .drawer-links a {
+      padding:12px 18px;
+      color: var(--text);
+      text-decoration:none;
+      font-size:.85rem;
+      font-weight:700;
+      display:block;
+      border-left:3px solid transparent;
+    }
+    .drawer-links a:hover, .drawer-links a.active {
+      background-color:#222530;
+      border-left-color:#38bdf8;
+      color:#38bdf8;
+    }
+    header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:20px;
+      padding-bottom:12px;
+      border-bottom:2px solid var(--accent-maroon);
+    }
+    .header-left, .header-right, .header-title {
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .header-left { gap:12px; }
+    .menu-btn {
+      background:none;
+      border:none;
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      width:22px;
+      height:18px;
+      padding:0;
+      z-index:101;
+    }
+    .menu-btn span {
+      display:block;
+      width:100%;
+      height:2px;
+      background-color:#38bdf8;
+      border-radius:2px;
+    }
+    .msu-logo {
+      height:38px;
+      width:auto;
+      object-fit:contain;
+      filter:drop-shadow(0 0 2px #fff);
+    }
+    h1 {
+      margin:0;
+      font-size:1.25rem;
+      font-weight:800;
+    }
+    .zip-control-card {
+      background: var(--card-bg);
+      border:1px solid var(--card-border);
+      border-radius:12px;
+      padding:16px;
+      margin-bottom:20px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      flex-wrap:wrap;
+      box-shadow:0 4px 12px rgba(0,0,0,.18);
+    }
+    .zip-input {
+      background:#0b0c10;
+      border:1px solid var(--card-border);
+      color:var(--text);
+      padding:8px 12px;
+      border-radius:6px;
+      width:110px;
+      font-weight:700;
+      font-size:1rem;
+      text-align:center;
+    }
+    .calc-btn {
+      background:var(--accent-maroon);
+      color:#fff;
+      border:1px solid #7d2033;
+      padding:8px 16px;
+      border-radius:6px;
+      font-weight:700;
+      cursor:pointer;
+      font-size:.85rem;
+      transition:background .2s;
+    }
+    .calc-btn:hover { background:#7d2033; }
+    .zip-status {
+      font-size:.8rem;
+      color:var(--subtext);
+      width:100%;
+    }
+    .game-card {
+      background: var(--card-bg);
+      border:1px solid var(--card-border);
+      border-radius:12px;
+      padding:16px;
+      margin-bottom:12px;
+      border-left:5px solid var(--accent-maroon);
+      box-shadow:0 4px 12px rgba(0,0,0,.18);
+    }
+    .card-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:.85rem;
+      color:var(--subtext);
+      margin-bottom:8px;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .team-row {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin:6px 0;
+      font-size:1.05rem;
+      font-weight:600;
+      gap:10px;
+    }
+    .distance-badge {
+      font-size:.8rem;
+      background:rgba(132,204,22,.15);
+      color:#84cc16;
+      border:1px solid rgba(132,204,22,.3);
+      padding:3px 8px;
+      border-radius:6px;
+      font-weight:700;
+    }
+    .sport-badge {
+      font-size:.7rem;
+      background:var(--accent-maroon);
+      color:#fff;
+      padding:2px 6px;
+      border-radius:4px;
+      font-weight:700;
+      display:inline-block;
+      vertical-align:middle;
+    }
+    .game-meta {
+      font-size:.75rem;
+      color:var(--subtext);
+      margin-top:8px;
+      padding-top:6px;
+      border-top:1px solid var(--card-border);
+      display:flex;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:6px;
+    }
   </style>
 </head>
 <body>
-
   <header>
     <div class="header-left">
       <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
@@ -67,133 +286,285 @@
     <button onclick="calculateDistances()" class="calc-btn">Sort Away Games</button>
     <div id="zipStatus" class="zip-status">Loading schedules...</div>
   </div>
-  
+
   <div id="away-games-container"></div>
 
   <script src="data.js"></script>
 
   <script>
-    function updateToggleButtonState(){const e=document.getElementById('fontToggleBtn');if(!e)return;const t='enabled'===localStorage.getItem('dyslexiaMode');e.innerText=t?'Kate Button: ON':'Kate Button: OFF',e.style.borderColor=t?'#38bdf8':'#334155'}
-    function toggleDyslexiaFont(){const e='enabled'===localStorage.getItem('dyslexiaMode');localStorage.setItem('dyslexiaMode',e?'disabled':'enabled'),document.body.classList.toggle('dyslexia-font',!e),document.documentElement.classList.toggle('dyslexia-font',!e),updateToggleButtonState()}
-    document.addEventListener('DOMContentLoaded',()=>{updateToggleButtonState(),'enabled'===localStorage.getItem('dyslexiaMode')&&document.body.classList.add('dyslexia-font'),calculateDistances()});
+    function updateToggleButtonState() {
+      const btn = document.getElementById('fontToggleBtn');
+      if (!btn) return;
+      const on = localStorage.getItem('dyslexiaMode') === 'enabled';
+      btn.innerText = on ? 'Kate Button: ON' : 'Kate Button: OFF';
+      btn.style.borderColor = on ? '#38bdf8' : '#334155';
+    }
+
+    function toggleDyslexiaFont() {
+      const on = localStorage.getItem('dyslexiaMode') === 'enabled';
+      localStorage.setItem('dyslexiaMode', on ? 'disabled' : 'enabled');
+      document.body.classList.toggle('dyslexia-font', !on);
+      document.documentElement.classList.toggle('dyslexia-font', !on);
+      updateToggleButtonState();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateToggleButtonState();
+      if (localStorage.getItem('dyslexiaMode') === 'enabled') {
+        document.body.classList.add('dyslexia-font');
+      }
+      calculateDistances();
+    });
 
     const CITY_GEO_CACHE = {
-      "jackson, tn":{lat:35.6145,lon:-88.8139},"arlington, tx":{lat:32.7357,lon:-97.1081},"hoover, al":{lat:33.4054,lon:-86.8114},
-      "madison, al":{lat:34.6993,lon:-86.7483},"milwaukee, wi":{lat:43.0389,lon:-87.9065},"norman, ok":{lat:35.2059,lon:-97.4425},
-      "choctaw, ms":{lat:32.7765,lon:-89.2494},"biloxi, ms":{lat:30.396,lon:-88.8853},"los angeles, ca":{lat:34.0522,lon:-118.2437},
-      "gainesville, fl":{lat:29.6499,lon:-82.3486},"nashville, tn":{lat:36.1447,lon:-86.8089},"knoxville, tn":{lat:35.955,lon:-83.925},
-      "minneapolis, mn":{lat:44.9765,lon:-93.2248},"columbia, sc":{lat:33.9731,lon:-81.0192},"baton rouge, la":{lat:30.412,lon:-91.1838},
-      "austin, tx":{lat:30.2836,lon:-97.7325},"tuscaloosa, al":{lat:33.2082,lon:-87.5503},"auburn, al":{lat:32.6022,lon:-85.4892},
-      "athens, ga":{lat:33.9498,lon:-83.3734},"lexington, ky":{lat:38.0337,lon:-84.5024},"oxford, ms":{lat:34.3639,lon:-89.5342},
-      "columbia, mo":{lat:38.9358,lon:-92.3332},"college station, tx":{lat:30.6102,lon:-96.34},"fayetteville, ar":{lat:36.0681,lon:-94.1752},
-      "martin, tn":{lat:36.3434,lon:-88.8503},"buffalo, ny":{lat:42.8864,lon:-78.8784},"hattiesburg, ms":{lat:31.3271,lon:-89.2903},
-      "fort myers, fl":{lat:26.6406,lon:-81.8723},"davidson, nc":{lat:35.4993,lon:-80.8487},"greensboro, nc":{lat:36.0726,lon:-79.792},
-      "white sulphur springs, wv":{lat:37.7954,lon:-80.3031},"orlando, fl":{lat:28.5383,lon:-81.3792},"jackson, ms":{lat:32.2988,lon:-90.1848},
-      "paradise island, the bahamas":{lat:25.0854,lon:-77.321},"paradise island, bahamas":{lat:25.0854,lon:-77.321}
+      "jackson, tn": { lat: 35.6145, lon: -88.8139 },
+      "arlington, tx": { lat: 32.7357, lon: -97.1081 },
+      "hoover, al": { lat: 33.4054, lon: -86.8114 },
+      "madison, al": { lat: 34.6993, lon: -86.7483 },
+      "milwaukee, wi": { lat: 43.0389, lon: -87.9065 },
+      "norman, ok": { lat: 35.2059, lon: -97.4425 },
+      "choctaw, ms": { lat: 32.7765, lon: -89.2494 },
+      "biloxi, ms": { lat: 30.396, lon: -88.8853 },
+      "los angeles, ca": { lat: 34.0522, lon: -118.2437 },
+      "gainesville, fl": { lat: 29.6499, lon: -82.3486 },
+      "nashville, tn": { lat: 36.1447, lon: -86.8089 },
+      "knoxville, tn": { lat: 35.955, lon: -83.925 },
+      "minneapolis, mn": { lat: 44.9765, lon: -93.2248 },
+      "columbia, sc": { lat: 33.9731, lon: -81.0192 },
+      "baton rouge, la": { lat: 30.412, lon: -91.1838 },
+      "austin, tx": { lat: 30.2836, lon: -97.7325 },
+      "tuscaloosa, al": { lat: 33.2082, lon: -87.5503 },
+      "auburn, al": { lat: 32.6022, lon: -85.4892 },
+      "athens, ga": { lat: 33.9498, lon: -83.3734 },
+      "lexington, ky": { lat: 38.0337, lon: -84.5024 },
+      "oxford, ms": { lat: 34.3639, lon: -89.5342 },
+      "columbia, mo": { lat: 38.9358, lon: -92.3332 },
+      "college station, tx": { lat: 30.6102, lon: -96.34 },
+      "fayetteville, ar": { lat: 36.0681, lon: -94.1752 },
+      "martin, tn": { lat: 36.3434, lon: -88.8503 },
+      "buffalo, ny": { lat: 42.8864, lon: -78.8784 },
+      "hattiesburg, ms": { lat: 31.3271, lon: -89.2903 },
+      "fort myers, fl": { lat: 26.6406, lon: -81.8723 },
+      "davidson, nc": { lat: 35.4993, lon: -80.8487 },
+      "greensboro, nc": { lat: 36.0726, lon: -79.792 },
+      "white sulphur springs, wv": { lat: 37.7954, lon: -80.3031 },
+      "orlando, fl": { lat: 28.5383, lon: -81.3792 },
+      "jackson, ms": { lat: 32.2988, lon: -90.1848 },
+      "paradise island, the bahamas": { lat: 25.0854, lon: -77.321 },
+      "paradise island, bahamas": { lat: 25.0854, lon: -77.321 }
     };
 
-    const STATE_MAP = {wis:"wi",okla:"ok",miss:"ms",texas:"tx",fla:"fl",tenn:"tn",ala:"al","n.c.":"nc","s.c.":"sc","w.va.":"wv",ga:"ga",ky:"ky",mo:"mo",ar:"ar",ark:"ar",ny:"ny",mn:"mn",la:"la",ca:"ca"};
+    const STATE_MAP = {
+      wis: 'wi', okla: 'ok', miss: 'ms', texas: 'tx', fla: 'fl', tenn: 'tn', ala: 'al',
+      'n.c.': 'nc', 's.c.': 'sc', 'w.va.': 'wv', ga: 'ga', ky: 'ky', mo: 'mo', ar: 'ar',
+      ark: 'ar', ny: 'ny', mn: 'mn', la: 'la', ca: 'ca', ok: 'ok', ms: 'ms', nc: 'nc',
+      sc: 'sc', wv: 'wv', tx: 'tx', fl: 'fl', tn: 'tn', al: 'al', wi: 'wi', mn: 'mn'
+    };
+
+    function normalizeStateValue(rawState) {
+      if (!rawState) return '';
+      const st = String(rawState).toLowerCase().replace(/\./g, '').trim();
+      return STATE_MAP[st] || st.replace(/[^a-z]/g, '');
+    }
 
     function parseCityState(s) {
       if (!s) return null;
-      let c = s.replace(/\([^\(\)]*(stadium|field|arena|center)[^\(\)]*\)/gi, '');
-      if (c.toLowerCase().includes("paradise island")) return { city: "Paradise Island", state: "Bahamas" };
-      if (c.toLowerCase().includes("biloxi")) return { city: "Biloxi", state: "MS" };
-      const m = c.match(/([A-Za-z\s]+),\s*([A-Za-z\.\s]+)/);
-      return m ? { city: m[1].replace(/[\(\)]/g, '').trim(), state: m[2].replace(/[\(\)]/g, '').trim() } : null;
+      let c = String(s).replace(/\([^)\n]*(stadium|field|arena|center|complex|park|coliseum)[^)\n]*\)/gi, '');
+      c = c.replace(/\s+/g, ' ').trim();
+      if (!c) return null;
+
+      const lower = c.toLowerCase();
+      if (lower.includes('paradise island')) {
+        return { city: 'Paradise Island', state: 'Bahamas' };
+      }
+      if (lower.includes('biloxi')) {
+        return { city: 'Biloxi', state: 'MS' };
+      }
+
+      const match = c.match(/([A-Za-z][A-Za-z\s.'-]+?)\s*,\s*([A-Za-z.\s]+)$/);
+      if (match) {
+        return {
+          city: match[1].replace(/[()]/g, '').trim(),
+          state: match[2].replace(/[()]/g, '').trim()
+        };
+      }
+
+      const parenMatch = c.match(/([A-Za-z][A-Za-z\s.'-]+?)\s*\(([^)]+)\)/);
+      if (parenMatch) {
+        return {
+          city: parenMatch[1].replace(/[()]/g, '').trim(),
+          state: parenMatch[2].replace(/[()]/g, '').trim()
+        };
+      }
+
+      return null;
     }
 
     async function geocode(city, rawState) {
       if (!city || !rawState) return null;
-      const st = rawState.toLowerCase().replace(/\./g, '').trim();
-      const mappedSt = STATE_MAP[st] || st;
-      const key = `${city.toLowerCase().trim()}, ${mappedSt}`;
+      const safeCity = String(city).trim();
+      const mappedSt = normalizeStateValue(rawState);
+      if (!safeCity || !mappedSt) return null;
+
+      const key = `${safeCity.toLowerCase().replace(/\s+/g, ' ')}, ${mappedSt}`;
       if (CITY_GEO_CACHE[key]) return CITY_GEO_CACHE[key];
 
       try {
-        const res = await fetch(`https://api.zippopotam.us/us/${mappedSt}/${encodeURIComponent(city.trim().toLowerCase())}`);
-        if (res.ok) {
-          const d = await res.json();
-          if (d.places?.[0]) {
-            const coords = { lat: parseFloat(d.places[0].latitude), lon: parseFloat(d.places[0].longitude) };
+        const res = await fetch(`https://api.zippopotam.us/us/${mappedSt}/${encodeURIComponent(safeCity.toLowerCase())}`);
+        if (!res.ok) return null;
+        const d = await res.json();
+        if (d.places?.[0]) {
+          const coords = { lat: parseFloat(d.places[0].latitude), lon: parseFloat(d.places[0].longitude) };
+          if (!Number.isNaN(coords.lat) && !Number.isNaN(coords.lon)) {
             CITY_GEO_CACHE[key] = coords;
             return coords;
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        // Fail quietly and fall back to cached values or null.
+      }
       return null;
     }
 
     const ENDPOINTS = [
-      { name: "Football", url: "https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?limit=100" },
-      { name: "Baseball", url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?limit=100" },
-      { name: "Men's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?limit=100" },
-      { name: "Women's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?limit=100" }
+      { name: 'Football', url: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?limit=100' },
+      { name: 'Baseball', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?limit=100' },
+      { name: "Men's Basketball", url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?limit=100' },
+      { name: "Women's Basketball", url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?limit=100' }
     ];
 
     function getDist(lat1, lon1, lat2, lon2) {
-      const R = 3958.8, dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
-      return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+      const R = 3958.8;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+      return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+    }
+
+    function normalizeOpponent(value) {
+      return String(value || '').replace(/[^a-z0-9]/gi, '').toLowerCase();
     }
 
     async function fetchAllEvents() {
       const events = [];
+
       for (const sp of ENDPOINTS) {
         try {
           const res = await fetch(sp.url);
           if (!res.ok) continue;
           const data = await res.json();
+
           for (const e of (data.events || [])) {
-            const comp = e.competitions?.[0]; if (!comp) continue;
-            const msu = comp.competitors?.find(c => String(c.id) === "344" || String(c.team?.id) === "344");
-            const opp = comp.competitors?.find(c => String(c.id) !== "344" && String(c.team?.id) !== "344");
-            if (msu?.homeAway === 'away' || comp.neutralSite) {
-              const venue = comp.venue, addr = venue?.address;
-              let lat = venue?.geometry?.coordinates?.[1] || addr?.latitude, lon = venue?.geometry?.coordinates?.[0] || addr?.longitude;
-              let city = addr?.city, state = addr?.state;
-              if (!city || !state) {
-                const parsed = parseCityState(venue?.fullName) || parseCityState(addr?.summary);
-                if (parsed) { city = parsed.city; state = parsed.state; }
+            const comp = e.competitions?.[0];
+            if (!comp) continue;
+
+            const msu = comp.competitors?.find(c => String(c.id) === '344' || String(c.team?.id) === '344');
+            const opp = comp.competitors?.find(c => String(c.id) !== '344' && String(c.team?.id) !== '344');
+            if (!(msu?.homeAway === 'away' || comp.neutralSite)) continue;
+
+            const venue = comp.venue || {};
+            const addr = venue.address || {};
+            let lat = venue?.geometry?.coordinates?.[1] ?? addr?.latitude ?? null;
+            let lon = venue?.geometry?.coordinates?.[0] ?? addr?.longitude ?? null;
+
+            let city = addr?.city || null;
+            let state = addr?.state || null;
+
+            if ((!city || !state) && (venue?.fullName || addr?.summary)) {
+              const parsed = parseCityState(venue?.fullName) || parseCityState(addr?.summary);
+              if (parsed) {
+                city = parsed.city;
+                state = parsed.state;
               }
-              if ((!lat || !lon) && city && state) {
-                const geo = await geocode(city, state);
-                if (geo) { lat = geo.lat; lon = geo.lon; }
-              }
-              events.push({ sport: sp.name, date: new Date(e.date), opponent: opp?.team?.displayName || "Opponent", venueName: venue?.fullName || "Away Venue", location: city ? `${city}${state ? ', ' + state : ''}` : (addr?.summary || ""), lat: lat ? parseFloat(lat) : null, lon: lon ? parseFloat(lon) : null, isNeutral: comp.neutralSite });
             }
+
+            if ((!lat || !lon) && city && state) {
+              const geo = await geocode(city, state);
+              if (geo) {
+                lat = geo.lat;
+                lon = geo.lon;
+              }
+            }
+
+            const location = city ? `${city}${state ? ', ' + state : ''}` : (venue?.fullName || 'Away Venue');
+            events.push({
+              sport: sp.name,
+              date: new Date(e.date),
+              opponent: opp?.team?.displayName || 'Opponent',
+              venueName: venue?.fullName || 'Away Venue',
+              location,
+              lat: Number.isFinite(lat) ? Number(lat) : null,
+              lon: Number.isFinite(lon) ? Number(lon) : null
+            });
           }
-        } catch (err) {}
+        } catch (err) {
+          // Skip this endpoint quietly if it fails.
+        }
       }
 
       if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
         for (const localGame of masterDataset) {
-          if (!localGame.isHome) {
-            if (!events.some(e => e.date.toISOString().split('T')[0] === localGame.isoDate && e.opponent.includes(localGame.opponent))) {
-              let lat = null, lon = null;
-              const parsed = parseCityState(localGame.location) || parseCityState(localGame.venue);
-              if (parsed) { const geo = await geocode(parsed.city, parsed.state); if (geo) { lat = geo.lat; lon = geo.lon; } }
-              events.push({ sport: localGame.sportKey || "Sports", date: new Date(localGame.isoDate + 'T00:00:00'), opponent: localGame.opponent, venueName: localGame.venue || "Away Venue", location: localGame.location || "", lat: lat, lon: lon, isNeutral: false });
+          if (localGame.isHome) continue;
+
+          const dupKey = `${localGame.isoDate}-${normalizeOpponent(localGame.opponent)}`;
+          if (events.some(e => `${e.date.toISOString().split('T')[0]}-${normalizeOpponent(e.opponent)}` === dupKey)) {
+            continue;
+          }
+
+          let lat = null;
+          let lon = null;
+          const parsed = parseCityState(localGame.location) || parseCityState(localGame.venue);
+          if (parsed) {
+            const geo = await geocode(parsed.city, parsed.state);
+            if (geo) {
+              lat = geo.lat;
+              lon = geo.lon;
             }
           }
+
+          const location = parsed ? `${parsed.city}${parsed.state ? ', ' + parsed.state : ''}` : (localGame.location || 'Away Venue');
+          events.push({
+            sport: localGame.sportKey || 'Sports',
+            date: new Date(localGame.isoDate + 'T00:00:00'),
+            opponent: localGame.opponent || 'Opponent',
+            venueName: localGame.venue || 'Away Venue',
+            location,
+            lat,
+            lon
+          });
         }
       }
+
       return events;
     }
 
     async function calculateDistances() {
-      const zip = document.getElementById('zipInput').value.trim(), statusEl = document.getElementById('zipStatus'), container = document.getElementById('away-games-container');
-      if (!/^\d{5}$/.test(zip)) { statusEl.innerText = "Please enter a valid 5-digit US zip code."; return; }
+      const zipInput = document.getElementById('zipInput');
+      const statusEl = document.getElementById('zipStatus');
+      const container = document.getElementById('away-games-container');
+
+      const zip = (zipInput?.value || '').trim();
+      if (!/^\d{5}$/.test(zip)) {
+        statusEl.innerText = 'Please enter a valid 5-digit US zip code.';
+        return;
+      }
+
       statusEl.innerText = `Fetching away games and calculating distances for zip code ${zip}...`;
+
       try {
-        let zipRes;
+        let zipRes = null;
         try {
           zipRes = await fetch(`https://api.zippopotam.us/us/${zip}`);
-        } catch (e) {}
-        
+        } catch (e) {
+          // Ignore zip lookup failure and use fallback coordinates.
+        }
+
         const awayEvents = await fetchAllEvents();
-        
-        let uLat = 28.0395, uLon = -81.9498, placeName = zip; // Default Lakeland FL fallback if zip API fails
+
+        let uLat = 28.0395;
+        let uLon = -81.9498;
+        let placeName = zip;
+
         if (zipRes && zipRes.ok) {
           const zipData = await zipRes.json();
           if (zipData.places?.[0]) {
@@ -203,17 +574,52 @@
           }
         }
 
-        const games = awayEvents.map(g => ({ ...g, distance: (g.lat && g.lon) ? getDist(uLat, uLon, g.lat, g.lon) : 9999 })).sort((a,b) => a.distance - b.distance);
+        const games = awayEvents
+          .map(game => ({
+            ...game,
+            distance: (Number.isFinite(game.lat) && Number.isFinite(game.lon)) ? getDist(uLat, uLon, game.lat, game.lon) : 9999
+          }))
+          .sort((a, b) => a.distance - b.distance);
+
         statusEl.innerText = `Showing ${games.length} away/neutral games sorted by distance from ${placeName} (${zip}).`;
-        container.innerHTML = "";
+        container.innerHTML = '';
+
         games.forEach(game => {
-          const card = document.createElement('div'); card.className = "game-card";
-          const formattedDate = game.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-          card.innerHTML = `<div class="card-header"><span><span class="sport-badge">${game.sport}</span> • ${formattedDate}</span><span class="distance-badge">${game.distance !== 9999 ? `📍 ~${game.distance} miles away` : 'Location Pending'}</span></div><div class="team-row"><span>${game.isNeutral ? 'vs.' : 'at'} ${game.opponent}</span></div><div class="game-meta"><span><strong>Venue:</strong> ${game.venueName} ${game.location ? `(${game.location})` : ''}</span></div>`;
+          const card = document.createElement('div');
+          card.className = 'game-card';
+
+          const date = new Date(game.date);
+          const formattedDate = date && !Number.isNaN(date.getTime())
+            ? date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+            : 'Date unavailable';
+
+          const distanceText = game.distance !== 9999 ? `📍 ~${game.distance} mi` : '📍 N/A';
+          const venueText = game.venueName || 'Away venue';
+          const locationText = game.location || venueText;
+
+          card.innerHTML = `
+            <div class="card-header">
+              <span>
+                <span class="sport-badge">${game.sport}</span> • ${formattedDate}
+              </span>
+              <span class="distance-badge">${distanceText}</span>
+            </div>
+            <div class="team-row"><strong>${game.opponent}</strong></div>
+            <div class="team-row"><span>${locationText}</span></div>
+            <div class="game-meta">
+              <span>Venue: ${venueText}</span>
+              <span>${game.distance !== 9999 ? `${game.distance} miles away` : 'Location unavailable'}</span>
+            </div>
+          `;
+
           container.appendChild(card);
         });
-      } catch (err) { statusEl.innerText = "Error fetching schedules or zip code location. Please check your connection."; }
+      } catch (err) {
+        statusEl.innerText = 'Error fetching schedules or zip code location. Please check your connection.';
+      }
     }
+
+    window.calculateDistances = calculateDistances;
   </script>
 </body>
 </html>
