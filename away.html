@@ -198,6 +198,12 @@
     });
 
     const CITY_GEO_CACHE = {
+      "milwaukee, wi": { lat: 43.0389, lon: -87.9065 },
+      "norman, ok": { lat: 35.2059, lon: -97.4425 },
+      "choctaw, ms": { lat: 32.7765, lon: -89.2494 },
+      "biloxi, ms": { lat: 30.3960, lon: -88.8853 },
+      "arlington, tx": { lat: 32.7357, lon: -97.1081 },
+      "los angeles, ca": { lat: 34.0522, lon: -118.2437 },
       "gainesville, fl": { lat: 29.6499, lon: -82.3486 },
       "nashville, tn": { lat: 36.1447, lon: -86.8089 },
       "knoxville, tn": { lat: 35.9550, lon: -83.9250 },
@@ -211,7 +217,6 @@
       "lexington, ky": { lat: 38.0337, lon: -84.5024 },
       "oxford, ms": { lat: 34.3639, lon: -89.5342 },
       "columbia, mo": { lat: 38.9358, lon: -92.3332 },
-      "norman, ok": { lat: 35.2059, lon: -97.4425 },
       "college station, tx": { lat: 30.6102, lon: -96.3400 },
       "fayetteville, ar": { lat: 36.0681, lon: -94.1752 },
       "martin, tn": { lat: 36.3434, lon: -88.8503 },
@@ -227,9 +232,12 @@
     };
 
     const STATE_MAP = {
+      "wis": "wi", "wis.": "wi", "wi": "wi",
+      "okla": "ok", "okla.": "ok", "ok": "ok",
+      "miss": "ms", "miss.": "ms", "ms": "ms",
+      "texas": "tx", "tx": "tx", "tx.": "tx",
       "fla": "fl", "fla.": "fl", "fl": "fl",
       "tenn": "tn", "tenn.": "tn", "tn": "tn",
-      "miss": "ms", "miss.": "ms", "ms": "ms",
       "n.c.": "nc", "nc": "nc",
       "s.c.": "sc", "sc": "sc",
       "w.va.": "wv", "w va": "wv", "wv": "wv",
@@ -237,18 +245,22 @@
       "ga": "ga", "ga.": "ga",
       "ky": "ky", "ky.": "ky",
       "mo": "mo", "mo.": "mo",
-      "ok": "ok", "ok.": "ok",
       "ar": "ar", "ar.": "ar", "ark": "ar", "ark.": "ar",
       "ny": "ny", "ny.": "ny",
       "mn": "mn", "mn.": "mn",
       "la": "la", "la.": "la",
-      "tx": "tx", "tx.": "tx"
+      "ca": "ca", "ca.": "ca"
     };
 
     function parseCityStateFromString(str) {
       if (!str) return null;
-      // Match pattern like "(Gainesville, Fla.)" or "Gainesville, Fla."
-      const match = str.match(/(?:[\(\s])?([A-Za-z\s]+),\s*([A-Za-z\.\s]+)(?:\))?/);
+      
+      // Handle cases like "Biloxi (Keesler Federal Park)" where state is missing
+      const lower = str.toLowerCase();
+      if (lower.includes("biloxi")) return { city: "Biloxi", state: "MS" };
+
+      // Match pattern like "Arlington, Texas (Globe Life Field)" or "(Milwaukee, Wis.)"
+      const match = str.match(/(?:[\(\s])?([A-Za-z\s]+),\s*([A-Za-z\.\s]+?)(?:\s*\(\vert{}\)|$)/);
       if (match) {
         return { city: match[1].trim(), state: match[2].trim() };
       }
@@ -327,7 +339,6 @@
               let lat = venue?.geometry?.coordinates?.[1] || address?.latitude;
               let lon = venue?.geometry?.coordinates?.[0] || address?.longitude;
 
-              // Extract location from address or venue full text string
               let city = address?.city;
               let state = address?.state;
 
@@ -340,10 +351,19 @@
               }
 
               if ((!lat || !lon) && city && state) {
-                const geo = await geocodeCityState(city, state);
-                if (geo) {
-                  lat = geo.lat;
-                  lon = geo.lon;
+                const cleanStateKey = state.toLowerCase().replace(/\./g, '').trim();
+                const mappedSt = STATE_MAP[cleanStateKey] || cleanStateKey;
+                const cacheKey = `${city.toLowerCase().trim()}, ${mappedSt}`;
+                
+                if (CITY_GEO_CACHE[cacheKey]) {
+                  lat = CITY_GEO_CACHE[cacheKey].lat;
+                  lon = CITY_GEO_CACHE[cacheKey].lon;
+                } else {
+                  const geo = await geocodeCityState(city, state);
+                  if (geo) {
+                    lat = geo.lat;
+                    lon = geo.lon;
+                  }
                 }
               }
 
