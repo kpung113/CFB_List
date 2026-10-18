@@ -148,9 +148,13 @@
             if (cd.sportKey !== 'football') return;
             if (cd.isoDate !== dateIso) return;
 
+            // Prefer matching by opponent id when available, fallback to normalized name
+            const cdOppId = cd.opponentId ? String(cd.opponentId) : null;
+            const oppId = String(opp.team?.id || opp.id || '');
             const cdOpp = normalizeOpponent(cd.opponent);
-            const oppName = normalizeOpponent(opp.team?.displayName || opp.team?.shortDisplayName || opp.team?.name);
-            if (cdOpp && oppName && cdOpp === oppName) {
+            const oppName = normalizeOpponent(opp.team?.displayName || opp.team?.shortDisplayName || opp.team?.name || opp.team?.abbreviation || '');
+
+            if ((cdOppId && cdOppId === oppId) || (cdOpp && oppName && cdOpp === oppName)) {
               cd.result = result;
               if (!cd.tv) cd.tv = getBroadcast(comp);
             }
@@ -179,7 +183,7 @@
             const dateObj = new Date(event.date);
             const isoDate = event.date.split('T')[0];
             const timeStr = (!isNaN(dateObj) && event.timeValid !== false) ? dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'TBD';
-
+            
             let result = null;
             const isCompleted = event.status?.type?.completed === true || event.status?.type?.state === 'post';
             if (isCompleted) {
@@ -194,29 +198,46 @@
               result = `LIVE ${parseScore(msu.score) || 0}-${parseScore(opp.score) || 0}`;
             }
 
+            // store opponent id to make later matching reliable
+            const opponentId = opp.team?.id || opp.id || null;
+
             combinedDataset.push({
-              sportKey: sport.key,
+              sportKey: sport.key, 
               opponent: opp.team.displayName || opp.team.shortDisplayName || 'Opponent',
-              isoDate,
-              timeStr,
+              opponentId: opponentId ? String(opponentId) : null,
+              isoDate, 
+              timeStr, 
               isHome: msu.homeAway === 'home',
-              isSec: isSec(opp, comp),
-              tv: getBroadcast(comp),
-              result,
+              isSec: isSec(opp, comp), 
+              tv: getBroadcast(comp), 
+              result, 
               source: 'espn'
             });
           });
         } catch (e) {}
       }));
 
+      // Merge local masterDataset. Match by sportKey + isoDate + normalized opponent (or opponentId when possible)
       if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
         masterDataset.forEach(local => {
-          const match = combinedDataset.find(e => e.sportKey === local.sportKey && e.isoDate === local.isoDate);
+          const localNormOpp = normalizeOpponent(local.opponent);
+          const match = combinedDataset.find(e => {
+            if (e.sportKey !== local.sportKey) return false;
+            if (e.isoDate !== local.isoDate) return false;
+            // prefer id match when possible
+            if (e.opponentId && local.opponent && normalizeOpponent(local.opponent) && e.opponentId === String(local.opponentId || '')) return true;
+            const eNorm = normalizeOpponent(e.opponent);
+            return eNorm && localNormOpp && eNorm === localNormOpp;
+          });
+
           if (match) {
-            if (!match.result && local.result) match.result = local.result;
-            if (!match.tv && local.tv) match.tv = local.tv;
+            // only use local values to fill missing fields (prefer ESPN data)
+            if ((!match.result || match.result === '') && local.result) match.result = local.result;
+            if ((!match.tv || match.tv === '') && local.tv) match.tv = local.tv;
           } else {
-            combinedDataset.push({ isSec: false, result: '', ...local, source: 'js' });
+            // avoid pushing duplicates: check again by sport+date+normalized opponent
+            const exists = combinedDataset.some(e => e.sportKey === local.sportKey && e.isoDate === local.isoDate && normalizeOpponent(e.opponent) === localNormOpp);
+            if (!exists) combinedDataset.push({ isSec: false, result: local.result || '', opponentId: null, ...local, source: 'js' });
           }
         });
       }
