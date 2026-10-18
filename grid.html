@@ -473,7 +473,7 @@
       );
     }
 
-    // Helper to map team conference to Power 4 tiers
+    // Helper to map team conference to correct tiers
     function getConfKey(team) {
       if (!team) return 'other';
       const confId = String(team.conferenceId || team.conference?.id || '');
@@ -482,7 +482,9 @@
       if (confId === '8' || confName.includes('sec') || confName.includes('southeastern')) return 'sec';
       if (confId === '5' || confName.includes('big ten') || confName.includes('b1g')) return 'bigten';
       if (confId === '151' || confName.includes('big 12') || confName.includes('b12')) return 'big12';
-      if (confId === '1' || confName.includes('acc') || confName.includes('atlantic coast')) return 'acc';
+      // Ensure ACC strictly checks for Atlantic Coast or exact confId '1', avoiding substring clashes with AAC
+      if (confId === '1' || confName === 'acc' || confName.includes('atlantic coast')) return 'acc';
+      if (confId === '15' || confName.includes('american athletic') || confName === 'aac') return 'aac';
       return 'other';
     }
 
@@ -494,7 +496,8 @@
       if (confs.includes('bigten')) return 2;
       if (confs.includes('big12')) return 3;
       if (confs.includes('acc')) return 4;
-      return 5;
+      if (confs.includes('aac')) return 5;
+      return 6;
     }
 
     // Returns sorting badge tag matching the strict hierarchy order
@@ -505,6 +508,7 @@
       if (tier === 2) return 'BTN';
       if (tier === 3) return 'B12';
       if (tier === 4) return 'ACC';
+      if (tier === 5) return 'AAC';
       return 'OTHR';
     }
 
@@ -525,7 +529,7 @@
       });
     }
 
-    // Custom sort specifically for completed games: SEC -> Ranked -> Power 4 Tiers (Big Ten -> Big 12 -> ACC -> Other)
+    // Custom sort specifically for completed games: SEC -> Ranked -> Power 4 Tiers (Big Ten -> Big 12 -> ACC -> AAC -> Other)
     function sortCompletedGames(games) {
       return games.sort((a, b) => {
         const aSEC = isSEC(a);
