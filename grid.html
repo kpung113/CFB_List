@@ -141,8 +141,8 @@
       if (isSEC(g)) return 'SEC';
       if (isRanked(g)) return 'RNK';
       const keys = g.competitions[0].competitors.map(c => getConfKey(c.team));
-      const tags = ['BTN', 'ACC', 'B12', 'AAC', 'CUSA', 'INDEP', 'MAC', 'MWC', 'PAC12', 'SBC'];
       const tiers = ['btn', 'acc', 'b12', 'aac', 'cusa', 'indep', 'mac', 'mwc', 'pac12', 'sbc'];
+      const tags  = ['BTN', 'ACC', 'B12', 'AAC', 'CUSA', 'INDEP', 'MAC', 'MWC', 'PAC12', 'SBC'];
       for (let i = 0; i < tiers.length; i++) {
         if (keys.includes(tiers[i])) return tags[i];
       }
