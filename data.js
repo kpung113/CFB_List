@@ -1,17 +1,19 @@
 const masterDataset = [
-  // FOOTBALL
-  { sportKey: 'football', opponent: 'ULM', isoDate: '2026-09-05', timeStr: '6:30 PM', isHome: true, location: 'Starkville', result: 'W 62-13' },
-  { sportKey: 'football', opponent: 'Minnesota', isoDate: '2026-09-12', timeStr: '2:30 PM', isHome: false, location: 'Minneapolis, Minn.', result: 'W 38-13' },
-  { sportKey: 'football', opponent: 'South Carolina', isoDate: '2026-09-19', timeStr: '3:15 PM', isHome: false, location: 'Columbia, S.C.', result: 'W 41-34' },
-  { sportKey: 'football', opponent: 'Missouri', isoDate: '2026-09-26', timeStr: '6:45 PM', isHome: true, location: 'Starkville', result: 'W 31-24' },
-  { sportKey: 'football', opponent: 'Alabama', isoDate: '2026-10-03', timeStr: '11:00 AM', isHome: true, location: 'Starkville', result: 'L 23-56' },
-  { sportKey: 'football', opponent: 'LSU', isoDate: '2026-10-17', timeStr: '11:00 AM', isHome: false, location: 'Baton Rouge, La.', result: '' },
-  { sportKey: 'football', opponent: 'Oklahoma', isoDate: '2026-10-24', timeStr: 'TBD (Flex Window)', isHome: true, location: 'Starkville', result: '' },
-  { sportKey: 'football', opponent: 'Texas', isoDate: '2026-10-31', timeStr: 'TBD (Night Window)', isHome: false, location: 'Austin, Texas', result: '' },
-  { sportKey: 'football', opponent: 'Vanderbilt', isoDate: '2026-11-07', timeStr: 'TBD (Flex Window)', isHome: true, location: 'Starkville', result: '' },
-  { sportKey: 'football', opponent: 'Auburn', isoDate: '2026-11-14', timeStr: 'TBD (Early Window)', isHome: true, location: 'Starkville', result: '' },
-  { sportKey: 'football', opponent: 'Tennessee Tech', isoDate: '2026-11-21', timeStr: '12:00 PM', isHome: true, location: 'Starkville', result: '' },
-  { sportKey: 'football', opponent: 'Ole Miss', isoDate: '2026-11-27', timeStr: '11:00 AM', isHome: false, location: 'Oxford, Miss.', result: '' },
+  // FOOTBALL (Live scores auto-handled by ESPN API; data.js supplies metadata & upcoming schedule)
+  { sportKey: 'football', opponent: 'ULM', isoDate: '2026-09-05', timeStr: '6:30 PM', isHome: true, location: 'Starkville' },
+  { sportKey: 'football', opponent: 'Minnesota', isoDate: '2026-09-12', timeStr: '2:30 PM', isHome: false, location: 'Minneapolis, Minn.' },
+  { sportKey: 'football', opponent: 'South Carolina', isoDate: '2026-09-19', timeStr: '3:15 PM', isHome: false, location: 'Columbia, S.C.' },
+  { sportKey: 'football', opponent: 'Missouri', isoDate: '2026-09-26', timeStr: '6:45 PM', isHome: true, location: 'Starkville' },
+  { sportKey: 'football', opponent: 'Alabama', isoDate: '2026-10-03', timeStr: '11:00 AM', isHome: true, location: 'Starkville' },
+  { sportKey: 'football', opponent: 'LSU', isoDate: '2026-10-17', timeStr: '11:00 AM', isHome: false, location: 'Baton Rouge, La.' },
+  { sportKey: 'football', opponent: 'Oklahoma', isoDate: '2026-10-24', timeStr: 'TBD (Flex Window)', isHome: true, location: 'Starkville' },
+  { sportKey: 'football', opponent: 'Texas', isoDate: '2026-10-31', timeStr: 'TBD (Night Window)', isHome: false, location: 'Austin, Texas' },
+  { sportKey: 'football', opponent: 'Vanderbilt', isoDate: '2026-11-07', timeStr: 'TBD (Flex Window)', isHome: true, location: 'Starkville' },
+  { sportKey: 'football', opponent: 'Auburn', isoDate: '2026-11-14', timeStr: 'TBD (Early Window)', isHome: true, location: 'Starkville' },
+  { sportKey: 'football', opponent: 'Tennessee Tech', isoDate: '2026-11-21', timeStr: '12:00 PM', isHome: true, location: 'Starkville' },
+  { sportKey: 'football', opponent: 'Ole Miss', isoDate: '2026-11-27', timeStr: '11:00 AM', isHome: false, location: 'Oxford, Miss.' },
+  
+
 
   // MEN'S BASKETBALL
   { sportKey: 'mens-basketball', opponent: 'North Carolina State (Exh.)', isoDate: '2026-10-18', timeStr: '3:00 PM', isHome: false, location: 'Greensboro, N.C.', result: '' },
