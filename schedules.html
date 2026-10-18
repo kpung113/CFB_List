@@ -4,294 +4,56 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mississippi State Schedules</title>
-
-  <!-- Shared Navigation Script -->
   <script src="nav.js"></script>
-
-  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-8695308WQ8');
-
-    if (localStorage.getItem('dyslexiaMode') === 'enabled') {
-      document.documentElement.classList.add('dyslexia-font');
-    }
+    if (localStorage.getItem('dyslexiaMode') === 'enabled') document.documentElement.classList.add('dyslexia-font');
   </script>
-
   <style>
-    :root {
-      --bg: #0b0c10;
-      --card-bg: #181920;
-      --card-border: #272935;
-      --text: #f8fafc;
-      --accent-maroon: #5d1725;
-      --subtext: #94a3b8;
-      --gold: #84cc16;
-      --win-green: #22c55e;
-      --loss-red: #ef4444;
-    }
+    :root { --bg: #0b0c10; --card: #181920; --border: #272935; --text: #f8fafc; --maroon: #5d1725; --sub: #94a3b8; --gold: #84cc16; --green: #22c55e; --red: #ef4444; }
     * { box-sizing: border-box; }
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 16px;
-    }
-    body.dyslexia-font, body.dyslexia-font * {
-      font-family: "Comic Sans MS", "Verdana", sans-serif !important;
-      letter-spacing: 0.05em !important;
-      word-spacing: 0.1em !important;
-    }
-    .dyslexia-toggle {
-      background: #181920;
-      border: 1px solid var(--card-border);
-      color: #38bdf8;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    /* --- NAVIGATION DRAWER STYLES --- */
-    .nav-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 99;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition: 0.2s;
-    }
-    .nav-overlay.open {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-    }
-    .nav-drawer {
-      position: fixed;
-      top: 0;
-      left: -260px;
-      width: 260px;
-      height: 100vh;
-      background: #181920;
-      border-right: 1px solid var(--card-border);
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-      transition: 0.3s;
-      box-shadow: 4px 0 15px rgba(0, 0, 0, 0.5);
-    }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 16px; }
+    body.dyslexia-font, body.dyslexia-font * { font-family: "Comic Sans MS", Verdana, sans-serif !important; letter-spacing: 0.05em !important; word-spacing: 0.1em !important; }
+    .dyslexia-toggle { background: var(--card); border: 1px solid var(--border); color: #38bdf8; font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
+    .nav-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99; opacity: 0; visibility: hidden; transition: 0.2s; }
+    .nav-overlay.open { opacity: 1; visibility: visible; }
+    .nav-drawer { position: fixed; top: 0; left: -260px; width: 260px; height: 100vh; background: var(--card); border-right: 1px solid var(--border); z-index: 100; display: flex; flex-direction: column; transition: 0.3s; box-shadow: 4px 0 15px rgba(0,0,0,0.5); }
     .nav-drawer.open { left: 0; }
-    .drawer-header {
-      padding: 14px 16px;
-      font-weight: 800;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      color: #38bdf8;
-      border-bottom: 1px solid var(--card-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .drawer-close {
-      background: none;
-      border: none;
-      color: var(--subtext);
-      font-size: 1.3rem;
-      cursor: pointer;
-    }
-    .drawer-links {
-      list-style: none;
-      padding: 8px 0;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-    }
-    .drawer-links a {
-      padding: 12px 18px;
-      color: var(--text);
-      text-decoration: none;
-      font-size: 0.85rem;
-      font-weight: 700;
-      display: block;
-      border-left: 3px solid transparent;
-    }
-    .drawer-links a:hover, .drawer-links a.active {
-      background-color: #222530;
-      border-left-color: #38bdf8;
-      color: #38bdf8;
-    }
-
-    /* --- HEADER STYLES --- */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid var(--accent-maroon);
-    }
-    .header-left, .header-right, .header-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .drawer-header { padding: 14px 16px; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; color: #38bdf8; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .drawer-close { background: none; border: none; color: var(--sub); font-size: 1.3rem; cursor: pointer; }
+    .drawer-links { list-style: none; padding: 8px 0; margin: 0; display: flex; flex-direction: column; }
+    .drawer-links a { padding: 12px 18px; color: var(--text); text-decoration: none; font-size: 0.85rem; font-weight: 700; display: block; border-left: 3px solid transparent; }
+    .drawer-links a:hover, .drawer-links a.active { background: #222530; border-left-color: #38bdf8; color: #38bdf8; }
+    header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--maroon); }
+    .header-left, .header-right, .header-title { display: flex; align-items: center; gap: 8px; }
     .header-left { gap: 12px; }
-    .menu-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      width: 22px;
-      height: 18px;
-      padding: 0;
-      z-index: 101;
-    }
-    .menu-btn span {
-      display: block;
-      width: 100%;
-      height: 2px;
-      background-color: #38bdf8;
-      border-radius: 2px;
-    }
-    .msu-logo {
-      height: 38px;
-      width: auto;
-      object-fit: contain;
-      filter: drop-shadow(0 0 2px #fff);
-    }
+    .menu-btn { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; width: 22px; height: 18px; padding: 0; z-index: 101; }
+    .menu-btn span { display: block; width: 100%; height: 2px; background: #38bdf8; border-radius: 2px; }
+    .msu-logo { height: 38px; width: auto; object-fit: contain; filter: drop-shadow(0 0 2px #fff); }
     h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
-
-    .sport-filter-bar {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-      margin-bottom: 12px;
-      white-space: nowrap;
-    }
-    .sport-tab {
-      background: #181920;
-      border: 1px solid var(--card-border);
-      color: var(--subtext);
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .sport-tab.active, .sport-tab:hover {
-      background: var(--accent-maroon);
-      color: #fff;
-      border-color: #7d2033;
-    }
-
-    .record-banner {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-left: 4px solid var(--gold);
-      border-radius: 8px;
-      padding: 10px 14px;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
-    .record-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-    }
-    .record-label {
-      font-size: 0.65rem;
-      color: var(--subtext);
-      text-transform: uppercase;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
-    .record-value {
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: #fff;
-    }
-
-    .schedule-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 8px 12px;
-      margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
-    .game-left {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .game-date {
-      font-size: 0.7rem;
-      color: var(--subtext);
-      font-weight: 600;
-    }
-    .opponent-name {
-      font-size: 0.9rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .game-right {
-      text-align: right;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 2px;
-    }
-    .result-badge {
-      font-weight: 800;
-      font-size: 0.8rem;
-      padding: 2px 6px;
-      border-radius: 4px;
-      display: inline-block;
-    }
-    .result-win { background: rgba(34, 197, 94, 0.2); color: var(--win-green); border: 1px solid rgba(34, 197, 94, 0.4); }
-    .result-loss { background: rgba(239, 68, 68, 0.2); color: var(--loss-red); border: 1px solid rgba(239, 68, 68, 0.4); }
-    .sport-tag {
-      font-size: 0.65rem;
-      color: var(--gold);
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .tv-tag {
-      font-size: 0.65rem;
-      color: var(--gold);
-      font-weight: bold;
-    }
+    .sport-filter-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; white-space: nowrap; }
+    .sport-tab { background: var(--card); border: 1px solid var(--border); color: var(--sub); font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+    .sport-tab.active, .sport-tab:hover { background: var(--maroon); color: #fff; border-color: #7d2033; }
+    .record-banner { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--gold); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .record-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .record-label { font-size: 0.65rem; color: var(--sub); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+    .record-value { font-size: 0.95rem; font-weight: 800; color: #fff; }
+    .schedule-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .game-left, .game-right { display: flex; flex-direction: column; gap: 2px; }
+    .game-right { text-align: right; align-items: flex-end; }
+    .game-date { font-size: 0.7rem; color: var(--sub); font-weight: 600; }
+    .opponent-name { font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .result-badge { font-weight: 800; font-size: 0.8rem; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+    .result-win { background: rgba(34, 197, 94, 0.2); color: var(--green); border: 1px solid rgba(34, 197, 94, 0.4); }
+    .result-loss { background: rgba(239, 68, 68, 0.2); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.4); }
+    .sport-tag, .tv-tag { font-size: 0.65rem; color: var(--gold); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
   </style>
 </head>
 <body>
-
   <header>
     <div class="header-left">
       <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
@@ -316,9 +78,7 @@
 
   <div id="schedule-container">Loading complete schedules...</div>
 
-  <!-- External fallback dataset -->
   <script src="data.js"></script>
-
   <script>
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
@@ -336,166 +96,81 @@
       updateToggleButtonState();
     }
 
-    const sportLabels = {
-      'football': 'Football',
-      'mens-basketball': 'Men\'s Basketball',
-      'womens-basketball': 'Women\'s Basketball',
-      'baseball': 'Baseball',
-      'softball': 'Softball'
-    };
+    const sportLabels = { 'football': 'Football', 'mens-basketball': "Men's Basketball", 'womens-basketball': "Women's Basketball", 'baseball': 'Baseball', 'softball': 'Softball' };
+    const espnEndpoints = ['football', 'mens-basketball', 'womens-basketball', 'baseball', 'softball'].map(key => ({
+      key, url: `https://site.api.espn.com/apis/site/v2/sports/${key.includes('basketball') ? 'basketball/' + (key.includes('womens') ? 'womens-college-basketball' : 'mens-college-basketball') : key === 'football' ? 'football/college-football' : 'baseball/college-' + key}/teams/344/schedule`
+    }));
 
-    const espnEndpoints = [
-      { key: 'football', url: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule' },
-      { key: 'mens-basketball', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule' },
-      { key: 'womens-basketball', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule' },
-      { key: 'baseball', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule' },
-      { key: 'softball', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-softball/teams/344/schedule' }
-    ];
+    let combinedDataset = [], currentFilter = 'all';
 
-    let combinedDataset = [];
-    let currentFilter = 'all';
-
-    function extractBroadcastNetwork(comp) {
-      if (!comp) return '';
-
-      if (comp.broadcasts && comp.broadcasts.length > 0) {
-        for (const b of comp.broadcasts) {
-          if (b.media && b.media.shortName) return b.media.shortName;
-          if (b.names && b.names[0]) return b.names[0];
-          if (b.station) return b.station;
-        }
-      }
-
-      if (comp.geoBroadcasts && comp.geoBroadcasts.length > 0) {
-        for (const gb of comp.geoBroadcasts) {
-          if (gb.media && gb.media.shortName) return gb.media.shortName;
-          if (gb.type && gb.type.shortName) return gb.type.shortName;
-        }
-      }
-
-      return '';
+    function getBroadcast(comp) {
+      return comp?.broadcasts?.[0]?.media?.shortName || comp?.broadcasts?.[0]?.names?.[0] || comp?.geoBroadcasts?.[0]?.media?.shortName || '';
     }
 
-    // Helper to safely parse string, number, or object scores (including 0)
     function parseScore(scoreObj) {
-      if (scoreObj === undefined || scoreObj === null) return null;
-      if (typeof scoreObj === 'number' || typeof scoreObj === 'string') return String(scoreObj);
-      if (scoreObj.value !== undefined) return String(scoreObj.value);
-      if (scoreObj.displayValue !== undefined) return String(scoreObj.displayValue);
-      return null;
+      if (scoreObj == null) return null;
+      if (typeof scoreObj !== 'object') return String(scoreObj);
+      return scoreObj.value !== undefined ? String(scoreObj.value) : scoreObj.displayValue !== undefined ? String(scoreObj.displayValue) : null;
     }
 
-    // Comprehensive SEC conference opponent check
-    function checkIsSecOpponent(oppComp, comp) {
-      if (comp.conferenceCompetition === true) return true;
-      if (comp.notes && comp.notes.some(n => n.headline && n.headline.toLowerCase().includes('sec'))) return true;
-      
-      const confId = String(oppComp.team?.conferenceId || oppComp.team?.conference?.id || '');
-      const confName = String(oppComp.team?.conference?.name || oppComp.team?.conference?.abbreviation || '').toLowerCase();
-      return confId === '8' || confName.includes('sec') || confName.includes('southeastern');
+    function isSec(oppComp, comp) {
+      if (comp.conferenceCompetition === true || (comp.notes && comp.notes.some(n => n.headline?.toLowerCase().includes('sec')))) return true;
+      const id = String(oppComp.team?.conferenceId || oppComp.team?.conference?.id || '');
+      const name = String(oppComp.team?.conference?.name || oppComp.team?.conference?.abbreviation || '').toLowerCase();
+      return id === '8' || name.includes('sec') || name.includes('southeastern');
     }
 
     async function loadMasterDataset() {
       combinedDataset = [];
-
-      const promises = espnEndpoints.map(async (sport) => {
+      await Promise.all(espnEndpoints.map(async sport => {
         try {
           const res = await fetch(sport.url);
           if (!res.ok) return;
           const data = await res.json();
+          data?.events?.forEach(event => {
+            const comp = event.competitions[0];
+            const msu = comp.competitors.find(c => String(c.id || c.team?.id) === '344');
+            const opp = comp.competitors.find(c => String(c.id || c.team?.id) !== '344');
+            if (!opp) return;
 
-          if (data && data.events) {
-            data.events.forEach(event => {
-              const comp = event.competitions[0];
-              const msuComp = comp.competitors.find(c => String(c.id) === '344' || String(c.team?.id) === '344');
-              const oppComp = comp.competitors.find(c => String(c.id) !== '344' && String(c.team?.id) !== '344');
-
-              if (!oppComp) return;
-
-              const gameIso = event.date.split('T')[0];
-              const broadcastNet = extractBroadcastNetwork(comp);
-
-              // Accurately detect SEC conference matchup
-              const isSecGame = checkIsSecOpponent(oppComp, comp);
-
-              let timeStr = 'TBD';
-              if (event.date) {
-                const dateObj = new Date(event.date);
-                if (!isNaN(dateObj) && event.timeValid !== false) {
-                  timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-                }
+            const dateObj = new Date(event.date);
+            const timeStr = (!isNaN(dateObj) && event.timeValid !== false) ? dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'TBD';
+            
+            let result = null;
+            const isCompleted = event.status?.type?.completed === true || event.status?.type?.state === 'post';
+            if (isCompleted && msu && opp) {
+              const mScore = parseScore(msu.score), oScore = parseScore(opp.score);
+              if (mScore !== null && oScore !== null) {
+                const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
+                result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
+              } else if (msu.winner !== undefined) {
+                result = msu.winner ? 'W' : 'L';
               }
-
-              let resultStr = null;
-              const gameState = event.status?.type?.state;
-              const isCompleted = event.status?.type?.completed === true || gameState === 'post';
-
-              if (isCompleted && msuComp && oppComp) {
-                const msuScoreStr = parseScore(msuComp.score);
-                const oppScoreStr = parseScore(oppComp.score);
-
-                if (msuScoreStr !== null && oppScoreStr !== null) {
-                  const msuScore = parseInt(msuScoreStr, 10);
-                  const oppScore = parseInt(oppScoreStr, 10);
-                  const isWin = msuComp.winner ?? (msuScore > oppScore);
-                  resultStr = `${isWin ? 'W' : 'L'} ${msuScore}-${oppScore}`;
-                } else if (msuComp.winner !== undefined) {
-                  resultStr = msuComp.winner ? 'W' : 'L';
-                }
-              } else if (gameState === 'in' && msuComp && oppComp) {
-                const msuScore = parseScore(msuComp.score) || "0";
-                const oppScore = parseScore(oppComp.score) || "0";
-                resultStr = `LIVE ${msuScore}-${oppScore}`;
-              }
-
-              combinedDataset.push({
-                sportKey: sport.key,
-                opponent: oppComp.team.displayName || oppComp.team.shortDisplayName || 'Opponent',
-                isoDate: gameIso,
-                timeStr: timeStr,
-                isHome: msuComp.homeAway === 'home',
-                isSec: isSecGame,
-                tv: broadcastNet,
-                result: resultStr,
-                source: 'espn'
-              });
-            });
-          }
-        } catch (err) {
-          console.log(`ESPN sync failed for ${sport.key}:`, err);
-        }
-      });
-
-      await Promise.all(promises);
-
-      // Merge local fallback data from data.js
-      if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
-        masterDataset.forEach(localGame => {
-          const matchedEspnGame = combinedDataset.find(
-            espnGame => espnGame.sportKey === localGame.sportKey && espnGame.isoDate === localGame.isoDate
-          );
-
-          if (matchedEspnGame) {
-            // Override missing results or false SEC flags
-            if ((!matchedEspnGame.result || matchedEspnGame.result.trim() === '') && localGame.result) {
-              matchedEspnGame.result = localGame.result;
+            } else if (event.status?.type?.state === 'in' && msu && opp) {
+              result = `LIVE ${parseScore(msu.score) || 0}-${parseScore(opp.score) || 0}`;
             }
-            if (localGame.isSec !== undefined) {
-              matchedEspnGame.isSec = localGame.isSec;
-            }
-            if (!matchedEspnGame.tv && localGame.tv) {
-              matchedEspnGame.tv = localGame.tv;
-            }
-          } else {
+
             combinedDataset.push({
-              isSec: false,
-              ...localGame,
-              source: 'js'
+              sportKey: sport.key, opponent: opp.team.displayName || opp.team.shortDisplayName || 'Opponent',
+              isoDate: event.date.split('T')[0], timeStr, isHome: msu.homeAway === 'home',
+              isSec: isSec(opp, comp), tv: getBroadcast(comp), result, source: 'espn'
             });
+          });
+        } catch (e) {}
+      }));
+
+      if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
+        masterDataset.forEach(local => {
+          const match = combinedDataset.find(e => e.sportKey === local.sportKey && e.isoDate === local.isoDate);
+          if (match) {
+            if (!match.result && local.result) match.result = local.result;
+            if (local.isSec !== undefined) match.isSec = local.isSec;
+            if (!match.tv && local.tv) match.tv = local.tv;
+          } else {
+            combinedDataset.push({ isSec: false, ...local, source: 'js' });
           }
         });
       }
-
       combinedDataset.sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
     }
 
@@ -503,105 +178,54 @@
       const container = document.getElementById("schedule-container");
       if (!container) return;
       container.innerHTML = "";
+      if (!combinedDataset.length) { container.innerHTML = "<p style='color:var(--sub);'>Unable to load schedule data.</p>"; return; }
 
-      if (!combinedDataset.length) {
-        container.innerHTML = "<p style='color:var(--subtext);'>Unable to load schedule data.</p>";
-        return;
-      }
+      const todayIso = new Date().toLocaleDateString('en-CA');
 
-      const now = new Date();
-      const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
-      // 1. Render Record Banner if viewing an individual sport tab
       if (currentFilter !== 'all') {
-        const sportGames = combinedDataset.filter(ev => ev.sportKey === currentFilter);
-        
-        let overallWins = 0, overallLosses = 0;
-        let secWins = 0, secLosses = 0;
-
-        sportGames.forEach(ev => {
-          if (ev.result && (ev.result.startsWith('W') || ev.result.startsWith('L'))) {
-            const isWin = ev.result.startsWith('W');
-            if (isWin) overallWins++; else overallLosses++;
-            if (ev.isSec) {
-              if (isWin) secWins++; else secLosses++;
-            }
+        const games = combinedDataset.filter(e => e.sportKey === currentFilter);
+        let wins = 0, losses = 0, secWins = 0, secLosses = 0;
+        games.forEach(e => {
+          if (e.result?.startsWith('W') || e.result?.startsWith('L')) {
+            const w = e.result.startsWith('W');
+            w ? wins++ : losses++;
+            if (e.isSec) w ? secWins++ : secLosses++;
           }
         });
-
-        const bannerHtml = `
-          <div class="record-banner">
-            <div class="record-item">
-              <span class="record-label">Overall Record</span>
-              <span class="record-value">${overallWins}-${overallLosses}</span>
-            </div>
-            <div class="record-item">
-              <span class="record-label">SEC Record</span>
-              <span class="record-value">${secWins}-${secLosses}</span>
-            </div>
-          </div>
-        `;
-        container.insertAdjacentHTML('beforeend', bannerHtml);
+        container.insertAdjacentHTML('beforeend', `<div class="record-banner"><div class="record-item"><span class="record-label">Overall Record</span><span class="record-value">${wins}-${losses}</span></div><div class="record-item"><span class="record-label">SEC Record</span><span class="record-value">${secWins}-${secLosses}</span></div></div>`);
       }
 
-      // 2. Filter games list
-      const filtered = combinedDataset.filter(ev => {
-        if (currentFilter === 'all') {
-          return ev.isoDate >= todayIso;
-        }
-        return ev.sportKey === currentFilter;
-      });
+      const filtered = combinedDataset.filter(e => currentFilter === 'all' ? e.isoDate >= todayIso : e.sportKey === currentFilter);
+      if (!filtered.length) { container.innerHTML = "<p style='color:var(--sub);'>No games found for this selection.</p>"; return; }
 
-      if (filtered.length === 0) {
-        const emptyMsg = document.createElement("p");
-        emptyMsg.style.color = "var(--subtext)";
-        emptyMsg.textContent = "No games found for this selection.";
-        container.appendChild(emptyMsg);
-        return;
-      }
-
-      filtered.forEach(ev => {
-        const gameDate = new Date(ev.isoDate + 'T00:00:00');
-        const dateFormatted = gameDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-
-        let resultBadgeHtml = '';
-        let tvInfo = '';
-
-        const isPastGame = ev.isoDate < todayIso || Boolean(ev.result);
-
-        if (isPastGame && ev.result) {
-          const isWin = ev.result.startsWith('W');
-          resultBadgeHtml = `<span class="result-badge ${isWin ? 'result-win' : 'result-loss'}">${ev.result}</span>`;
-        } else if (isPastGame) {
-          resultBadgeHtml = `<span class="game-date">${ev.timeStr}</span>`;
-        } else {
-          resultBadgeHtml = `<span class="game-date">${ev.timeStr}</span>`;
-          if (ev.tv) {
-            tvInfo = `<span class="tv-tag">📺 ${ev.tv}</span>`;
-          }
-        }
+      filtered.forEach(e => {
+        const dateStr = new Date(e.isoDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        const past = e.isoDate < todayIso || Boolean(e.result);
+        const badge = past && e.result ? `<span class="result-badge ${e.result.startsWith('W') ? 'result-win' : 'result-loss'}">${e.result}</span>` : `<span class="game-date">${e.timeStr}</span>`;
+        const tv = !past && e.tv ? `<span class="tv-tag">📺 ${e.tv}</span>` : '';
 
         const card = document.createElement("div");
         card.className = "schedule-card";
-        card.innerHTML = `
-          <div class="game-left">
-            <span class="sport-tag">${sportLabels[ev.sportKey] || 'Sports'}</span>
-            <span class="game-date">${dateFormatted}</span>
-            <div class="opponent-name">
-              <span style="color:var(--subtext); font-size:0.75rem;">${ev.isHome ? 'vs' : '@'}</span>
-              ${ev.opponent}
-            </div>
-          </div>
-          <div class="game-right">
-            ${resultBadgeHtml}
-            ${tvInfo}
-          </div>
-        `;
+        card.innerHTML = `<div class="game-left"><span class="sport-tag">${sportLabels[e.sportKey] || 'Sports'}</span><span class="game-date">${dateStr}</span><div class="opponent-name"><span style="color:var(--sub); font-size:0.75rem;">${e.isHome ? 'vs' : '@'}</span>${e.opponent}</div></div><div class="game-right">${badge}${tv}</div>`;
         container.appendChild(card);
       });
     }
 
-    function filterSport(sportKey, btnElement) {
+    function filterSport(sportKey, btn) {
       currentFilter = sportKey;
       document.querySelectorAll('.sport-tab').forEach(t => t.classList.remove('active'));
-      btnElement.
+      btn.classList.add('active');
+      renderSchedule();
+    }
+
+    window.onload = async () => {
+      updateToggleButtonState();
+      if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
+      try { await loadMasterDataset(); renderSchedule(); } catch (e) {
+        document.getElementById("schedule-container").innerHTML = "<p style='color:var(--sub);'>Error rendering schedule data.</p>";
+      }
+    };
+  </script>
+</body>
+</html>
+
