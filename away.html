@@ -197,23 +197,22 @@
       calculateDistances();
     });
 
-    // Comprehensive coordinate cache including normalized locations & alternate state abbreviations
     const CITY_GEO_CACHE = {
+      "gainesville, fl": { lat: 29.6499, lon: -82.3486 },
+      "nashville, tn": { lat: 36.1447, lon: -86.8089 },
+      "knoxville, tn": { lat: 35.9550, lon: -83.9250 },
       "minneapolis, mn": { lat: 44.9765, lon: -93.2248 },
       "columbia, sc": { lat: 33.9731, lon: -81.0192 },
       "baton rouge, la": { lat: 30.4120, lon: -91.1838 },
       "austin, tx": { lat: 30.2836, lon: -97.7325 },
       "tuscaloosa, al": { lat: 33.2082, lon: -87.5503 },
       "auburn, al": { lat: 32.6022, lon: -85.4892 },
-      "gainesville, fl": { lat: 29.6499, lon: -82.3486 },
       "athens, ga": { lat: 33.9498, lon: -83.3734 },
       "lexington, ky": { lat: 38.0337, lon: -84.5024 },
       "oxford, ms": { lat: 34.3639, lon: -89.5342 },
       "columbia, mo": { lat: 38.9358, lon: -92.3332 },
       "norman, ok": { lat: 35.2059, lon: -97.4425 },
-      "knoxville, tn": { lat: 35.9550, lon: -83.9250 },
       "college station, tx": { lat: 30.6102, lon: -96.3400 },
-      "nashville, tn": { lat: 36.1447, lon: -86.8089 },
       "fayetteville, ar": { lat: 36.0681, lon: -94.1752 },
       "martin, tn": { lat: 36.3434, lon: -88.8503 },
       "buffalo, ny": { lat: 42.8864, lon: -78.8784 },
@@ -224,20 +223,37 @@
       "white sulphur springs, wv": { lat: 37.7954, lon: -80.3031 },
       "orlando, fl": { lat: 28.5383, lon: -81.3792 },
       "jackson, ms": { lat: 32.2988, lon: -90.1848 },
-      "paradise island, the bahamas": { lat: 25.0854, lon: -77.3210 },
-      "paradise island, bahamas": { lat: 25.0854, lon: -77.3210 }
+      "paradise island, the bahamas": { lat: 25.0854, lon: -77.3210 }
     };
 
     const STATE_MAP = {
-      "fla": "fl", "fl": "fl",
-      "miss": "ms", "ms": "ms",
+      "fla": "fl", "fla.": "fl", "fl": "fl",
+      "tenn": "tn", "tenn.": "tn", "tn": "tn",
+      "miss": "ms", "miss.": "ms", "ms": "ms",
       "n.c.": "nc", "nc": "nc",
-      "w va": "wv", "wv": "wv",
       "s.c.": "sc", "sc": "sc",
-      "la": "la", "tx": "tx", "al": "al", "ga": "ga",
-      "ky": "ky", "mo": "mo", "ok": "ok", "tn": "tn",
-      "ar": "ar", "ny": "ny", "mn": "mn"
+      "w.va.": "wv", "w va": "wv", "wv": "wv",
+      "ala": "al", "ala.": "al", "al": "al",
+      "ga": "ga", "ga.": "ga",
+      "ky": "ky", "ky.": "ky",
+      "mo": "mo", "mo.": "mo",
+      "ok": "ok", "ok.": "ok",
+      "ar": "ar", "ar.": "ar", "ark": "ar", "ark.": "ar",
+      "ny": "ny", "ny.": "ny",
+      "mn": "mn", "mn.": "mn",
+      "la": "la", "la.": "la",
+      "tx": "tx", "tx.": "tx"
     };
+
+    function parseCityStateFromString(str) {
+      if (!str) return null;
+      // Match pattern like "(Gainesville, Fla.)" or "Gainesville, Fla."
+      const match = str.match(/(?:[\(\s])?([A-Za-z\s]+),\s*([A-Za-z\.\s]+)(?:\))?/);
+      if (match) {
+        return { city: match[1].trim(), state: match[2].trim() };
+      }
+      return null;
+    }
 
     async function geocodeCityState(city, stateRaw) {
       if (!city || !stateRaw) return null;
@@ -311,21 +327,20 @@
               let lat = venue?.geometry?.coordinates?.[1] || address?.latitude;
               let lon = venue?.geometry?.coordinates?.[0] || address?.longitude;
 
-              // Check cache or manual string inspection if address parts are missing
-              if ((!lat || !lon) && venue?.fullName) {
-                const fullText = `${venue.fullName}`.toLowerCase();
-                for (const [cacheKey, coords] of Object.entries(CITY_GEO_CACHE)) {
-                  const cityPart = cacheKey.split(',')[0].trim();
-                  if (fullText.includes(cityPart)) {
-                    lat = coords.lat;
-                    lon = coords.lon;
-                    break;
-                  }
+              // Extract location from address or venue full text string
+              let city = address?.city;
+              let state = address?.state;
+
+              if (!city || !state) {
+                const parsed = parseCityStateFromString(venue?.fullName) || parseCityStateFromString(address?.summary);
+                if (parsed) {
+                  city = parsed.city;
+                  state = parsed.state;
                 }
               }
 
-              if ((!lat || !lon) && address?.city && address?.state) {
-                const geo = await geocodeCityState(address.city, address.state);
+              if ((!lat || !lon) && city && state) {
+                const geo = await geocodeCityState(city, state);
                 if (geo) {
                   lat = geo.lat;
                   lon = geo.lon;
@@ -337,7 +352,7 @@
                 date: new Date(e.date),
                 opponent: opponent?.team?.displayName || opponent?.team?.name || "Opponent",
                 venueName: venue?.fullName || "Away Venue",
-                location: `${address?.city || ''}${address?.state ? ', ' + address.state : ''}`,
+                location: city ? `${city}${state ? ', ' + state : ''}` : (address?.summary || ""),
                 lat: lat ? parseFloat(lat) : null,
                 lon: lon ? parseFloat(lon) : null,
                 isNeutral: comp.neutralSite
@@ -355,14 +370,12 @@
             const exists = allAwayEvents.some(e => e.date.toISOString().split('T')[0] === localGame.isoDate && e.opponent.includes(localGame.opponent));
             if (!exists) {
               let lat = null, lon = null;
-              if (localGame.location) {
-                const parts = localGame.location.split(',');
-                if (parts.length >= 2) {
-                  const geo = await geocodeCityState(parts[0], parts[1]);
-                  if (geo) {
-                    lat = geo.lat;
-                    lon = geo.lon;
-                  }
+              const parsed = parseCityStateFromString(localGame.location) || parseCityStateFromString(localGame.venue);
+              if (parsed) {
+                const geo = await geocodeCityState(parsed.city, parsed.state);
+                if (geo) {
+                  lat = geo.lat;
+                  lon = geo.lon;
                 }
               }
 
