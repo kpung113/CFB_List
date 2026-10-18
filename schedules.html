@@ -376,12 +376,23 @@
       return '';
     }
 
+    // Helper to safely parse string, number, or object scores (including 0)
     function parseScore(scoreObj) {
       if (scoreObj === undefined || scoreObj === null) return null;
       if (typeof scoreObj === 'number' || typeof scoreObj === 'string') return String(scoreObj);
       if (scoreObj.value !== undefined) return String(scoreObj.value);
       if (scoreObj.displayValue !== undefined) return String(scoreObj.displayValue);
       return null;
+    }
+
+    // Comprehensive SEC conference opponent check
+    function checkIsSecOpponent(oppComp, comp) {
+      if (comp.conferenceCompetition === true) return true;
+      if (comp.notes && comp.notes.some(n => n.headline && n.headline.toLowerCase().includes('sec'))) return true;
+      
+      const confId = String(oppComp.team?.conferenceId || oppComp.team?.conference?.id || '');
+      const confName = String(oppComp.team?.conference?.name || oppComp.team?.conference?.abbreviation || '').toLowerCase();
+      return confId === '8' || confName.includes('sec') || confName.includes('southeastern');
     }
 
     async function loadMasterDataset() {
@@ -404,9 +415,8 @@
               const gameIso = event.date.split('T')[0];
               const broadcastNet = extractBroadcastNetwork(comp);
 
-              // Detect if game is an SEC conference matchup
-              const isSecGame = comp.conferenceCompetition === true || 
-                                (comp.notes && comp.notes.some(n => n.headline && n.headline.toLowerCase().includes('sec')));
+              // Accurately detect SEC conference matchup
+              const isSecGame = checkIsSecOpponent(oppComp, comp);
 
               let timeStr = 'TBD';
               if (event.date) {
@@ -458,6 +468,7 @@
 
       await Promise.all(promises);
 
+      // Merge local fallback data from data.js
       if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
         masterDataset.forEach(localGame => {
           const matchedEspnGame = combinedDataset.find(
@@ -465,14 +476,15 @@
           );
 
           if (matchedEspnGame) {
-            if (!matchedEspnGame.result && localGame.result && localGame.result.trim() !== '') {
+            // Override missing results or false SEC flags
+            if ((!matchedEspnGame.result || matchedEspnGame.result.trim() === '') && localGame.result) {
               matchedEspnGame.result = localGame.result;
-            }
-            if (!matchedEspnGame.tv && localGame.tv) {
-              matchedEspnGame.tv = localGame.tv;
             }
             if (localGame.isSec !== undefined) {
               matchedEspnGame.isSec = localGame.isSec;
+            }
+            if (!matchedEspnGame.tv && localGame.tv) {
+              matchedEspnGame.tv = localGame.tv;
             }
           } else {
             combinedDataset.push({
@@ -497,7 +509,6 @@
         return;
       }
 
-      // Localized YYYY-MM-DD string construction avoiding timezone shifts
       const now = new Date();
       const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
@@ -593,22 +604,4 @@
     function filterSport(sportKey, btnElement) {
       currentFilter = sportKey;
       document.querySelectorAll('.sport-tab').forEach(t => t.classList.remove('active'));
-      btnElement.classList.add('active');
-      renderSchedule();
-    }
-
-    window.onload = async function() {
-      updateToggleButtonState();
-      if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
-      try {
-        await loadMasterDataset();
-        renderSchedule();
-      } catch (err) {
-        const container = document.getElementById("schedule-container");
-        if (container) container.innerHTML = "<p style='color:var(--subtext);'>Error rendering schedule data.</p>";
-      }
-    };
-  </script>
-
-</body>
-</html>
+      btnElement.
