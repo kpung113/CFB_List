@@ -197,7 +197,7 @@
       calculateDistances();
     });
 
-    // In-memory cache for geocoded cities to avoid repetitive API calls
+    // Comprehensive coordinate cache including normalized locations & alternate state abbreviations
     const CITY_GEO_CACHE = {
       "minneapolis, mn": { lat: 44.9765, lon: -93.2248 },
       "columbia, sc": { lat: 33.9731, lon: -81.0192 },
@@ -219,16 +219,37 @@
       "buffalo, ny": { lat: 42.8864, lon: -78.8784 },
       "hattiesburg, ms": { lat: 31.3271, lon: -89.2903 },
       "fort myers, fl": { lat: 26.6406, lon: -81.8723 },
-      "davidson, nc": { lat: 35.4993, lon: -80.8487 }
+      "davidson, nc": { lat: 35.4993, lon: -80.8487 },
+      "greensboro, nc": { lat: 36.0726, lon: -79.7920 },
+      "white sulphur springs, wv": { lat: 37.7954, lon: -80.3031 },
+      "orlando, fl": { lat: 28.5383, lon: -81.3792 },
+      "jackson, ms": { lat: 32.2988, lon: -90.1848 },
+      "paradise island, the bahamas": { lat: 25.0854, lon: -77.3210 },
+      "paradise island, bahamas": { lat: 25.0854, lon: -77.3210 }
     };
 
-    async function geocodeCityState(city, state) {
-      if (!city || !state) return null;
-      const key = `${city.trim()}, ${state.trim()}`.toLowerCase();
+    const STATE_MAP = {
+      "fla": "fl", "fl": "fl",
+      "miss": "ms", "ms": "ms",
+      "n.c.": "nc", "nc": "nc",
+      "w va": "wv", "wv": "wv",
+      "s.c.": "sc", "sc": "sc",
+      "la": "la", "tx": "tx", "al": "al", "ga": "ga",
+      "ky": "ky", "mo": "mo", "ok": "ok", "tn": "tn",
+      "ar": "ar", "ny": "ny", "mn": "mn"
+    };
+
+    async function geocodeCityState(city, stateRaw) {
+      if (!city || !stateRaw) return null;
+      const cleanState = stateRaw.toLowerCase().replace(/\./g, '').trim();
+      const mappedState = STATE_MAP[cleanState] || cleanState;
+      const cleanCity = city.toLowerCase().trim();
+      
+      const key = `${cleanCity}, ${mappedState}`;
       if (CITY_GEO_CACHE[key]) return CITY_GEO_CACHE[key];
 
       try {
-        const res = await fetch(`https://api.zippopotam.us/us/${state.trim().toLowerCase()}/${encodeURIComponent(city.trim().toLowerCase())}`);
+        const res = await fetch(`https://api.zippopotam.us/us/${mappedState}/${encodeURIComponent(cleanCity)}`);
         if (res.ok) {
           const data = await res.json();
           if (data.places && data.places[0]) {
@@ -289,6 +310,19 @@
             if (isAway) {
               let lat = venue?.geometry?.coordinates?.[1] || address?.latitude;
               let lon = venue?.geometry?.coordinates?.[0] || address?.longitude;
+
+              // Check cache or manual string inspection if address parts are missing
+              if ((!lat || !lon) && venue?.fullName) {
+                const fullText = `${venue.fullName}`.toLowerCase();
+                for (const [cacheKey, coords] of Object.entries(CITY_GEO_CACHE)) {
+                  const cityPart = cacheKey.split(',')[0].trim();
+                  if (fullText.includes(cityPart)) {
+                    lat = coords.lat;
+                    lon = coords.lon;
+                    break;
+                  }
+                }
+              }
 
               if ((!lat || !lon) && address?.city && address?.state) {
                 const geo = await geocodeCityState(address.city, address.state);
