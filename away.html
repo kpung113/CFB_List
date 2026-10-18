@@ -198,11 +198,14 @@
     });
 
     const CITY_GEO_CACHE = {
+      "jackson, tn": { lat: 35.6145, lon: -88.8139 },
+      "arlington, tx": { lat: 32.7357, lon: -97.1081 },
+      "hoover, al": { lat: 33.4054, lon: -86.8114 },
+      "madison, al": { lat: 34.6993, lon: -86.7483 },
       "milwaukee, wi": { lat: 43.0389, lon: -87.9065 },
       "norman, ok": { lat: 35.2059, lon: -97.4425 },
       "choctaw, ms": { lat: 32.7765, lon: -89.2494 },
       "biloxi, ms": { lat: 30.3960, lon: -88.8853 },
-      "arlington, tx": { lat: 32.7357, lon: -97.1081 },
       "los angeles, ca": { lat: 34.0522, lon: -118.2437 },
       "gainesville, fl": { lat: 29.6499, lon: -82.3486 },
       "nashville, tn": { lat: 36.1447, lon: -86.8089 },
@@ -228,7 +231,8 @@
       "white sulphur springs, wv": { lat: 37.7954, lon: -80.3031 },
       "orlando, fl": { lat: 28.5383, lon: -81.3792 },
       "jackson, ms": { lat: 32.2988, lon: -90.1848 },
-      "paradise island, the bahamas": { lat: 25.0854, lon: -77.3210 }
+      "paradise island, the bahamas": { lat: 25.0854, lon: -77.3210 },
+      "paradise island, bahamas": { lat: 25.0854, lon: -77.3210 }
     };
 
     const STATE_MAP = {
@@ -238,10 +242,10 @@
       "texas": "tx", "tx": "tx", "tx.": "tx",
       "fla": "fl", "fla.": "fl", "fl": "fl",
       "tenn": "tn", "tenn.": "tn", "tn": "tn",
+      "ala": "al", "ala.": "al", "al": "al",
       "n.c.": "nc", "nc": "nc",
       "s.c.": "sc", "sc": "sc",
       "w.va.": "wv", "w va": "wv", "wv": "wv",
-      "ala": "al", "ala.": "al", "al": "al",
       "ga": "ga", "ga.": "ga",
       "ky": "ky", "ky.": "ky",
       "mo": "mo", "mo.": "mo",
@@ -252,17 +256,23 @@
       "ca": "ca", "ca.": "ca"
     };
 
-    function parseCityStateFromString(str) {
-      if (!str) return null;
+    function parseCityStateFromString(rawStr) {
+      if (!rawStr) return null;
+
+      // First clean out nested stadium parenthesis, e.g. "(Rockabillys Stadium)" or "(Globe Life Field)"
+      let str = rawStr.replace(/\([^\(\)]*stadium[^\(\)]*\)/gi, '');
+      str = str.replace(/\([^\(\)]*field[^\(\)]*\)/gi, '');
+      str = str.replace(/\([^\(\)]*arena[^\(\)]*\)/gi, '');
+      str = str.replace(/\([^\(\)]*center[^\(\)]*\)/gi, '');
       
-      // Handle cases like "Biloxi (Keesler Federal Park)" where state is missing
       const lower = str.toLowerCase();
+      if (lower.includes("paradise island")) return { city: "Paradise Island", state: "Bahamas" };
       if (lower.includes("biloxi")) return { city: "Biloxi", state: "MS" };
 
-      // Match pattern like "Arlington, Texas (Globe Life Field)" or "(Milwaukee, Wis.)"
-      const match = str.match(/(?:[\(\s])?([A-Za-z\s]+),\s*([A-Za-z\.\s]+?)(?:\s*\(\vert{}\)|$)/);
+      // Match city & state
+      const match = str.match(/([A-Za-z\s]+),\s*([A-Za-z\.\s]+)/);
       if (match) {
-        return { city: match[1].trim(), state: match[2].trim() };
+        return { city: match[1].replace(/[\(\)]/g, '').trim(), state: match[2].replace(/[\(\)]/g, '').trim() };
       }
       return null;
     }
@@ -466,19 +476,4 @@
               <span class="distance-badge">${game.distance !== 9999 ? `📍 ~${game.distance} miles away` : 'Location Pending'}</span>
             </div>
             <div class="team-row">
-              <span>${game.isNeutral ? 'vs.' : 'at'} ${game.opponent}</span>
-            </div>
-            <div class="game-meta">
-              <span><strong>Venue:</strong> ${game.venueName} ${game.location ? `(${game.location})` : ''}</span>
-            </div>
-          `;
-          container.appendChild(card);
-        });
-
-      } catch (err) {
-        statusEl.innerText = "Error fetching schedules or zip code location. Please check your connection.";
-      }
-    }
-  </script>
-</body>
-</html>
+        
