@@ -388,8 +388,8 @@
           if (data && data.events) {
             data.events.forEach(event => {
               const comp = event.competitions[0];
-              const msuComp = comp.competitors.find(c => c.id === '344');
-              const oppComp = comp.competitors.find(c => c.id !== '344');
+              const msuComp = comp.competitors.find(c => String(c.id) === '344' || String(c.team?.id) === '344');
+              const oppComp = comp.competitors.find(c => String(c.id) !== '344' && String(c.team?.id) !== '344');
 
               if (!oppComp) return;
 
@@ -410,8 +410,9 @@
 
               let resultStr = null;
               const gameState = event.status?.type?.state;
+              const isCompleted = event.status?.type?.completed === true || gameState === 'post';
 
-              if (gameState === 'post' && msuComp && oppComp) {
+              if (isCompleted && msuComp && oppComp) {
                 const msuScore = parseInt(msuComp.score?.value || msuComp.score || "0");
                 const oppScore = parseInt(oppComp.score?.value || oppComp.score || "0");
                 const isWin = msuComp.winner ?? (msuScore > oppScore);
@@ -481,7 +482,9 @@
         return;
       }
 
-      const todayIso = new Date().toLocaleDateString('en-CA');
+      // Localized YYYY-MM-DD string construction avoiding timezone shifts
+      const now = new Date();
+      const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
       // 1. Render Record Banner if viewing an individual sport tab
       if (currentFilter !== 'all') {
