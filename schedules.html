@@ -96,14 +96,10 @@
 
     const sportLabels = { 'football': 'Football', 'mens-basketball': "Men's Basketball", 'womens-basketball': "Women's Basketball", 'baseball': 'Baseball', 'softball': 'Softball' };
     
-    // Using scoreboard endpoints with limit=300 to pull all games safely for Mississippi State (Team ID 344)
-    const espnEndpoints = [
-      { key: 'football', url: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?limit=300&groups=80' },
-      { key: 'mens-basketball', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?limit=400&groups=50' },
-      { key: 'womens-basketball', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/scoreboard?limit=400&groups=50' },
-      { key: 'baseball', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/scoreboard?limit=400' },
-      { key: 'softball', url: 'https://site.api.espn.com/apis/site/v2/sports/softball/college-softball/scoreboard?limit=400' }
-    ];
+    // Using schedule endpoints with season=2026&seasontype=2 to fetch full season history and scores dynamically
+    const espnEndpoints = ['football', 'mens-basketball', 'womens-basketball', 'baseball', 'softball'].map(key => ({
+      key, url: `https://site.api.espn.com/apis/site/v2/sports/${key.includes('basketball') ? 'basketball/' + (key.includes('womens') ? 'womens-college-basketball' : 'mens-college-basketball') : key === 'football' ? 'football/college-football' : 'baseball/college-' + key}/teams/344/schedule?season=2026&seasontype=2`
+    }));
 
     let combinedDataset = [], currentFilter = 'all';
 
@@ -131,16 +127,17 @@
           const res = await fetch(sport.url);
           if (!res.ok) return;
           const data = await res.json();
-          data?.events?.forEach(event => {
+          const eventsList = data?.events || data?.team?.schedule;
+          eventsList?.forEach(event => {
             const comp = event.competitions?.[0];
             if (!comp || !comp.competitors) return;
 
-            // Filter strictly for games involving Mississippi State (ID 344)
             const msu = comp.competitors.find(c => String(c.id || c.team?.id) === '344');
             const opp = comp.competitors.find(c => String(c.id || c.team?.id) !== '344');
             if (!msu || !opp) return;
 
             const dateObj = new Date(event.date);
+            const isoDate = event.date.split('T')[0];
             const timeStr = (!isNaN(dateObj) && event.timeValid !== false) ? dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'TBD';
             
             let result = null;
@@ -160,7 +157,7 @@
             combinedDataset.push({
               sportKey: sport.key, 
               opponent: opp.team.displayName || opp.team.shortDisplayName || 'Opponent',
-              isoDate: event.date.split('T')[0], 
+              isoDate, 
               timeStr, 
               isHome: msu.homeAway === 'home',
               isSec: isSec(opp, comp), 
@@ -172,22 +169,19 @@
         } catch (e) {}
       }));
 
-      // INTELLIGENT MERGE: ESPN scoreboard API takes absolute priority. 
-      // data.js only fills in missing metadata (like future exhibition games or schedule slots not yet in scoreboard feeds).
+      // INTELLIGENT FALLBACK MERGE: If a game from data.js isn't in ESPN yet (e.g. 2027 Softball), keep it as a fallback.
       if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
         masterDataset.forEach(local => {
           const match = combinedDataset.find(e => e.sportKey === local.sportKey && e.isoDate === local.isoDate);
           if (match) {
             if (!match.result && local.result) match.result = local.result;
-            if (local.isSec !== undefined) match.isSec = local.isSec;
             if (!match.tv && local.tv) match.tv = local.tv;
-            if (local.location) match.location = local.location;
-            if (local.tournament) match.tournament = local.tournament;
           } else {
             combinedDataset.push({ isSec: false, result: '', ...local, source: 'js' });
           }
         });
       }
+
       combinedDataset.sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
     }
 
