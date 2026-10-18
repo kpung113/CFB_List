@@ -1,21 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-8695308WQ8');
-</script>
-
-  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Starkville Visit Planner (2026-2027)</title>
+
+  <!-- Shared Navigation Script -->
+  <script src="nav.js"></script>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-8695308WQ8');
+
+    if (localStorage.getItem('dyslexiaMode') === 'enabled') {
+      document.documentElement.classList.add('dyslexia-font');
+    }
+  </script>
+
   <style>
     :root {
       --bg: #0b0c10;
@@ -24,62 +30,74 @@
       --text: #f8fafc;
       --accent-maroon: #5d1725;
       --subtext: #94a3b8;
-      --gold: #fbbf24;
+      --gold: #84cc16;
       --green: #22c55e;
     }
+    * { box-sizing: border-box; }
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background-color: var(--bg);
       color: var(--text);
       margin: 0;
-      padding: 12px;
+      padding: 16px;
+    }
+    body.dyslexia-font, body.dyslexia-font * {
+      font-family: "Comic Sans MS", "Verdana", sans-serif !important;
+      letter-spacing: 0.05em !important;
+      word-spacing: 0.1em !important;
+    }
+    .dyslexia-toggle {
+      background: #181920;
+      border: 1px solid var(--card-border);
+      color: #38bdf8;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
     }
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
       border-bottom: 2px solid var(--accent-maroon);
     }
-    .header-title {
+    .header-left, .header-right, .header-title {
       display: flex;
       align-items: center;
       gap: 8px;
     }
+    .header-left { gap: 12px; }
+    .menu-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 22px;
+      height: 18px;
+      padding: 0;
+      z-index: 101;
+    }
+    .menu-btn span {
+      display: block;
+      width: 100%;
+      height: 2px;
+      background-color: #38bdf8;
+      border-radius: 2px;
+    }
     .msu-logo {
-      height: 32px;
+      height: 38px;
       width: auto;
       object-fit: contain;
-      filter: 
-        drop-shadow( 2px  0px 0px #ffffff)
-        drop-shadow(-2px  0px 0px #ffffff)
-        drop-shadow( 0px  2px 0px #ffffff)
-        drop-shadow( 0px -2px 0px #ffffff);
+      filter: drop-shadow(0 0 2px #fff);
     }
-    h1 { margin: 0; font-size: 1rem; font-weight: 800; letter-spacing: -0.5px; }
-    .nav-tabs {
-      display: flex;
-      gap: 6px;
-    }
-    .nav-tabs a {
-      color: var(--subtext);
-      text-decoration: none;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 4px 8px;
-      background: #181920;
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      transition: all 0.2s;
-    }
-    .nav-tabs a.active, .nav-tabs a:hover {
-      color: #fff;
-      background: var(--accent-maroon);
-      border-color: #7d2033;
-    }
+    h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
 
     /* Filter Controls */
     .filter-panel {
@@ -181,13 +199,13 @@
       gap: 4px;
     }
     .badge {
-      background: rgba(251, 191, 36, 0.15);
+      background: rgba(132, 204, 22, 0.15);
       color: var(--gold);
       font-size: 0.7rem;
       font-weight: bold;
       padding: 2px 6px;
       border-radius: 4px;
-      border: 1px solid rgba(251, 191, 36, 0.3);
+      border: 1px solid rgba(132, 204, 22, 0.3);
     }
     .badge-multi {
       background: rgba(34, 197, 94, 0.15);
@@ -210,17 +228,16 @@
 <body>
 
   <header>
-    <div class="header-title">
-      <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" 
-           alt="MSU Logo" 
-           class="msu-logo">
-      <h1>Starkville Trip Planner</h1>
+    <div class="header-left">
+      <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
+      <div class="header-title">
+        <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" alt="MSU Logo" class="msu-logo">
+        <h1>Starkville Trip Planner</h1>
+      </div>
     </div>
-    <nav class="nav-tabs">
-      <a href="index.html">Scores</a>
-      <a href="schedules.html">MSU Schedule</a>
-      <a href="visit.html" class="active">MSU Trip</a>
-    </nav>
+    <div class="header-right">
+      <button id="fontToggleBtn" class="dyslexia-toggle" onclick="toggleDyslexiaFont()">Kate Button: OFF</button>
+    </div>
   </header>
 
   <div class="filter-panel">
@@ -252,6 +269,22 @@
   <script src="data.js"></script>
 
   <script>
+    function updateToggleButtonState() {
+      const btn = document.getElementById('fontToggleBtn');
+      if (!btn) return;
+      const active = localStorage.getItem('dyslexiaMode') === 'enabled';
+      btn.innerText = active ? 'Kate Button: ON' : 'Kate Button: OFF';
+      btn.style.borderColor = active ? '#38bdf8' : '#334155';
+    }
+
+    function toggleDyslexiaFont() {
+      const active = localStorage.getItem('dyslexiaMode') === 'enabled';
+      localStorage.setItem('dyslexiaMode', active ? 'disabled' : 'enabled');
+      document.body.classList.toggle('dyslexia-font', !active);
+      document.documentElement.classList.toggle('dyslexia-font', !active);
+      updateToggleButtonState();
+    }
+
     const sportLabels = {
       'football': '🏈 Football',
       'mens-basketball': '🏀 Men\'s Basketball',
@@ -390,8 +423,9 @@
       });
     }
 
-    // Run safely when window loads
     window.onload = function() {
+      updateToggleButtonState();
+      if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
       try {
         calculateHomestands();
       } catch (err) {
