@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bully's CFB Board - Closest Away Games</title>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date()); gtag('config', 'G-8695308WQ8');
+    if (localStorage.getItem('dyslexiaMode') === 'enabled') document.documentElement.classList.add('dyslexia-font');
+  </script>
+  <style>
+    :root { --bg:#0b0c10; --card-bg:#181920; --card-border:#272935; --text:#f8fafc; --accent-maroon:#5d1725; --accent-red:#ef4444; --subtext:#94a3b8; --gold:#84cc16; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 16px; }
+    body.dyslexia-font, body.dyslexia-font * { font-family: "Comic Sans MS", "Verdana", sans-serif !important; letter-spacing: 0.05em !important; word-spacing: 0.1em !important; }
+    .dyslexia-toggle { background: #181920; border: 1px solid var(--card-border); color: #38bdf8; font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
+    header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--accent-maroon); }
+    .header-left, .header-right, .header-title, .card-header-right { display: flex; align-items: center; gap: 8px; }
+    .header-left { gap: 12px; }
+    .menu-btn { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; width: 22px; height: 18px; padding: 0; z-index: 101; }
+    .menu-btn span { display: block; width: 100%; height: 2px; background-color: #38bdf8; border-radius: 2px; }
+    .nav-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99; opacity:0; visibility:hidden; pointer-events:none; transition:0.2s; }
+    .nav-overlay.open { opacity:1; visibility:visible; pointer-events:auto; }
+    .nav-drawer { position: fixed; top:0; left:-260px; width:260px; height:100vh; background:#181920; border-right:1px solid var(--card-border); z-index:100; display:flex; flex-direction:column; transition:0.3s; box-shadow:4px 0 15px rgba(0,0,0,0.5); }
+    .nav-drawer.open { left:0; }
+    .drawer-header { padding: 14px 16px; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; color: #38bdf8; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; }
+    .drawer-close { background: none; border: none; color: var(--subtext); font-size: 1.3rem; cursor: pointer; }
+    .drawer-links { list-style: none; padding: 8px 0; margin: 0; display: flex; flex-direction: column; }
+    .drawer-links a { padding: 12px 18px; color: var(--text); text-decoration: none; font-size: 0.85rem; font-weight: 700; display: block; border-left: 3px solid transparent; }
+    .drawer-links a:hover, .drawer-links a.active { background-color: #222530; border-left-color: #38bdf8; color: #38bdf8; }
+    .msu-logo { height: 38px; width: auto; object-fit: contain; filter: drop-shadow(0 0 2px #fff); }
+    h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
+    
+    /* Zip Code Input Bar */
+    .zip-control-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .zip-input {
+      background: #0b0c10;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 6px;
+      width: 110px;
+      font-weight: bold;
+      font-size: 1rem;
+      text-align: center;
+    }
+    .calc-btn {
+      background: var(--accent-maroon);
+      color: #fff;
+      border: 1px solid #7d2033;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+    }
+    .calc-btn:hover { background: #7d2033; }
+    .zip-status { font-size: 0.8rem; color: var(--subtext); width: 100%; }
+
+    .game-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 5px solid var(--accent-maroon); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--subtext); margin-bottom: 8px; }
+    .team-row { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; font-size: 1.1rem; font-weight: 600; }
+    .distance-badge { font-size: 0.8rem; background: rgba(132, 204, 22, 0.15); color: #84cc16; border: 1px solid rgba(132, 204, 22, 0.3); padding: 3px 8px; border-radius: 6px; font-weight: bold; }
+    .game-meta { font-size: 0.75rem; color: var(--subtext); margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--card-border); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+  </style>
+</head>
+<body>
+
+  <div class="nav-overlay" id="navOverlay" onclick="toggleMenu()"></div>
+  <nav class="nav-drawer" id="navDrawer">
+    <div class="drawer-header"><span>Navigation</span><button class="drawer-close" onclick="toggleMenu()">&times;</button></div>
+    <ul class="drawer-links">
+      <li><a href="index.html">Scores Board</a></li>
+      <li><a href="grid.html">Saturday Game Grid</a></li>
+      <li><a href="schedules.html">MSU Schedule</a></li>
+      <li><a href="away.html" class="active">Closest Away Games</a></li>
+      <li><a href="visit.html">MSU Trip</a></li>
+    </ul>
+  </nav>
+
+  <header>
+    <div class="header-left">
+      <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
+      <div class="header-title">
+        <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" alt="MSU Logo" class="msu-logo">
+        <h1>Bully's CFB Board</h1>
+      </div>
+    </div>
+    <div class="header-right">
+      <button id="fontToggleBtn" class="dyslexia-toggle" onclick="toggleDyslexiaFont()">Kate Button: OFF</button>
+    </div>
+  </header>
+
+  <!-- Zip Code Search Input -->
+  <div class="zip-control-card">
+    <label style="font-weight:700; font-size:0.85rem;">Enter Your Zip Code:</label>
+    <input type="text" id="zipInput" value="33813" maxlength="5" class="zip-input" />
+    <button onclick="calculateDistances()" class="calc-btn">Sort Away Games</button>
+    <div id="zipStatus" class="zip-status">Ready. Showing distances from 33813 (Lakeland, FL).</div>
+  </div>
+  
+  <div id="away-games-container"></div>
+
+  <script>
+    function toggleMenu() {
+      document.getElementById('navDrawer').classList.toggle('open');
+      document.getElementById('navOverlay').classList.toggle('open');
+    }
+
+    function updateToggleButtonState() {
+      const btn = document.getElementById('fontToggleBtn');
+      if (!btn) return;
+      const active = localStorage.getItem('dyslexiaMode') === 'enabled';
+      btn.innerText = active ? 'Kate Button: ON' : 'Kate Button: OFF';
+      btn.style.borderColor = active ? '#38bdf8' : '#334155';
+    }
+
+    function toggleDyslexiaFont() {
+      const active = localStorage.getItem('dyslexiaMode') === 'enabled';
+      localStorage.setItem('dyslexiaMode', active ? 'disabled' : 'enabled');
+      document.body.classList.toggle('dyslexia-font', !active);
+      document.documentElement.classList.toggle('dyslexia-font', !active);
+      updateToggleButtonState();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateToggleButtonState();
+      if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
+      calculateDistances(); // Run default for 33813 on load
+    });
+
+    // Sample database of Mississippi State away games (Baseball, Football, etc.) with venue coordinates
+    const awayGamesDatabase = [
+      {
+        sport: "Baseball",
+        opponent: "at Florida",
+        date: "April 9-11",
+        venue: "Condron Ballpark — Gainesville, Fla.",
+        lat: 29.6516,
+        lon: -82.3248
+      },
+      {
+        sport: "Baseball",
+        opponent: "at Georgia",
+        date: "March 25-27",
+        venue: "Foley Field — Athens, Ga.",
+        lat: 33.9519,
+        lon: -83.3576
+      },
+      {
+        sport: "Baseball",
+        opponent: "at Vanderbilt",
+        date: "April 23-25",
+        venue: "Hawkins Field — Nashville, Tenn.",
+        lat: 36.1627,
+        lon: -86.7816
+      },
+      {
+        sport: "Baseball",
+        opponent: "at Tennessee",
+        date: "May 7-9",
+        venue: "Lindsey Nelson Stadium — Knoxville, Tenn.",
+        lat: 35.9606,
+        lon: -83.9207
+      },
+      {
+        sport: "Baseball",
+        opponent: "at LSU",
+        date: "May 14-16",
+        venue: "Alex Box Stadium — Baton Rouge, La.",
+        lat: 30.4515,
+        lon: -91.1871
+      },
+      {
+        sport: "Baseball",
+        opponent: "vs. Dallas Baptist / UCLA / Wake Forest",
+        date: "Early March",
+        venue: "Globe Life Field — Arlington, Tex.",
+        lat: 32.7357,
+        lon: -97.1081
+      },
+      {
+        sport: "Football",
+        opponent: "at Ole Miss (Egg Bowl)",
+        date: "Late November",
+        venue: "Vaught-Hemingway Stadium — Oxford, Miss.",
+        lat: 34.3665,
+        lon: -89.5192
+      },
+      {
+        sport: "Football",
+        opponent: "at Georgia",
+        date: "Fall 2027",
+        venue: "Sanford Stadium — Athens, Ga.",
+        lat: 33.9519,
+        lon: -83.3576
+      },
+      {
+        sport: "Football",
+        opponent: "at Texas A&M",
+        date: "Fall 2027",
+        venue: "Kyle Field — College Station, Tex.",
+        lat: 30.3322,
+        lon: -96.3365
+      },
+      {
+        sport: "Football",
+        opponent: "at Auburn",
+        date: "Fall 2027",
+        venue: "Jordan-Hare Stadium — Auburn, Ala.",
+        lat: 32.6098,
+        lon: -85.4807
+      },
+      {
+        sport: "Football",
+        opponent: "at Arkansas",
+        date: "Fall 2027",
+        venue: "Donald W. Reynolds Razorback Stadium — Fayetteville, Ark.",
+        lat: 36.0626,
+        lon: -94.1574
+      }
+    ];
+
+    // Haversine formula to calculate distance in miles
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 3958.8; // Radius of Earth in miles
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return Math.round(R * c);
+    }
+
+    async function calculateDistances() {
+      const zip = document.getElementById('zipInput').value.trim();
+      const statusEl = document.getElementById('zipStatus');
+      const container = document.getElementById('away-games-container');
+
+      if (!/^\d{5}$/.test(zip)) {
+        statusEl.innerText = "Please enter a valid 5-digit US zip code.";
+        return;
+      }
+
+      statusEl.innerText = `Looking up coordinates for zip code ${zip}...`;
+
+      try {
+        const response = await fetch(`https://api.zippopotam.us/us/${zip}`);
+        if (!response.ok) throw new Error("Zip code not found");
+        const data = await response.json();
+        
+        const userLat = parseFloat(data.places[0].latitude);
+        const userLon = parseFloat(data.places[0].longitude);
+        const placeName = `${data.places[0]['place name']}, ${data.places[0]['state abbreviation']}`;
+
+        statusEl.innerText = `Showing away games sorted by distance from ${placeName} (${zip}) [Lat: ${userLat}, Lon: ${userLon}]`;
+
+        // Calculate distances for each game
+        const gamesWithDistance = awayGamesDatabase.map(game => {
+          const dist = calculateDistance(userLat, userLon, game.lat, game.lon);
+          return { ...game, distance: dist };
+        });
+
+        // Sort ascending by distance
+        gamesWithDistance.sort((a, b) => a.distance - b.distance);
+
+        // Render cards
+        container.innerHTML = "";
+        gamesWithDistance.forEach(game => {
+          const card = document.createElement('div');
+          card.className = "game-card";
+          card.innerHTML = `
+            <div class="card-header">
+              <span><strong>${game.sport}</strong> • ${game.date}</span>
+              <span class="distance-badge">📍 ~${game.distance} miles away</span>
+            </div>
+            <div class="team-row">
+              <span>Mississippi State ${game.opponent}</span>
+            </div>
+            <div class="game-meta">
+              <span><strong>Location:</strong> ${game.venue}</span>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+      } catch (err) {
+        statusEl.innerText = "Could not resolve zip code. Please try another valid US zip code.";
+      }
+    }
+  </script>
+</body>
+</html>
