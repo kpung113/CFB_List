@@ -23,15 +23,6 @@
     .header-left { gap: 12px; }
     .menu-btn { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; width: 22px; height: 18px; padding: 0; z-index: 101; }
     .menu-btn span { display: block; width: 100%; height: 2px; background-color: #38bdf8; border-radius: 2px; }
-    .nav-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99; opacity:0; visibility:hidden; pointer-events:none; transition:0.2s; }
-    .nav-overlay.open { opacity:1; visibility:visible; pointer-events:auto; }
-    .nav-drawer { position: fixed; top:0; left:-260px; width:260px; height:100vh; background:#181920; border-right:1px solid var(--card-border); z-index:100; display:flex; flex-direction:column; transition:0.3s; box-shadow:4px 0 15px rgba(0,0,0,0.5); }
-    .nav-drawer.open { left:0; }
-    .drawer-header { padding: 14px 16px; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; color: #38bdf8; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; }
-    .drawer-close { background: none; border: none; color: var(--subtext); font-size: 1.3rem; cursor: pointer; }
-    .drawer-links { list-style: none; padding: 8px 0; margin: 0; display: flex; flex-direction: column; }
-    .drawer-links a { padding: 12px 18px; color: var(--text); text-decoration: none; font-size: 0.85rem; font-weight: 700; display: block; border-left: 3px solid transparent; }
-    .drawer-links a:hover, .drawer-links a.active { background-color: #222530; border-left-color: #38bdf8; color: #38bdf8; }
     .msu-logo { height: 38px; width: auto; object-fit: contain; filter: drop-shadow(0 0 2px #fff); }
     h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
     
@@ -104,6 +95,9 @@
   
   <div id="away-games-container"></div>
 
+  <!-- Include fallback dataset -->
+  <script src="data.js"></script>
+
   <script>
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
@@ -127,12 +121,32 @@
       calculateDistances();
     });
 
+    // Known Coordinates for standard venue locations
+    const VENUE_COORDS = {
+      "minneapolis, mn": { lat: 44.9765, lon: -93.2248 },
+      "columbia, sc": { lat: 33.9731, lon: -81.0192 },
+      "baton rouge, la": { lat: 30.4120, lon: -91.1838 },
+      "austin, tx": { lat: 30.2836, lon: -97.7325 },
+      "tuscaloosa, al": { lat: 33.2082, lon: -87.5503 },
+      "auburn, al": { lat: 32.6022, lon: -85.4892 },
+      "gainesville, fl": { lat: 29.6499, lon: -82.3486 },
+      "athens, ga": { lat: 33.9498, lon: -83.3734 },
+      "lexington, ky": { lat: 38.0337, lon: -84.5024 },
+      "oxford, ms": { lat: 34.3639, lon: -89.5342 },
+      "columbia, mo": { lat: 38.9358, lon: -92.3332 },
+      "norman, ok": { lat: 35.2059, lon: -97.4425 },
+      "knoxville, tn": { lat: 35.9550, lon: -83.9250 },
+      "college station, tx": { lat: 30.6102, lon: -96.3400 },
+      "nashville, tn": { lat: 36.1447, lon: -86.8089 },
+      "fayetteville, ar": { lat: 36.0681, lon: -94.1752 }
+    };
+
     const SPORTS_ENDPOINTS = [
-      { name: "Football", url: "https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule" },
-      { name: "Baseball", url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule" },
-      { name: "Men's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule" },
-      { name: "Women's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule" },
-      { name: "Softball", url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-softball/teams/344/schedule" }
+      { name: "Football", url: "https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?limit=50" },
+      { name: "Baseball", url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?limit=100" },
+      { name: "Men's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?limit=50" },
+      { name: "Women's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?limit=50" },
+      { name: "Softball", url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-softball/teams/344/schedule?limit=100" }
     ];
 
     function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -163,21 +177,26 @@
             const msu = comp.competitors?.find(c => String(c.id) === "344" || String(c.team?.id) === "344");
             const opponent = comp.competitors?.find(c => String(c.id) !== "344" && String(c.team?.id) !== "344");
 
-            // Check if game is away or neutral site
             const isAway = msu?.homeAway === 'away' || comp.neutralSite;
             const venue = comp.venue;
             const address = venue?.address;
             
-            // Validate location data
-            if (isAway && venue && (address?.city || venue.fullName)) {
-              let lat = venue.geometry?.coordinates?.[1] || address?.latitude;
-              let lon = venue.geometry?.coordinates?.[0] || address?.longitude;
+            if (isAway) {
+              let lat = venue?.geometry?.coordinates?.[1] || address?.latitude;
+              let lon = venue?.geometry?.coordinates?.[0] || address?.longitude;
+              const cityKey = `${address?.city || ''}, ${address?.state || ''}`.toLowerCase().trim();
+
+              // Fall back to known coordinate lookup table
+              if ((!lat || !lon) && VENUE_COORDS[cityKey]) {
+                lat = VENUE_COORDS[cityKey].lat;
+                lon = VENUE_COORDS[cityKey].lon;
+              }
 
               allAwayEvents.push({
                 sport: sport.name,
                 date: new Date(e.date),
                 opponent: opponent?.team?.displayName || opponent?.team?.name || "Opponent",
-                venueName: venue.fullName || "Away Venue",
+                venueName: venue?.fullName || "Away Venue",
                 location: `${address?.city || ''}${address?.state ? ', ' + address.state : ''}`,
                 lat: lat ? parseFloat(lat) : null,
                 lon: lon ? parseFloat(lon) : null,
@@ -189,6 +208,34 @@
           console.error(`Error loading ${sport.name} schedule:`, err);
         }
       }
+
+      // Merge with data.js offline masterDataset if available
+      if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
+        masterDataset.forEach(localGame => {
+          if (!localGame.isHome) {
+            const exists = allAwayEvents.some(e => e.date.toISOString().split('T')[0] === localGame.isoDate && e.opponent.includes(localGame.opponent));
+            if (!exists) {
+              const cityKey = (localGame.location || '').toLowerCase().trim();
+              let lat = null, lon = null;
+              if (VENUE_COORDS[cityKey]) {
+                lat = VENUE_COORDS[cityKey].lat;
+                lon = VENUE_COORDS[cityKey].lon;
+              }
+              allAwayEvents.push({
+                sport: localGame.sportKey || "Sports",
+                date: new Date(localGame.isoDate + 'T00:00:00'),
+                opponent: localGame.opponent,
+                venueName: localGame.venue || "Away Venue",
+                location: localGame.location || "",
+                lat: lat,
+                lon: lon,
+                isNeutral: false
+              });
+            }
+          }
+        });
+      }
+
       return allAwayEvents;
     }
 
@@ -217,7 +264,6 @@
         const userLon = parseFloat(zipData.places[0].longitude);
         const placeName = `${zipData.places[0]['place name']}, ${zipData.places[0]['state abbreviation']}`;
 
-        // Calculate distance for games with valid lat/lon
         const calculatedGames = awayEvents.map(game => {
           let dist = 9999;
           if (game.lat && game.lon) {
@@ -226,7 +272,6 @@
           return { ...game, distance: dist };
         });
 
-        // Sort by distance ascending
         calculatedGames.sort((a, b) => a.distance - b.distance);
 
         statusEl.innerText = `Showing ${calculatedGames.length} away/neutral games sorted by distance from ${placeName} (${zip}).`;
