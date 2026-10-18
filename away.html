@@ -197,8 +197,8 @@
       calculateDistances();
     });
 
-    // Known Coordinates for standard venue locations
-    const VENUE_COORDS = {
+    // In-memory cache for geocoded cities to avoid repetitive API calls
+    const CITY_GEO_CACHE = {
       "minneapolis, mn": { lat: 44.9765, lon: -93.2248 },
       "columbia, sc": { lat: 33.9731, lon: -81.0192 },
       "baton rouge, la": { lat: 30.4120, lon: -91.1838 },
@@ -214,19 +214,48 @@
       "knoxville, tn": { lat: 35.9550, lon: -83.9250 },
       "college station, tx": { lat: 30.6102, lon: -96.3400 },
       "nashville, tn": { lat: 36.1447, lon: -86.8089 },
-      "fayetteville, ar": { lat: 36.0681, lon: -94.1752 }
+      "fayetteville, ar": { lat: 36.0681, lon: -94.1752 },
+      "martin, tn": { lat: 36.3434, lon: -88.8503 },
+      "buffalo, ny": { lat: 42.8864, lon: -78.8784 },
+      "hattiesburg, ms": { lat: 31.3271, lon: -89.2903 },
+      "fort myers, fl": { lat: 26.6406, lon: -81.8723 },
+      "davidson, nc": { lat: 35.4993, lon: -80.8487 }
     };
 
+    async function geocodeCityState(city, state) {
+      if (!city || !state) return null;
+      const key = `${city.trim()}, ${state.trim()}`.toLowerCase();
+      if (CITY_GEO_CACHE[key]) return CITY_GEO_CACHE[key];
+
+      try {
+        const res = await fetch(`https://api.zippopotam.us/us/${state.trim().toLowerCase()}/${encodeURIComponent(city.trim().toLowerCase())}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.places && data.places[0]) {
+            const coords = {
+              lat: parseFloat(data.places[0].latitude),
+              lon: parseFloat(data.places[0].longitude)
+            };
+            CITY_GEO_CACHE[key] = coords;
+            return coords;
+          }
+        }
+      } catch (e) {
+        // Fallback catch
+      }
+      return null;
+    }
+
     const SPORTS_ENDPOINTS = [
-      { name: "Football", url: "https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?limit=50" },
+      { name: "Football", url: "https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?limit=100" },
       { name: "Baseball", url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?limit=100" },
-      { name: "Men's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?limit=50" },
-      { name: "Women's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?limit=50" },
+      { name: "Men's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?limit=100" },
+      { name: "Women's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?limit=100" },
       { name: "Softball", url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-softball/teams/344/schedule?limit=100" }
     ];
 
     function calculateDistance(lat1, lon1, lat2, lon2) {
-      const R = 3958.8; // Radius of Earth in miles
+      const R = 3958.8;
       const dLat = (lat2 - lat1) * Math.PI / 180;
       const dLon = (lon2 - lon1) * Math.PI / 180;
       const a = 
@@ -246,9 +275,9 @@
           if (!res.ok) continue;
           const data = await res.json();
           
-          (data.events || []).forEach(e => {
+          for (const e of (data.events || [])) {
             const comp = e.competitions?.[0];
-            if (!comp) return;
+            if (!comp) continue;
 
             const msu = comp.competitors?.find(c => String(c.id) === "344" || String(c.team?.id) === "344");
             const opponent = comp.competitors?.find(c => String(c.id) !== "344" && String(c.team?.id) !== "344");
@@ -260,12 +289,13 @@
             if (isAway) {
               let lat = venue?.geometry?.coordinates?.[1] || address?.latitude;
               let lon = venue?.geometry?.coordinates?.[0] || address?.longitude;
-              const cityKey = `${address?.city || ''}, ${address?.state || ''}`.toLowerCase().trim();
 
-              // Fall back to known coordinate lookup table
-              if ((!lat || !lon) && VENUE_COORDS[cityKey]) {
-                lat = VENUE_COORDS[cityKey].lat;
-                lon = VENUE_COORDS[cityKey].lon;
+              if ((!lat || !lon) && address?.city && address?.state) {
+                const geo = await geocodeCityState(address.city, address.state);
+                if (geo) {
+                  lat = geo.lat;
+                  lon = geo.lon;
+                }
               }
 
               allAwayEvents.push({
@@ -279,24 +309,29 @@
                 isNeutral: comp.neutralSite
               });
             }
-          });
+          }
         } catch (err) {
           console.error(`Error loading ${sport.name} schedule:`, err);
         }
       }
 
-      // Merge with data.js offline masterDataset if available
       if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
-        masterDataset.forEach(localGame => {
+        for (const localGame of masterDataset) {
           if (!localGame.isHome) {
             const exists = allAwayEvents.some(e => e.date.toISOString().split('T')[0] === localGame.isoDate && e.opponent.includes(localGame.opponent));
             if (!exists) {
-              const cityKey = (localGame.location || '').toLowerCase().trim();
               let lat = null, lon = null;
-              if (VENUE_COORDS[cityKey]) {
-                lat = VENUE_COORDS[cityKey].lat;
-                lon = VENUE_COORDS[cityKey].lon;
+              if (localGame.location) {
+                const parts = localGame.location.split(',');
+                if (parts.length >= 2) {
+                  const geo = await geocodeCityState(parts[0], parts[1]);
+                  if (geo) {
+                    lat = geo.lat;
+                    lon = geo.lon;
+                  }
+                }
               }
+
               allAwayEvents.push({
                 sport: localGame.sportKey || "Sports",
                 date: new Date(localGame.isoDate + 'T00:00:00'),
@@ -309,7 +344,7 @@
               });
             }
           }
-        });
+        }
       }
 
       return allAwayEvents;
@@ -325,7 +360,7 @@
         return;
       }
 
-      statusEl.innerText = `Fetching all 5 sports schedules and looking up zip code ${zip}...`;
+      statusEl.innerText = `Fetching all 5 sports schedules and resolving locations for zip code ${zip}...`;
 
       try {
         const [zipRes, awayEvents] = await Promise.all([
