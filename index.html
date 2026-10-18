@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bully's CFB Board</title>
+  <script src="nav.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -49,18 +50,6 @@
 </head>
 <body>
 
-  <div class="nav-overlay" id="navOverlay" onclick="toggleMenu()"></div>
-  <nav class="nav-drawer" id="navDrawer">
-    <div class="drawer-header"><span>Navigation</span><button class="drawer-close" onclick="toggleMenu()">&times;</button></div>
-    <ul class="drawer-links">
-      <li><a href="index.html" class="active">Scores Board</a></li>
-      <li><a href="grid.html">Saturday Game Grid</a></li>
-      <li><a href="schedules.html">MSU Schedule</a></li>
-      <li><a href="away.html">Closest Away Games</a></li>
-      <li><a href="visit.html">MSU Trip</a></li>
-    </ul>
-  </nav>
-
   <header>
     <div class="header-left">
       <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
@@ -78,11 +67,6 @@
   <div id="games-container"></div>
 
   <script>
-    function toggleMenu() {
-      document.getElementById('navDrawer').classList.toggle('open');
-      document.getElementById('navOverlay').classList.toggle('open');
-    }
-
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
       if (!btn) return;
