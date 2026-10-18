@@ -1,427 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Saturday Grid - Live & Completed Games</title>
-  
-  <!-- Shared Navigation Script -->
   <script src="nav.js"></script>
-
-  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-8695308WQ8');
+    gtag('js', new Date()); gtag('config', 'G-8695308WQ8');
+    if (localStorage.getItem('dyslexiaMode') === 'enabled') document.documentElement.classList.add('dyslexia-font');
   </script>
-
-  <!-- Dyslexia Font Initializer Script -->
-  <script>
-    if (localStorage.getItem('dyslexiaMode') === 'enabled') {
-      document.documentElement.classList.add('dyslexia-font');
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem('dyslexiaMode') === 'enabled') {
-        document.body.classList.add('dyslexia-font');
-      }
-    });
-  </script>
-
   <style>
-    /* Dyslexic Friendly Global Override */
-    body.dyslexia-font, 
-    body.dyslexia-font *, 
-    body.dyslexia-font .team-abbr, 
-    body.dyslexia-font .game-card {
-      font-family: "Comic Sans MS", "Verdana", "OpenDyslexic", sans-serif !important;
-      letter-spacing: 0.05em !important;
-      word-spacing: 0.1em !important;
-    }
-
-    /* Toggle Button Styling */
-    .dyslexia-toggle {
-      background: #1e293b;
-      border: 1px solid #334155;
-      color: #38bdf8;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .dyslexia-toggle:hover {
-      background: #334155;
-      color: #fff;
-    }
-
+    body.dyslexia-font, body.dyslexia-font * { font-family: "Comic Sans MS", "Verdana", sans-serif !important; letter-spacing: 0.05em !important; word-spacing: 0.1em !important; }
+    .dyslexia-toggle { background: #1e293b; border: 1px solid #334155; color: #38bdf8; font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    html, body {
-      width: 100vw;
-      min-height: 100vh;
-      background-color: #0f172a;
-      color: #f8fafc;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Sticky Header */
-    header {
-      height: 36px;
-      background-color: #1e293b;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 12px;
-      border-bottom: 1px solid #334155;
-      flex-shrink: 0;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    /* Hamburger Menu Button */
-    .menu-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      width: 18px;
-      height: 14px;
-      padding: 0;
-      z-index: 101;
-    }
-
-    .menu-btn span {
-      display: block;
-      width: 100%;
-      height: 2px;
-      background-color: #38bdf8;
-      border-radius: 2px;
-      transition: all 0.2s;
-    }
-
-    .menu-btn:hover span {
-      background-color: #ffffff;
-    }
-
-    /* Navigation Overlay / Drawer */
-    .nav-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: rgba(0, 0, 0, 0.6);
-      z-index: 99;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition: opacity 0.2s ease, visibility 0.2s ease;
-    }
-
-    .nav-overlay.open {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-    }
-
-    .nav-drawer {
-      position: fixed;
-      top: 0;
-      left: -260px;
-      width: 260px;
-      height: 100vh;
-      background-color: #1e293b;
-      border-right: 1px solid #334155;
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-      transition: left 0.3s ease;
-      box-shadow: 4px 0 15px rgba(0,0,0,0.5);
-    }
-
-    .nav-drawer.open {
-      left: 0;
-    }
-
-    .drawer-header {
-      padding: 14px 16px;
-      font-weight: 800;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      color: #38bdf8;
-      border-bottom: 1px solid #334155;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .drawer-close {
-      background: none;
-      border: none;
-      color: #94a3b8;
-      font-size: 1.3rem;
-      cursor: pointer;
-    }
-
-    .drawer-close:hover {
-      color: #fff;
-    }
-
-    .drawer-links {
-      list-style: none;
-      padding: 8px 0;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .drawer-links a {
-      padding: 12px 18px;
-      color: #f8fafc;
-      text-decoration: none;
-      font-size: 0.85rem;
-      font-weight: 700;
-      display: block;
-      border-left: 3px solid transparent;
-      transition: background 0.2s, border-color 0.2s;
-    }
-
-    .drawer-links a:hover, .drawer-links a.active {
-      background-color: #334155;
-      border-left-color: #38bdf8;
-      color: #38bdf8;
-    }
-
-    .title {
-      font-weight: 700;
-      font-size: 0.85rem;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: #38bdf8;
-    }
-
-    .meta-info {
-      font-size: 0.75rem;
-      color: #94a3b8;
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .live-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      color: #ef4444;
-      font-weight: 600;
-    }
-
-    .pulse-dot {
-      width: 6px;
-      height: 6px;
-      background-color: #ef4444;
-      border-radius: 50%;
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-    }
-
-    /* Section Divider Headers */
-    .section-divider {
-      grid-column: 1 / -1;
-      font-size: 0.7rem;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #38bdf8;
-      background-color: #0f172a;
-      padding: 6px 4px 2px 4px;
-      border-bottom: 1px solid #334155;
-      margin-top: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .section-divider.completed-title {
-      color: #94a3b8;
-      margin-top: 12px;
-    }
-
-    /* GRID CONTAINER */
-    #grid-container {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-auto-rows: max-content;
-      align-items: start;
-      gap: 4px;
-      padding: 4px;
-      width: 100%;
-    }
-
-    /* COMPACT CARD */
-    .game-card {
-      background-color: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 4px;
-      padding: 4px 6px;
-      display: flex;
-      flex-direction: column;
-      height: auto !important;
-      min-height: 0 !important;
-      max-height: fit-content !important;
-      overflow: hidden;
-    }
-
-    .game-card.sec-game {
-      border-left: 3px solid #f59e0b;
-    }
-
-    .game-card.completed-card {
-      opacity: 0.85;
-      background-color: #172033;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.6rem;
-      color: #94a3b8;
-      font-weight: 600;
-      border-bottom: 1px solid #334155;
-      padding-bottom: 2px;
-      margin-bottom: 3px;
-      gap: 2px;
-      line-height: 1;
-    }
-
-    .broadcast {
-      color: #84cc16;
-      font-size: 0.55rem;
-      flex-shrink: 0;
-      text-align: right;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .sort-tag {
-      background: #334155;
-      color: #38bdf8;
-      font-size: 0.5rem;
-      padding: 1px 3px;
-      border-radius: 3px;
-      font-weight: 700;
-    }
-
-    .clock-status {
-      color: #ef4444;
-      font-weight: 700;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .clock-status.completed-status {
-      color: #94a3b8;
-    }
-
-    .teams-container {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .team-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 2px;
-    }
-
-    .team-row.winner {
-      font-weight: 800;
-      color: #ffffff;
-    }
-
-    .team-row.loser {
-      color: #64748b;
-    }
-
-    .team-info {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      flex: 1;
-      min-width: 0;
-      overflow: hidden;
-    }
-
-    .team-rank {
-      font-size: 0.55rem;
-      color: #84cc16;
-      font-weight: 800;
-      flex-shrink: 0;
-    }
-
-    .team-abbr {
-      font-weight: 700;
-      font-size: 0.75rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .team-score {
-      font-weight: 800;
-      font-size: 0.8rem;
-      flex-shrink: 0;
-      font-variant-numeric: tabular-nums;
-      min-width: 14px;
-      text-align: right;
-    }
-
-    .no-games {
-      grid-column: 1 / -1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #64748b;
-      font-size: 0.85rem;
-      font-weight: 600;
-      padding: 16px;
-    }
+    html, body { width: 100vw; min-height: 100vh; background: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; }
+    header { height: 36px; background: #1e293b; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid #334155; position: sticky; top: 0; z-index: 10; }
+    .header-left, .meta-info { display: flex; align-items: center; gap: 10px; }
+    .menu-btn { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; width: 18px; height: 14px; padding: 0; }
+    .menu-btn span { display: block; width: 100%; height: 2px; background: #38bdf8; border-radius: 2px; }
+    .nav-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 99; opacity: 0; visibility: hidden; pointer-events: none; transition: 0.2s; }
+    .nav-overlay.open { opacity: 1; visibility: visible; pointer-events: auto; }
+    .nav-drawer { position: fixed; top: 0; left: -260px; width: 260px; height: 100vh; background: #1e293b; border-right: 1px solid #334155; z-index: 100; display: flex; flex-direction: column; transition: 0.3s; box-shadow: 4px 0 15px rgba(0,0,0,0.5); }
+    .nav-drawer.open { left: 0; }
+    .drawer-header { padding: 14px 16px; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; color: #38bdf8; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+    .drawer-close { background: none; border: none; color: #94a3b8; font-size: 1.3rem; cursor: pointer; }
+    .drawer-links { list-style: none; padding: 8px 0; margin: 0; display: flex; flex-direction: column; }
+    .drawer-links a { padding: 12px 18px; color: #f8fafc; text-decoration: none; font-size: 0.85rem; font-weight: 700; display: block; border-left: 3px solid transparent; }
+    .drawer-links a:hover, .drawer-links a.active { background: #334155; border-left-color: #38bdf8; color: #38bdf8; }
+    .title { font-weight: 700; font-size: 0.85rem; text-transform: uppercase; color: #38bdf8; }
+    .meta-info { font-size: 0.75rem; color: #94a3b8; }
+    .live-badge { display: inline-flex; align-items: center; gap: 4px; color: #ef4444; font-weight: 600; }
+    .pulse-dot { width: 6px; height: 6px; background: #ef4444; border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+    .section-divider { grid-column: 1 / -1; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: #38bdf8; background: #0f172a; padding: 6px 4px 2px; border-bottom: 1px solid #334155; margin-top: 4px; display: flex; justify-content: space-between; }
+    .section-divider.completed-title { color: #94a3b8; margin-top: 12px; }
+    #grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; width: 100%; }
+    .game-card { background: #1e293b; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; display: flex; flex-direction: column; overflow: hidden; }
+    .game-card.sec-game { border-left: 3px solid #f59e0b; }
+    .game-card.completed-card { opacity: 0.85; background: #172033; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.6rem; color: #94a3b8; font-weight: 600; border-bottom: 1px solid #334155; padding-bottom: 2px; margin-bottom: 3px; }
+    .broadcast { color: #84cc16; font-size: 0.55rem; display: flex; align-items: center; gap: 4px; }
+    .sort-tag { background: #334155; color: #38bdf8; font-size: 0.5rem; padding: 1px 3px; border-radius: 3px; font-weight: 700; }
+    .clock-status { color: #ef4444; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .clock-status.completed-status { color: #94a3b8; }
+    .teams-container { display: flex; flex-direction: column; gap: 2px; }
+    .team-row { display: flex; justify-content: space-between; align-items: center; gap: 2px; }
+    .team-row.winner { font-weight: 800; color: #fff; }
+    .team-row.loser { color: #64748b; }
+    .team-info { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; overflow: hidden; }
+    .team-rank { font-size: 0.55rem; color: #84cc16; font-weight: 800; flex-shrink: 0; }
+    .team-abbr { font-weight: 700; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .team-score { font-weight: 800; font-size: 0.8rem; font-variant-numeric: tabular-nums; min-width: 14px; text-align: right; }
+    .no-games { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.85rem; font-weight: 600; padding: 16px; }
   </style>
 </head>
 <body>
-
   <header>
     <div class="header-left">
-      <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
+      <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
       <div class="title">Saturday Grid</div>
     </div>
     <div class="meta-info">
@@ -437,22 +75,16 @@
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
       if (!btn) return;
-      const isEnabled = localStorage.getItem('dyslexiaMode') === 'enabled';
-      btn.innerText = isEnabled ? 'Kate Button: ON' : 'Kate Button: OFF';
-      btn.style.borderColor = isEnabled ? '#38bdf8' : '#334155';
+      const on = localStorage.getItem('dyslexiaMode') === 'enabled';
+      btn.innerText = on ? 'Kate Button: ON' : 'Kate Button: OFF';
+      btn.style.borderColor = on ? '#38bdf8' : '#334155';
     }
 
     function toggleDyslexiaFont() {
-      const isEnabled = localStorage.getItem('dyslexiaMode') === 'enabled';
-      if (isEnabled) {
-        localStorage.setItem('dyslexiaMode', 'disabled');
-        document.body.classList.remove('dyslexia-font');
-        document.documentElement.classList.remove('dyslexia-font');
-      } else {
-        localStorage.setItem('dyslexiaMode', 'enabled');
-        document.body.classList.add('dyslexia-font');
-        document.documentElement.classList.add('dyslexia-font');
-      }
+      const on = localStorage.getItem('dyslexiaMode') === 'enabled';
+      localStorage.setItem('dyslexiaMode', on ? 'disabled' : 'enabled');
+      document.body.classList.toggle('dyslexia-font', !on);
+      document.documentElement.classList.toggle('dyslexia-font', !on);
       updateToggleButtonState();
     }
 
@@ -460,218 +92,133 @@
 
     const API_URL = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?limit=300&groups=80';
 
-    function isSEC(game) {
-      return game.competitions[0].competitors.some(c => 
-        c.team.conferenceId === '8' || 
-        (c.team.conference && c.team.conference.id === '8')
-      );
-    }
-
-    function isRanked(game) {
-      return game.competitions[0].competitors.some(c => 
-        c.curatedRank && c.curatedRank.current <= 25 && c.curatedRank.current > 0
-      );
-    }
-
-    // Helper to map team conference to correct key
-    function getConfKey(team) {
-      if (!team) return 'sbc';
-      const confId = String(team.conferenceId || team.conference?.id || '');
-      const confName = String(team.conference?.name || team.conference?.abbreviation || team.conference || '').toLowerCase();
-      
-      if (confId === '8' || confName.includes('sec') || confName.includes('southeastern')) return 'sec';
-      if (confId === '5' || confName.includes('big ten') || confName.includes('b1g')) return 'btn';
-      if (confId === '1' || confName === 'acc' || confName.includes('atlantic coast')) return 'acc';
-      if (confId === '10' || confName.includes('big 12') || confName.includes('b12')) return 'b12';
-      if (confId === '15' || confName.includes('american athletic') || confName.includes('the american') || confName === 'aac') return 'aac';
-      if (confId === '12' || confName.includes('conference usa') || confName.includes('cusa')) return 'cusa';
-      if (confId === '18' || confName.includes('independent') || confName.includes('indep')) return 'indep';
-      if (confId === '151' || confName.includes('mid-american') || confName === 'mac') return 'mac';
-      if (confId === '17' || confName.includes('mountain west') || confName.includes('mwc')) return 'mwc';
-      if (confId === '9' || confId === '37' || confName.includes('pac-12') || confName.includes('pac12')) return 'pac12';
-      return 'sbc';
-    }
-
-    // Strict priority hierarchy: SEC -> Ranked -> Big Ten -> ACC -> Big 12 -> AAC -> CUSA -> INDEP -> MAC -> MWC -> PAC12 -> SBC
-    function getGamePriority(game) {
-      if (isSEC(game)) return 1;
-      if (isRanked(game)) return 2;
-      const comps = game.competitions[0].competitors;
-      const keys = comps.map(c => getConfKey(c.team));
-      
-      if (keys.includes('btn')) return 3;
-      if (keys.includes('acc')) return 4;
-      if (keys.includes('b12')) return 5;
-      if (keys.includes('aac')) return 6;
-      if (keys.includes('cusa')) return 7;
-      if (keys.includes('indep')) return 8;
-      if (keys.includes('mac')) return 9;
-      if (keys.includes('mwc')) return 10;
-      if (keys.includes('pac12')) return 11;
-      return 12; // SBC
-    }
-
-    // Returns sorting badge tag matching the strict hierarchy order
-    function getGameSortTag(game) {
-      if (isSEC(game)) return 'SEC';
-      if (isRanked(game)) return 'RNK';
-      const comps = game.competitions[0].competitors;
-      const keys = comps.map(c => getConfKey(c.team));
-      
-      if (keys.includes('btn')) return 'BTN';
-      if (keys.includes('acc')) return 'ACC';
-      if (keys.includes('b12')) return 'B12';
-      if (keys.includes('aac')) return 'AAC';
-      if (keys.includes('cusa')) return 'CUSA';
-      if (keys.includes('indep')) return 'INDEP';
-      if (keys.includes('mac')) return 'MAC';
-      if (keys.includes('mwc')) return 'MWC';
-      if (keys.includes('pac12')) return 'PAC12';
-      return 'SBC';
-    }
-
-    // Standard sort for active live games
-    function sortGames(games) {
-      return games.sort((a, b) => {
-        const pA = getGamePriority(a);
-        const pB = getGamePriority(b);
-        if (pA !== pB) return pA - pB;
-        return new Date(a.date) - new Date(b.date);
+    function isSEC(g) {
+      return g.competitions[0].competitors.some(c => {
+        const a = String(c.team?.conference?.abbreviation || '').toUpperCase();
+        const n = String(c.team?.conference?.name || '').toLowerCase();
+        return a === 'SEC' || n.includes('sec') || n.includes('southeastern');
       });
     }
 
-    // Custom sort specifically for completed games following exact priority order
-    function sortCompletedGames(games) {
-      return games.sort((a, b) => {
-        const pA = getGamePriority(a);
-        const pB = getGamePriority(b);
-        if (pA !== pB) return pA - pB;
-        return new Date(a.date) - new Date(b.date);
+    function isRanked(g) {
+      return g.competitions[0].competitors.some(c => c.curatedRank?.current <= 25 && c.curatedRank?.current > 0);
+    }
+
+    function getConfKey(t) {
+      if (!t) return 'sbc';
+      const a = String(t.conference?.abbreviation || '').toUpperCase();
+      const n = String(t.conference?.name || t.conference || '').toLowerCase();
+      if (a === 'SEC' || n.includes('sec') || n.includes('southeastern')) return 'sec';
+      if (a === 'B1G' || a === 'BIG TEN' || n.includes('big ten') || n.includes('b1g')) return 'btn';
+      if (a === 'ACC' || n.includes('acc') || n.includes('atlantic coast')) return 'acc';
+      if (a === 'B12' || a === 'BIG 12' || n.includes('big 12') || n.includes('b12')) return 'b12';
+      if (a === 'AAC' || a === 'THE AAC' || n.includes('american athletic') || n.includes('aac')) return 'aac';
+      if (a === 'CUSA' || a === 'C-USA' || n.includes('conference usa') || n.includes('cusa')) return 'cusa';
+      if (a === 'IND' || a === 'INDEP' || n.includes('independent')) return 'indep';
+      if (a === 'MAC' || n.includes('mid-american') || n.includes('mac')) return 'mac';
+      if (a === 'MWC' || a === 'MW' || n.includes('mountain west')) return 'mwc';
+      if (a === 'PAC' || a === 'PAC-12' || a === 'PAC12' || n.includes('pac-12') || n.includes('pac12')) return 'pac12';
+      if (a === 'SBC' || a === 'SUN BELT' || n.includes('sun belt')) return 'sbc';
+      return 'sbc';
+    }
+
+    function getGamePriority(g) {
+      if (isSEC(g)) return 1;
+      if (isRanked(g)) return 2;
+      const k = g.competitions[0].competitors.map(c => getConfKey(c.team));
+      const tiers = ['btn', 'acc', 'b12', 'aac', 'cusa', 'indep', 'mac', 'mwc', 'pac12'];
+      for (let i = 0; i < tiers.length; i++) {
+        if (k.includes(tiers[i])) return i + 3;
+      }
+      return 12;
+    }
+
+    function getGameSortTag(g) {
+      if (isSEC(g)) return 'SEC';
+      if (isRanked(g)) return 'RNK';
+      const tags = ['BTN', 'ACC', 'B12', 'AAC', 'CUSA', 'INDEP', 'MAC', 'MWC', 'PAC12'];
+      const p = getGamePriority(g);
+      return (p >= 3 && p <= 11) ? tags[p - 3] : 'SBC';
+    }
+
+    function sortGamesList(list) {
+      return list.sort((a, b) => {
+        const pA = getGamePriority(a), pB = getGamePriority(b);
+        return pA !== pB ? pA - pB : new Date(a.date) - new Date(b.date);
       });
     }
 
     function formatShortStatus(detail, state) {
       if (!detail) return '';
-      if (state === 'post') {
-        if (detail.includes('OT')) return 'FINAL/OT';
-        return 'FINAL';
-      }
-      return detail
-        .replace(/ - /g, ' ')
-        .replace(/1st Quarter/g, '1Q')
-        .replace(/2nd Quarter/g, '2Q')
-        .replace(/3rd Quarter/g, '3Q')
-        .replace(/4th Quarter/g, '4Q')
-        .replace(/End of 1st Quarter/g, 'End 1Q')
-        .replace(/End of 2nd Quarter/g, 'Half')
-        .replace(/End of 3rd Quarter/g, 'End 3Q')
-        .replace(/End of 4th Quarter/g, 'End 4Q')
-        .replace(/Halftime/g, 'Half');
+      if (state === 'post') return detail.includes('OT') ? 'FINAL/OT' : 'FINAL';
+      return detail.replace(/ - /g, ' ').replace(/1st Quarter/g, '1Q').replace(/2nd Quarter/g, '2Q').replace(/3rd Quarter/g, '3Q').replace(/4th Quarter/g, '4Q').replace(/End of 1st Quarter/g, 'End 1Q').replace(/End of 2nd Quarter/g, 'Half').replace(/End of 3rd Quarter/g, 'End 3Q').replace(/End of 4th Quarter/g, 'End 4Q').replace(/Halftime/g, 'Half');
     }
 
     async function fetchLiveGrid() {
       try {
         const res = await fetch(API_URL);
         const data = await res.json();
-        
-        const activeGames = (data.events || []).filter(e => e.status.type.state === 'in');
-        const completedGames = (data.events || []).filter(e => e.status.type.state === 'post');
-
-        const sortedActiveGames = sortGames(activeGames);
-        const sortedCompletedGames = sortCompletedGames(completedGames);
-        
-        document.getElementById('live-count').innerText = sortedActiveGames.length;
+        const active = sortGamesList((data.events || []).filter(e => e.status.type.state === 'in'));
+        const completed = sortGamesList((data.events || []).filter(e => e.status.type.state === 'post'));
+        document.getElementById('live-count').innerText = active.length;
         document.getElementById('last-updated').innerText = `Updated: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
-
-        renderGrid(sortedActiveGames, sortedCompletedGames);
-      } catch (err) {
-        console.error('Error fetching live games:', err);
-      }
+        renderGrid(active, completed);
+      } catch (err) { console.error('Error:', err); }
     }
 
-    function createGameCard(game, isCompleted = false) {
+    function createGameCard(game, isCompleted) {
       const comp = game.competitions[0];
       const home = comp.competitors.find(c => c.homeAway === 'home');
       const away = comp.competitors.find(c => c.homeAway === 'away');
-      const broadcast = comp.broadcasts && comp.broadcasts[0] ? comp.broadcasts[0].names[0] : '';
-      const isSecGame = isSEC(game);
-
-      const awayAbbr = away.team.abbreviation || away.team.shortDisplayName || away.team.name;
-      const homeAbbr = home.team.abbreviation || home.team.shortDisplayName || home.team.name;
-
-      const card = document.createElement('div');
-      card.className = `game-card ${isSecGame ? 'sec-game' : ''} ${isCompleted ? 'completed-card' : ''}`;
-
-      let awayClass = '';
-      let homeClass = '';
-      if (isCompleted) {
-        if (away.winner) {
-          awayClass = 'winner';
-          homeClass = 'loser';
-        } else if (home.winner) {
-          homeClass = 'winner';
-          awayClass = 'loser';
-        }
-      }
-
+      const broadcast = comp.broadcasts?.[0]?.names?.[0] || '';
+      const sec = isSEC(game);
+      const aClass = isCompleted ? (away.winner ? 'winner' : 'loser') : '';
+      const hClass = isCompleted ? (home.winner ? 'winner' : 'loser') : '';
       const sortTagHtml = isCompleted ? `<span class="sort-tag">${getGameSortTag(game)}</span>` : '';
 
+      const card = document.createElement('div');
+      card.className = `game-card ${sec ? 'sec-game' : ''} ${isCompleted ? 'completed-card' : ''}`;
       card.innerHTML = `
         <div class="card-header">
           <span class="clock-status ${isCompleted ? 'completed-status' : ''}">${formatShortStatus(game.status.type.detail, game.status.type.state)}</span>
           <span class="broadcast">${sortTagHtml} ${broadcast}</span>
         </div>
         <div class="teams-container">
-          <div class="team-row ${awayClass}">
-            <div class="team-info">
-              ${away.curatedRank?.current <= 25 ? `<span class="team-rank">#${away.curatedRank.current}</span>` : ''}
-              <span class="team-abbr">${awayAbbr}</span>
-            </div>
+          <div class="team-row ${aClass}">
+            <div class="team-info">${away.curatedRank?.current <= 25 ? `<span class="team-rank">#${away.curatedRank.current}</span>` : ''}<span class="team-abbr">${away.team.abbreviation || away.team.name}</span></div>
             <span class="team-score">${away.score}</span>
           </div>
-          <div class="team-row ${homeClass}">
-            <div class="team-info">
-              ${home.curatedRank?.current <= 25 ? `<span class="team-rank">#${home.curatedRank.current}</span>` : ''}
-              <span class="team-abbr">${homeAbbr}</span>
-            </div>
+          <div class="team-row ${hClass}">
+            <div class="team-info">${home.curatedRank?.current <= 25 ? `<span class="team-rank">#${home.curatedRank.current}</span>` : ''}<span class="team-abbr">${home.team.abbreviation || home.team.name}</span></div>
             <span class="team-score">${home.score}</span>
           </div>
-        </div>
-      `;
+        </div>`;
       return card;
     }
 
     function renderGrid(activeGames, completedGames) {
       const container = document.getElementById('grid-container');
       container.innerHTML = '';
-
-      // Render Live Games Section
       const liveHeader = document.createElement('div');
       liveHeader.className = 'section-divider';
       liveHeader.innerHTML = `<span>Live Games</span><span>(${activeGames.length})</span>`;
       container.appendChild(liveHeader);
 
-      if (activeGames.length === 0) {
+      if (!activeGames.length) {
         const noLive = document.createElement('div');
         noLive.className = 'no-games';
         noLive.innerText = 'No live games in progress.';
         container.appendChild(noLive);
       } else {
-        activeGames.forEach(game => {
-          container.appendChild(createGameCard(game, false));
-        });
+        activeGames.forEach(g => container.appendChild(createGameCard(g, false)));
       }
 
-      // Render Completed Games Section
-      if (completedGames.length > 0) {
-        const completedHeader = document.createElement('div');
-        completedHeader.className = 'section-divider completed-title';
-        completedHeader.innerHTML = `<span>Completed Games</span><span>(${completedGames.length})</span>`;
-        container.appendChild(completedHeader);
-
-        completedGames.forEach(game => {
-          container.appendChild(createGameCard(game, true));
-        });
+      if (completedGames.length) {
+        const compHeader = document.createElement('div');
+        compHeader.className = 'section-divider completed-title';
+        compHeader.innerHTML = `<span>Completed Games</span><span>(${completedGames.length})</span>`;
+        container.appendChild(compHeader);
+        completedGames.forEach(g => container.appendChild(createGameCard(g, true)));
       }
     }
 
