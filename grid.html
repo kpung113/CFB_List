@@ -481,10 +481,16 @@
       
       if (confId === '8' || confName.includes('sec') || confName.includes('southeastern')) return 'sec';
       if (confId === '5' || confName.includes('big ten') || confName.includes('b1g')) return 'bigten';
+      
+      // Strict Big 12 check
       if (confId === '151' || confName.includes('big 12') || confName.includes('b12')) return 'big12';
-      // Ensure ACC strictly checks for Atlantic Coast or exact confId '1', avoiding substring clashes with AAC
+      
+      // Strict ACC check (avoiding substring clashes with AAC)
       if (confId === '1' || confName === 'acc' || confName.includes('atlantic coast')) return 'acc';
-      if (confId === '15' || confName.includes('american athletic') || confName === 'aac') return 'aac';
+      
+      // Strict American Athletic Conference (AAC) check
+      if (confId === '15' || confName.includes('american athletic') || confName.includes('the american') || confName === 'aac') return 'aac';
+      
       return 'other';
     }
 
