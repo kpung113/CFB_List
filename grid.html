@@ -482,14 +482,17 @@
       if (confId === '8' || confName.includes('sec') || confName.includes('southeastern')) return 'sec';
       if (confId === '5' || confName.includes('big ten') || confName.includes('b1g')) return 'bigten';
       
-      // Strict Big 12 check
-      if (confId === '151' || confName.includes('big 12') || confName.includes('b12')) return 'big12';
+      // Correct Big 12 check (ESPN ID 10)
+      if (confId === '10' || confName.includes('big 12') || confName.includes('b12')) return 'big12';
       
       // Strict ACC check (avoiding substring clashes with AAC)
       if (confId === '1' || confName === 'acc' || confName.includes('atlantic coast')) return 'acc';
       
-      // Strict American Athletic Conference (AAC) check
+      // Strict American Athletic Conference (AAC) check (ESPN ID 15)
       if (confId === '15' || confName.includes('american athletic') || confName.includes('the american') || confName === 'aac') return 'aac';
+
+      // Mid-American Conference (MAC) check (ESPN ID 151)
+      if (confId === '151' || confName.includes('mid-american') || confName === 'mac') return 'mac';
       
       return 'other';
     }
@@ -503,7 +506,8 @@
       if (confs.includes('big12')) return 3;
       if (confs.includes('acc')) return 4;
       if (confs.includes('aac')) return 5;
-      return 6;
+      if (confs.includes('mac')) return 6;
+      return 7;
     }
 
     // Returns sorting badge tag matching the strict hierarchy order
@@ -515,6 +519,7 @@
       if (tier === 3) return 'B12';
       if (tier === 4) return 'ACC';
       if (tier === 5) return 'AAC';
+      if (tier === 6) return 'MAC';
       return 'OTHR';
     }
 
@@ -535,7 +540,7 @@
       });
     }
 
-    // Custom sort specifically for completed games: SEC -> Ranked -> Power 4 Tiers (Big Ten -> Big 12 -> ACC -> AAC -> Other)
+    // Custom sort specifically for completed games: SEC -> Ranked -> Power 4 Tiers & Group of 5
     function sortCompletedGames(games) {
       return games.sort((a, b) => {
         const aSEC = isSEC(a);
