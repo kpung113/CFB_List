@@ -497,14 +497,14 @@
       return 'other';
     }
 
-    // Determines highest priority conference tier involved in a game
+    // Determines highest priority conference tier involved in a game (Order: Big Ten -> ACC -> Big 12 -> AAC -> MAC -> Other)
     function getGameConfTier(game) {
       const comps = game.competitions[0].competitors;
       const confs = comps.map(c => getConfKey(c.team));
       if (confs.includes('sec')) return 1;
       if (confs.includes('bigten')) return 2;
-      if (confs.includes('big12')) return 3;
-      if (confs.includes('acc')) return 4;
+      if (confs.includes('acc')) return 3;
+      if (confs.includes('big12')) return 4;
       if (confs.includes('aac')) return 5;
       if (confs.includes('mac')) return 6;
       return 7;
@@ -516,8 +516,8 @@
       if (isRanked(game)) return 'RNK';
       const tier = getGameConfTier(game);
       if (tier === 2) return 'BTN';
-      if (tier === 3) return 'B12';
-      if (tier === 4) return 'ACC';
+      if (tier === 3) return 'ACC';
+      if (tier === 4) return 'B12';
       if (tier === 5) return 'AAC';
       if (tier === 6) return 'MAC';
       return 'OTHR';
@@ -540,7 +540,7 @@
       });
     }
 
-    // Custom sort specifically for completed games: SEC -> Ranked -> Power 4 Tiers & Group of 5
+    // Custom sort specifically for completed games: SEC -> Ranked -> Big Ten -> ACC -> Big 12 -> Other
     function sortCompletedGames(games) {
       return games.sort((a, b) => {
         const aSEC = isSEC(a);
