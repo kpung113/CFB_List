@@ -40,9 +40,13 @@
     .game-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 5px solid var(--card-border); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
     .game-card.live-4q { border-left-color: var(--accent-red); background: linear-gradient(135deg, #181920 0%, #221518 100%); }
     .game-card.live { border-left-color: var(--accent-maroon); background: linear-gradient(135deg, #181920 0%, #1f1418 100%); }
+    .game-card.completed-card { opacity: 0.85; background-color: #172033; }
     .card-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--subtext); margin-bottom: 8px; }
     .team-row { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; font-size: 1.1rem; font-weight: 600; }
+    .team-row.winner { font-weight: 800; color: #ffffff; }
+    .team-row.loser { color: #64748b; }
     .score { font-size: 1.25rem; font-weight: bold; }
+    .sort-tag { background: #334155; color: #38bdf8; font-size: 0.6rem; padding: 2px 5px; border-radius: 3px; font-weight: 700; margin-right: 6px; }
     .drive-banner { font-size: 0.75rem; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); padding: 4px 8px; border-radius: 6px; margin: 8px 0; font-weight: 600; }
     .game-meta { font-size: 0.75rem; color: var(--subtext); margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--card-border); display: flex; justify-content: space-between; }
     .watch-btn { color: #fff; text-decoration: none; font-weight: bold; font-size: 0.75rem; background: var(--accent-maroon); border: 1px solid #7d2033; padding: 3px 8px; border-radius: 4px; }
@@ -87,6 +91,73 @@
       updateToggleButtonState();
       if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
     });
+
+    function isSEC(game) {
+      return game.rawEvent.competitions[0].competitors.some(c => 
+        String(c.team?.conferenceId || c.team?.conference?.id) === '8'
+      );
+    }
+
+    function isRanked(game) {
+      return game.hasRanked;
+    }
+
+    function getConfKey(team) {
+      if (!team) return 'other';
+      const confId = String(team.conferenceId || team.conference?.id || '');
+      const confName = String(team.conference?.name || team.conference?.abbreviation || team.conference || '').toLowerCase();
+      
+      if (confId === '8' || confName.includes('sec') || confName.includes('southeastern')) return 'sec';
+      if (confId === '5' || confName.includes('big ten') || confName.includes('b1g')) return 'bigten';
+      if (confId === '151' || confName.includes('big 12') || confName.includes('b12')) return 'big12';
+      if (confId === '1' || confName === 'acc' || confName.includes('atlantic coast')) return 'acc';
+      if (confId === '15' || confName.includes('american athletic') || confName === 'aac') return 'aac';
+      return 'other';
+    }
+
+    function getGameConfTier(game) {
+      const comps = game.rawEvent.competitions[0].competitors;
+      const confs = comps.map(c => getConfKey(c.team));
+      if (confs.includes('sec')) return 1;
+      if (confs.includes('bigten')) return 2;
+      if (confs.includes('big12')) return 3;
+      if (confs.includes('acc')) return 4;
+      if (confs.includes('aac')) return 5;
+      return 6;
+    }
+
+    function getGameSortTag(game) {
+      if (isSEC(game)) return 'SEC';
+      if (isRanked(game)) return 'RNK';
+      const tier = getGameConfTier(game);
+      if (tier === 2) return 'BTN';
+      if (tier === 3) return 'B12';
+      if (tier === 4) return 'ACC';
+      if (tier === 5) return 'AAC';
+      return 'OTHR';
+    }
+
+    function sortCompletedGames(games) {
+      return games.sort((a, b) => {
+        const aSEC = isSEC(a);
+        const bSEC = isSEC(b);
+        if (aSEC && !bSEC) return -1;
+        if (!aSEC && bSEC) return 1;
+
+        const aRanked = isRanked(a);
+        const bRanked = isRanked(b);
+        if (aRanked && !bRanked) return -1;
+        if (!aRanked && bRanked) return 1;
+
+        const aTier = getGameConfTier(a);
+        const bTier = getGameConfTier(b);
+        if (aTier !== bTier) {
+          return aTier - bTier;
+        }
+
+        return a.gDate - b.gDate;
+      });
+    }
 
     async function fetchScores() {
       const statusEl = document.getElementById("update-status");
@@ -144,9 +215,10 @@
             homeRank: (hRank && hRank <= 25) ? `<span style="color:#84cc16;font-weight:bold;">#${hRank}</span> ` : '',
             awayRank: (aRank && aRank <= 25) ? `<span style="color:#84cc16;font-weight:bold;">#${aRank}</span> ` : '',
             homeScore: home.score || "0", awayScore: away.score || "0",
+            homeWinner: home.winner, awayWinner: away.winner,
             state, statusDetail: e.status?.type?.shortDetail || '', period: e.status?.period || 0,
             isSec, hasRanked, bestRank, tv, spread, winProb,
-            posId: String(situation?.possession || ''), driveText, gDate
+            posId: String(situation?.possession || ''), driveText, gDate, rawEvent: e
           };
 
           if (state === 'pre') upcoming.push(gameObj);
@@ -154,7 +226,7 @@
           else if (state === 'post' && now <= monEnd) finals.push(gameObj);
         });
 
-        // SORT LIVE GAMES: SEC games first, then Ranked games, then best rank, then start time
+        // SORT LIVE GAMES
         live.sort((a, b) => {
           if (a.isSec && !b.isSec) return -1;
           if (!a.isSec && b.isSec) return 1;
@@ -173,6 +245,9 @@
           return a.gDate - b.gDate || a.bestRank - b.bestRank;
         });
 
+        // SORT COMPLETED GAMES MATCHING grid.html HIERARCHY
+        sortCompletedGames(finals);
+
         renderGames(live, upcoming, finals);
         statusEl.innerText = "Live • 30s";
       } catch (err) {
@@ -187,7 +262,7 @@
         container.innerHTML = "<p>No games found.</p>"; return;
       }
 
-      live.forEach(g => container.appendChild(createCard(g)));
+      live.forEach(g => container.appendChild(createCard(g, false)));
 
       if (upcoming.length) {
         const byDay = {};
@@ -214,14 +289,14 @@
               tHeader.className = "tier-header";
               tHeader.innerText = label;
               container.appendChild(tHeader);
-              list.forEach(g => container.appendChild(createCard(g)));
+              list.forEach(g => container.appendChild(createCard(g, false)));
             };
 
             appendTier("SEC Games - sorted by start time", sec);
             appendTier("Ranked Matchups - sorted by time", ranked);
             appendTier("All Other Matchups - sorted by time", other);
           } else {
-            dayGames.forEach(g => container.appendChild(createCard(g)));
+            dayGames.forEach(g => container.appendChild(createCard(g, false)));
           }
         });
       }
@@ -231,26 +306,37 @@
         fHeader.className = "tier-header";
         fHeader.innerText = "Completed Games";
         container.appendChild(fHeader);
-        finals.forEach(g => container.appendChild(createCard(g)));
+        finals.forEach(g => container.appendChild(createCard(g, true)));
       }
     }
 
-    function createCard(g) {
+    function createCard(g, isCompleted = false) {
       const card = document.createElement("div");
-      card.className = "game-card" + (g.state === 'in' ? (g.period >= 4 ? " live-4q" : " live") : "");
+      card.className = "game-card" + 
+        (isCompleted ? " completed-card" : "") +
+        (g.state === 'in' ? (g.period >= 4 ? " live-4q" : " live") : "");
+
       const isAwayPos = g.posId && g.posId === String(g.awayId);
       const isHomePos = g.posId && g.posId === String(g.homeId);
 
+      let awayClass = '', homeClass = '';
+      if (isCompleted) {
+        if (g.awayWinner) { awayClass = ' winner'; homeClass = ' loser'; }
+        else if (g.homeWinner) { homeClass = ' winner'; awayClass = ' loser'; }
+      }
+
+      const sortTagHtml = isCompleted ? `<span class="sort-tag">${getGameSortTag(g)}</span>` : '';
+
       card.innerHTML = `
         <div class="card-header">
-          <span>${g.statusDetail} ${g.isSec ? '<strong style="color:#fff;background:#5d1725;padding:1px 5px;border-radius:3px;font-size:0.7rem;">SEC</strong>' : ''}</span>
+          <span>${g.statusDetail}</span>
           <span class="card-header-right">
-            <strong style="color:#84cc16;">📺 ${g.tv}</strong>
+            <span class="broadcast">${sortTagHtml}<strong style="color:#84cc16;">📺 ${g.tv}</strong></span>
             <a href="https://www.espn.com/college-football/game/_/gameId/${g.id}" target="_blank" rel="noopener noreferrer" class="watch-btn">Gamecast</a>
           </span>
         </div>
-        <div class="team-row"><span>${isAwayPos ? '🏈 ' : ''}${g.awayRank}${g.awayTeam}</span><span class="score">${g.state === 'pre' ? '' : g.awayScore}</span></div>
-        <div class="team-row"><span>${isHomePos ? '🏈 ' : ''}${g.homeRank}${g.homeTeam}</span><span class="score">${g.state === 'pre' ? '' : g.homeScore}</span></div>
+        <div class="team-row${awayClass}"><span>${isAwayPos ? '🏈 ' : ''}${g.awayRank}${g.awayTeam}</span><span class="score">${g.state === 'pre' ? '' : g.awayScore}</span></div>
+        <div class="team-row${homeClass}"><span>${isHomePos ? '🏈 ' : ''}${g.homeRank}${g.homeTeam}</span><span class="score">${g.state === 'pre' ? '' : g.homeScore}</span></div>
         ${g.driveText ? `<div class="drive-banner">Drive: ${g.driveText}</div>` : ''}
         ${(g.spread || g.winProb) ? `<div class="game-meta"><span>${g.spread ? `<strong>Line:</strong> ${g.spread}` : ''}</span><span>${g.winProb ? `<strong>Win Prob:</strong> ${g.winProb}` : ''}</span></div>` : ''}
       `;
