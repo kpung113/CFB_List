@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Saturday Grid - Live & Completed Games</title>
   
+  <!-- Shared Navigation Script -->
+  <script src="nav.js"></script>
+
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
@@ -400,21 +403,6 @@
 </head>
 <body>
 
-  <!-- Slide-out Menu Overlay and Drawer -->
-  <div class="nav-overlay" id="navOverlay" onclick="toggleMenu()"></div>
-  <nav class="nav-drawer" id="navDrawer">
-    <div class="drawer-header">
-      <span>Navigation</span>
-      <button class="drawer-close" onclick="toggleMenu()">&times;</button>
-    </div>
-    <ul class="drawer-links">
-      <li><a href="index.html">Scores Board</a></li>
-      <li><a href="grid.html" class="active">Saturday Game Grid</a></li>
-      <li><a href="schedules.html">MSU Schedule</a></li>
-      <li><a href="visit.html">MSU Trip</a></li>
-    </ul>
-  </nav>
-
   <header>
     <div class="header-left">
       <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu">
@@ -434,13 +422,6 @@
   <div id="grid-container"></div>
 
   <script>
-    function toggleMenu() {
-      const drawer = document.getElementById('navDrawer');
-      const overlay = document.getElementById('navOverlay');
-      drawer.classList.toggle('open');
-      overlay.classList.toggle('open');
-    }
-
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
       if (!btn) return;
