@@ -94,9 +94,10 @@
 
     function isSEC(g) {
       return g.competitions[0].competitors.some(c => {
+        const id = String(c.team?.conferenceId || c.team?.conference?.id || '');
         const a = String(c.team?.conference?.abbreviation || '').toUpperCase();
         const n = String(c.team?.conference?.name || '').toLowerCase();
-        return a === 'SEC' || n.includes('sec') || n.includes('southeastern');
+        return id === '8' || a === 'SEC' || n.includes('sec') || n.includes('southeastern');
       });
     }
 
@@ -105,40 +106,47 @@
     }
 
     function getConfKey(t) {
-      if (!t) return 'sbc';
+      if (!t) return 'other';
+      const id = String(t.conferenceId || t.conference?.id || '');
       const a = String(t.conference?.abbreviation || '').toUpperCase();
       const n = String(t.conference?.name || t.conference || '').toLowerCase();
-      if (a === 'SEC' || n.includes('sec') || n.includes('southeastern')) return 'sec';
-      if (a === 'B1G' || a === 'BIG TEN' || n.includes('big ten') || n.includes('b1g')) return 'btn';
-      if (a === 'ACC' || n.includes('acc') || n.includes('atlantic coast')) return 'acc';
-      if (a === 'B12' || a === 'BIG 12' || n.includes('big 12') || n.includes('b12')) return 'b12';
-      if (a === 'AAC' || a === 'THE AAC' || n.includes('american athletic') || n.includes('aac')) return 'aac';
-      if (a === 'CUSA' || a === 'C-USA' || n.includes('conference usa') || n.includes('cusa')) return 'cusa';
-      if (a === 'IND' || a === 'INDEP' || n.includes('independent')) return 'indep';
-      if (a === 'MAC' || n.includes('mid-american') || n.includes('mac')) return 'mac';
-      if (a === 'MWC' || a === 'MW' || n.includes('mountain west')) return 'mwc';
-      if (a === 'PAC' || a === 'PAC-12' || a === 'PAC12' || n.includes('pac-12') || n.includes('pac12')) return 'pac12';
-      if (a === 'SBC' || a === 'SUN BELT' || n.includes('sun belt')) return 'sbc';
-      return 'sbc';
+
+      if (id === '8' || a === 'SEC' || n.includes('sec') || n.includes('southeastern')) return 'sec';
+      if (id === '5' || a === 'B1G' || a === 'BIG TEN' || n.includes('big ten') || n.includes('b1g')) return 'btn';
+      if (id === '1' || a === 'ACC' || n.includes('acc') || n.includes('atlantic coast')) return 'acc';
+      if (id === '10' || a === 'B12' || a === 'BIG 12' || n.includes('big 12') || n.includes('b12')) return 'b12';
+      if (id === '15' || a === 'AAC' || n.includes('american athletic') || n.includes('aac')) return 'aac';
+      if (id === '12' || a === 'CUSA' || a === 'C-USA' || n.includes('conference usa') || n.includes('cusa')) return 'cusa';
+      if (id === '18' || a === 'IND' || a === 'INDEP' || n.includes('independent')) return 'indep';
+      if (id === '151' || a === 'MAC' || n.includes('mid-american') || n.includes('mac')) return 'mac';
+      if (id === '17' || a === 'MWC' || a === 'MW' || n.includes('mountain west')) return 'mwc';
+      if (id === '9' || id === '37' || a === 'PAC' || a === 'PAC-12' || a === 'PAC12' || n.includes('pac-12') || n.includes('pac12')) return 'pac12';
+      if (id === '37' || a === 'SBC' || a === 'SUN BELT' || n.includes('sun belt')) return 'sbc';
+      
+      return 'other';
     }
 
     function getGamePriority(g) {
       if (isSEC(g)) return 1;
       if (isRanked(g)) return 2;
-      const k = g.competitions[0].competitors.map(c => getConfKey(c.team));
-      const tiers = ['btn', 'acc', 'b12', 'aac', 'cusa', 'indep', 'mac', 'mwc', 'pac12'];
+      const keys = g.competitions[0].competitors.map(c => getConfKey(c.team));
+      const tiers = ['btn', 'acc', 'b12', 'aac', 'cusa', 'indep', 'mac', 'mwc', 'pac12', 'sbc'];
       for (let i = 0; i < tiers.length; i++) {
-        if (k.includes(tiers[i])) return i + 3;
+        if (keys.includes(tiers[i])) return i + 3;
       }
-      return 12;
+      return 13;
     }
 
     function getGameSortTag(g) {
       if (isSEC(g)) return 'SEC';
       if (isRanked(g)) return 'RNK';
-      const tags = ['BTN', 'ACC', 'B12', 'AAC', 'CUSA', 'INDEP', 'MAC', 'MWC', 'PAC12'];
-      const p = getGamePriority(g);
-      return (p >= 3 && p <= 11) ? tags[p - 3] : 'SBC';
+      const keys = g.competitions[0].competitors.map(c => getConfKey(c.team));
+      const tags = ['BTN', 'ACC', 'B12', 'AAC', 'CUSA', 'INDEP', 'MAC', 'MWC', 'PAC12', 'SBC'];
+      const tiers = ['btn', 'acc', 'b12', 'aac', 'cusa', 'indep', 'mac', 'mwc', 'pac12', 'sbc'];
+      for (let i = 0; i < tiers.length; i++) {
+        if (keys.includes(tiers[i])) return tags[i];
+      }
+      return 'OTHR';
     }
 
     function sortGamesList(list) {
