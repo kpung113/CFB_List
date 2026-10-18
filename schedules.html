@@ -36,11 +36,11 @@
     .sport-filter-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; white-space: nowrap; }
     .sport-tab { background: var(--card); border: 1px solid var(--border); color: var(--sub); font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: 0.12s ease; }
     .sport-tab.active, .sport-tab:hover { background: var(--maroon); color: #fff; border-color: #7d2033; }
-    .record-banner { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--gold); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; }
+    .record-banner { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--gold); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
     .record-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
     .record-label { font-size: 0.65rem; color: var(--sub); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
     .record-value { font-size: 0.95rem; font-weight: 800; color: #fff; }
-    .schedule-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .schedule-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
     .game-left, .game-right { display: flex; flex-direction: column; gap: 2px; }
     .game-right { text-align: right; align-items: flex-end; }
     .game-date { font-size: 0.7rem; color: var(--sub); font-weight: 600; }
@@ -49,9 +49,6 @@
     .result-win { background: rgba(34, 197, 94, 0.2); color: var(--green); border: 1px solid rgba(34, 197, 94, 0.4); }
     .result-loss { background: rgba(239, 68, 68, 0.2); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.4); }
     .sport-tag, .tv-tag { font-size: 0.65rem; color: var(--gold); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-    .home-away { font-size: 0.85rem; color: var(--sub); font-weight: 700; margin-right: 6px; }
-    .debug-banner { background: #111214; border: 1px solid #273043; padding: 8px 12px; border-radius: 6px; color: var(--sub); margin-bottom: 12px; font-size: 0.85rem; }
-    .missing-list { font-size: 0.75rem; color: #cbd5e1; margin-top: 6px; }
   </style>
 </head>
 <body>
@@ -98,9 +95,10 @@
     }
 
     const sportLabels = { 'football': 'Football', 'mens-basketball': "Men's Basketball", 'womens-basketball': "Women's Basketball", 'baseball': 'Baseball', 'softball': 'Softball' };
+    
     const espnEndpoints = ['football', 'mens-basketball', 'womens-basketball', 'baseball', 'softball'].map(key => ({
-      key,
-      url: `https://site.api.espn.com/apis/site/v2/sports/${key.includes('basketball') ? 'basketball/' + (key.includes('womens') ? 'womens-college-basketball' : 'mens-college-basketball') : key}/teams/344/schedule?season=2026&seasontype=2`
+      key, 
+      url: `https://site.api.espn.com/apis/site/v2/sports/${key.includes('basketball') ? 'basketball/' + (key.includes('womens') ? 'womens-college-basketball' : 'mens-college-basketball') : key === 'football' ? 'football/college-football' : 'baseball/college-' + key}/teams/344/schedule?season=2026&seasontype=2`
     }));
 
     let combinedDataset = [], currentFilter = 'all';
@@ -115,185 +113,36 @@
       return scoreObj.value !== undefined ? String(scoreObj.value) : scoreObj.displayValue !== undefined ? String(scoreObj.displayValue) : null;
     }
 
-    // improved normalization: remove punctuation, common words, and tournament/exh markers
-    function normalizeName(value) {
-      if (!value) return '';
-      const v = String(value).toLowerCase();
-      // remove parenthetical content like (Exh.) or (Battle 4 Atlantis)
-      const noParens = v.replace(/\(.*?\)/g, '');
-      // common stop words to remove
-      const stop = ['university','college','state','st','st.','of','the','at','navy','air','team','club','mt','mount'];
-      // remove punctuation and numbers, collapse whitespace
-      let cleaned = noParens.replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim();
-      // remove stop words
-      stop.forEach(s => {
-        const re = new RegExp('\\b' + s + '\\b', 'g');
-        cleaned = cleaned.replace(re, '');
-      });
-      cleaned = cleaned.replace(/\s+/g, ' ').trim();
-      return cleaned.replace(/\s/g, ''); // compact to single token for comparison
-    }
-
-    // expanded alias map for common mismatches
-    const aliasMap = {
-      'ulm': ['ulm','louisianamonroe','louisiana'],
-      'olemiss': ['olemiss','olemissrebels','mississippiolemiss','olemiss'],
-      'msu': ['mississippistate','msstate','msu'],
-      'uab': ['uab','alabamabirmingham','uab'],
-      'vc': ['virginiatech','virginiatech'],
-      'ucf': ['ucf','centralflorida']
-      // add more as we discover mismatches
-    };
-
-    function compareOpponents(localOppName, espTeam) {
-      if (!espTeam && !localOppName) return false;
-      const espAbbrev = (espTeam?.abbreviation || '').toLowerCase();
-      const espShort = (espTeam?.shortDisplayName || '').toLowerCase();
-      const espDisplay = (espTeam?.displayName || espTeam?.name || '').toLowerCase();
-
-      const localNorm = normalizeName(localOppName);
-      const espNorms = [normalizeName(espAbbrev), normalizeName(espShort), normalizeName(espDisplay), normalizeName(espTeam?.name)];
-
-      // direct abbrev match
-      if (localOppName && espAbbrev && localNorm === normalizeName(espAbbrev)) return true;
-      // alias map
-      if (aliasMap[localNorm]) {
-        for (const a of aliasMap[localNorm]) {
-          if (espNorms.includes(normalizeName(a))) return true;
-        }
-      }
-
-      // compare normalized tokens and allow substring/contains
-      for (const en of espNorms) {
-        if (!en) continue;
-        if (localNorm && en === localNorm) return true;
-        if (localNorm && en.includes(localNorm)) return true;
-        if (localNorm && localNorm.includes(en)) return true;
-      }
-
-      return false;
-    }
-
-    async function fetchFinalScoresForFootball() {
-      try {
-        const res = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=300');
-        if (!res.ok) {
-          console.warn('fetchFinalScoresForFootball non-OK response', res.status);
-          return;
-        }
-        const data = await res.json();
-
-        const unmatched = [];
-
-        (data.events || []).forEach(e => {
-          const comp = e.competitions?.[0]; if (!comp) return;
-          const dateIso = new Date(e.date).toISOString().split('T')[0];
-          const msu = comp.competitors?.find(c => String(c.id) === '344' || String(c.team?.id) === '344');
-          if (!msu) return;
-          const opp = comp.competitors?.find(c => String(c.id) !== '344' && String(c.team?.id) !== '344');
-          if (!opp) return;
-
-          const mScore = parseScore(msu.score);
-          const oScore = parseScore(opp.score);
-          if (mScore == null || oScore == null) return;
-
-          const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
-          const result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
-
-          let applied = false;
-          combinedDataset.forEach(cd => {
-            if (cd.sportKey !== 'football') return;
-            if (cd.isoDate !== dateIso) return;
-
-            // if opponentId exists on cd and matches ESPN opponent id -> apply
-            const cdOppId = cd.opponentId ? String(cd.opponentId) : null;
-            const espOppTeam = opp.team || {};
-            const espOppId = espOppTeam.id ? String(espOppTeam.id) : '';
-
-            if (cdOppId && espOppId && cdOppId === espOppId) {
-              cd.result = result;
-              if (!cd.tv) cd.tv = getBroadcast(comp);
-              applied = true;
-            } else if (compareOpponents(cd.opponent, espOppTeam)) {
-              cd.result = result;
-              if (!cd.tv) cd.tv = getBroadcast(comp);
-              applied = true;
-            }
-          });
-
-          if (!applied) {
-            unmatched.push({ date: dateIso, espOpponent: opp.team?.displayName || opp.team?.shortDisplayName || opp.team?.name, comp });
-            console.debug('ESPN event not matched to local schedule', { date: dateIso, espOpponent: opp.team?.displayName || opp.team?.shortDisplayName || opp.team?.name });
-          } else {
-            console.debug('Applied ESPN result', result, 'date', dateIso, 'opp', opp.team?.displayName || opp.team?.shortDisplayName || opp.team?.name);
-          }
-        });
-
-        // Fallback: try nearby date tolerance (±1 day) and fuzzy opponent match
-        unmatched.forEach(u => {
-          const espName = normalizeName(u.espOpponent);
-          const dateObj = new Date(u.date);
-          const candidates = combinedDataset.filter(cd => cd.sportKey === 'football' && !cd.result);
-          const dateCandidates = candidates.filter(cd => {
-            const d = new Date(cd.isoDate);
-            const diffDays = Math.round((d - dateObj) / (1000 * 60 * 60 * 24));
-            return Math.abs(diffDays) <= 1; // allow one day tolerance
-          });
-          const matches = dateCandidates.filter(c => {
-            const cNorm = normalizeName(c.opponent);
-            return cNorm && (cNorm.includes(espName) || espName.includes(cNorm) || compareOpponents(c.opponent, { displayName: u.espOpponent }));
-          });
-          if (matches.length === 1) {
-            const m = matches[0];
-            const comp = u.comp;
-            const msu = comp.competitors?.find(c => String(c.id) === '344' || String(c.team?.id) === '344');
-            const opp = comp.competitors?.find(c => String(c.id) !== '344' && String(c.team?.id) !== '344');
-            const mScore = parseScore(msu.score);
-            const oScore = parseScore(opp.score);
-            const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
-            const result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
-            m.result = result;
-            if (!m.tv) m.tv = getBroadcast(comp);
-            console.debug('Fallback (±1 day) applied ESPN result', result, 'to local match', m.opponent, 'date', u.date);
-          } else if (matches.length > 1) {
-            console.debug('Fallback (±1 day) multiple candidates, skipping', { date: u.date, espOpponent: u.espOpponent, candidates: matches.map(x => x.opponent) });
-          }
-        });
-
-        // Final fallback: match by opponent only when there's exactly one undefeated/unresulted candidate for that opponent across dataset
-        unmatched.forEach(u => {
-          const espName = normalizeName(u.espOpponent);
-          const candidates = combinedDataset.filter(cd => cd.sportKey === 'football' && !cd.result && normalizeName(cd.opponent) === espName);
-          if (candidates.length === 1) {
-            const m = candidates[0];
-            const comp = u.comp;
-            const msu = comp.competitors?.find(c => String(c.id) === '344' || String(c.team?.id) === '344');
-            const opp = comp.competitors?.find(c => String(c.id) !== '344' && String(c.team?.id) !== '344');
-            const mScore = parseScore(msu.score);
-            const oScore = parseScore(opp.score);
-            const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
-            const result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
-            m.result = result;
-            if (!m.tv) m.tv = getBroadcast(comp);
-            console.debug('Final fallback applied ESPN result', result, 'to local match', m.opponent, 'date', u.date);
-          }
-        });
-
-      } catch (err) {
-        console.error('fetchFinalScoresForFootball error', err);
-      }
+    function isSec(oppComp, comp) {
+      if (comp.conferenceCompetition === true || (comp.notes && comp.notes.some(n => n.headline?.toLowerCase().includes('sec')))) return true;
+      const id = String(oppComp.team?.conferenceId || oppComp.team?.conference?.id || '');
+      const name = String(oppComp.team?.conference?.name || oppComp.team?.conference?.abbreviation || '').toLowerCase();
+      return id === '8' || name.includes('sec') || name.includes('southeastern');
     }
 
     async function loadMasterDataset() {
       combinedDataset = [];
+
+      // 1. Load baseline schedule framework from data.js first (ensuring far-future & unindexed schedules exist)
+      if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
+        masterDataset.forEach(local => {
+          combinedDataset.push({ isSec: false, result: '', ...local, source: 'js' });
+        });
+      }
+
+      // 2. Fetch live and historical schedules from ESPN API and merge/update data
       await Promise.all(espnEndpoints.map(async sport => {
         try {
           const res = await fetch(sport.url);
           if (!res.ok) return;
           const data = await res.json();
-          const eventsList = data?.events || data?.team?.schedule;
-          eventsList?.forEach(event => {
-            const comp = event.competitions?.[0]; if (!comp || !comp.competitors) return;
+          
+          const eventsList = data?.events || data?.team?.schedule || data?.schedule;
+          if (!Array.isArray(eventsList)) return;
+
+          eventsList.forEach(event => {
+            const comp = event.competitions?.[0];
+            if (!comp || !comp.competitors) return;
 
             const msu = comp.competitors.find(c => String(c.id || c.team?.id) === '344');
             const opp = comp.competitors.find(c => String(c.id || c.team?.id) !== '344');
@@ -304,103 +153,65 @@
             const timeStr = (!isNaN(dateObj) && event.timeValid !== false) ? dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'TBD';
             
             let result = null;
-            const isCompleted = event.status?.type?.completed === true || event.status?.type?.state === 'post';
+            const statusType = event.status?.type;
+            const isCompleted = statusType?.completed === true || statusType?.state === 'post';
+            
             if (isCompleted) {
-              const mScore = parseScore(msu.score), oScore = parseScore(opp.score);
+              const mScore = parseScore(msu.score);
+              const oScore = parseScore(opp.score);
               if (mScore !== null && oScore !== null) {
                 const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
                 result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
               } else if (msu.winner !== undefined) {
                 result = msu.winner ? 'W' : 'L';
               }
-            } else if (event.status?.type?.state === 'in') {
+            } else if (statusType?.state === 'in') {
               result = `LIVE ${parseScore(msu.score) || 0}-${parseScore(opp.score) || 0}`;
             }
 
-            // store opponent id to make later matching reliable
-            const opponentId = opp.team?.id || opp.id || null;
+            const tv = getBroadcast(comp);
+            const isSecGame = isSec(opp, comp);
+            const opponentName = opp.team?.displayName || opp.team?.shortDisplayName || opp.team?.name || 'Opponent';
+            const isHomeGame = msu.homeAway === 'home';
 
-            combinedDataset.push({
-              sportKey: sport.key, 
-              opponent: opp.team.displayName || opp.team.shortDisplayName || 'Opponent',
-              opponentId: opponentId ? String(opponentId) : null,
-              isoDate, 
-              timeStr, 
-              isHome: msu.homeAway === 'home',
-              isSec: isSec(opp, comp), 
-              tv: getBroadcast(comp), 
-              result, 
-              source: 'espn'
-            });
+            // Match against data.js framework by sportKey and isoDate
+            const existingIndex = combinedDataset.findIndex(e => e.sportKey === sport.key && e.isoDate === isoDate);
+
+            if (existingIndex !== -1) {
+              if (result) combinedDataset[existingIndex].result = result;
+              if (tv) combinedDataset[existingIndex].tv = tv;
+              combinedDataset[existingIndex].timeStr = timeStr;
+              combinedDataset[existingIndex].isSec = isSecGame;
+              combinedDataset[existingIndex].isHome = isHomeGame;
+            } else {
+              combinedDataset.push({
+                sportKey: sport.key, 
+                opponent: opponentName, 
+                isoDate, 
+                timeStr, 
+                isHome: isHomeGame, 
+                isSec: isSecGame, 
+                tv, 
+                result, 
+                source: 'espn'
+              });
+            }
           });
         } catch (e) {
-          console.warn('Error fetching schedule for', sport.key, e);
+          console.warn(`Error loading schedule for ${sport.key}:`, e);
         }
       }));
 
-      // Merge local masterDataset. Match by sportKey + isoDate + opponent id/name
-      if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
-        masterDataset.forEach(local => {
-          const localNormOpp = normalizeName(local.opponent);
-          const match = combinedDataset.find(e => {
-            if (e.sportKey !== local.sportKey) return false;
-            if (e.isoDate !== local.isoDate) return false;
-
-            // prefer id match when possible
-            if (e.opponentId && local.opponentId && e.opponentId === String(local.opponentId)) return true;
-
-            // compare normalized names
-            if (compareOpponents(local.opponent, { id: e.opponentId, abbreviation: '', shortDisplayName: e.opponent, displayName: e.opponent, name: e.opponent })) return true;
-
-            return false;
-          });
-
-          if (match) {
-            // only use local values to fill missing fields (prefer ESPN data)
-            if ((!match.result || match.result === '') && local.result) match.result = local.result;
-            if ((!match.tv || match.tv === '') && local.tv) match.tv = local.tv;
-            // keep local isHome when ESPN doesn't provide
-            if (match.isHome === undefined && typeof local.isHome !== 'undefined') match.isHome = local.isHome;
-          } else {
-            // avoid pushing duplicates: check again by sport+date+normalized opponent
-            const exists = combinedDataset.some(e => e.sportKey === local.sportKey && e.isoDate === local.isoDate && normalizeName(e.opponent) === localNormOpp);
-            if (!exists) combinedDataset.push({ isSec: false, result: local.result || '', opponentId: null, ...local, source: 'js' });
-          }
-        });
-      }
-
-      await fetchFinalScoresForFootball();
       combinedDataset.sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
-
-      // debug: show how many games have results
-      console.debug('combinedDataset size', combinedDataset.length, 'with results', combinedDataset.filter(g => g.result).length);
     }
 
     function renderSchedule() {
-      const container = document.getElementById('schedule-container');
+      const container = document.getElementById("schedule-container");
       if (!container) return;
-      container.innerHTML = '';
-      if (!combinedDataset.length) {
-        container.innerHTML = "<p style='color:var(--sub);'>Unable to load schedule data.</p>";
-        return;
-      }
+      container.innerHTML = "";
+      if (!combinedDataset.length) { container.innerHTML = "<p style='color:var(--sub);'>Unable to load schedule data.</p>"; return; }
 
       const todayIso = new Date().toLocaleDateString('en-CA');
-
-      // debug banner showing dataset stats and list of past games without results
-      const total = combinedDataset.length;
-      const withResults = combinedDataset.filter(g => g.result).length;
-      const pastNoResult = combinedDataset.filter(g => g.isoDate < todayIso && !g.result);
-      const debugBanner = document.createElement('div');
-      debugBanner.className = 'debug-banner';
-      debugBanner.innerHTML = `<div><strong>Debug:</strong> total ${total} • with results ${withResults} • past without result ${pastNoResult.length}</div>`;
-      if (pastNoResult.length) {
-        const list = document.createElement('div');
-        list.className = 'missing-list';
-        list.innerHTML = 'Examples: ' + pastNoResult.slice(0,8).map(g => `${g.sportKey} ${g.isoDate} ${g.opponent}`).join(' • ');
-        debugBanner.appendChild(list);
-      }
-      container.appendChild(debugBanner);
 
       if (currentFilter !== 'all') {
         const games = combinedDataset.filter(e => e.sportKey === currentFilter);
@@ -415,29 +226,19 @@
         container.insertAdjacentHTML('beforeend', `<div class="record-banner"><div class="record-item"><span class="record-label">Overall Record</span><span class="record-value">${wins}-${losses}</span></div><div class="record-item"><span class="record-label">SEC Record</span><span class="record-value">${secWins}-${secLosses}</span></div></div>`);
       }
 
-      const filtered = currentFilter === 'all'
-        ? combinedDataset.filter(e => e.isoDate >= todayIso || Boolean(e.result))
-        : combinedDataset.filter(e => e.sportKey === currentFilter);
-
-      if (!filtered.length) {
-        container.innerHTML = "<p style='color:var(--sub);'>No games found for this selection.</p>";
-        return;
-      }
+      // Filter: 'all' shows upcoming games from today forward; individual tabs show full sport history
+      const filtered = combinedDataset.filter(e => currentFilter === 'all' ? e.isoDate >= todayIso : e.sportKey === currentFilter);
+      if (!filtered.length) { container.innerHTML = "<p style='color:var(--sub);'>No games found for this selection.</p>"; return; }
 
       filtered.forEach(e => {
         const dateStr = new Date(e.isoDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-        const hasResult = Boolean(e.result);
-        const past = e.isoDate < todayIso || hasResult;
-        const badge = past && hasResult
-          ? `<span class="result-badge ${e.result.startsWith('W') ? 'result-win' : 'result-loss'}">${e.result}</span>`
-          : `<span class="game-date">${e.timeStr}</span>`;
+        const past = e.isoDate < todayIso || Boolean(e.result);
+        const badge = past && e.result ? `<span class="result-badge ${e.result.startsWith('W') ? 'result-win' : 'result-loss'}">${e.result}</span>` : `<span class="game-date">${e.timeStr}</span>`;
         const tv = !past && e.tv ? `<span class="tv-tag">📺 ${e.tv}</span>` : '';
 
-        const homeAway = e.isHome === true ? `<span class="home-away">vs</span>` : `<span class="home-away">@</span>`;
-
-        const card = document.createElement('div');
-        card.className = 'schedule-card';
-        card.innerHTML = `<div class="game-left"><span class="sport-tag">${sportLabels[e.sportKey] || 'Sports'}</span><span class="game-date">${dateStr}</span><div class="opponent-name">${homeAway}<span style="font-weight:600">${e.opponent}</span></div></div><div class="game-right">${badge}${tv}</div>`;
+        const card = document.createElement("div");
+        card.className = "schedule-card";
+        card.innerHTML = `<div class="game-left"><span class="sport-tag">${sportLabels[e.sportKey] || 'Sports'}</span><span class="game-date">${dateStr}</span><div class="opponent-name"><span style="color:var(--sub); font-size:0.75rem;">${e.isHome ? 'vs' : '@'}</span>${e.opponent}</div></div><div class="game-right">${badge}${tv}</div>`;
         container.appendChild(card);
       });
     }
@@ -452,11 +253,11 @@
     window.onload = async () => {
       updateToggleButtonState();
       if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
-      try {
-        await loadMasterDataset();
-        renderSchedule();
+      try { 
+        await loadMasterDataset(); 
+        renderSchedule(); 
       } catch (e) {
-        document.getElementById('schedule-container').innerHTML = "<p style='color:var(--sub);'>Error rendering schedule data.</p>";
+        document.getElementById("schedule-container").innerHTML = "<p style='color:var(--sub);'>Error rendering schedule data.</p>";
       }
     };
   </script>
