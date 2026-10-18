@@ -473,92 +473,79 @@
       );
     }
 
-    // Helper to map team conference to correct tiers
+    // Helper to map team conference to correct key
     function getConfKey(team) {
-      if (!team) return 'other';
+      if (!team) return 'sbc';
       const confId = String(team.conferenceId || team.conference?.id || '');
       const confName = String(team.conference?.name || team.conference?.abbreviation || team.conference || '').toLowerCase();
       
       if (confId === '8' || confName.includes('sec') || confName.includes('southeastern')) return 'sec';
-      if (confId === '5' || confName.includes('big ten') || confName.includes('b1g')) return 'bigten';
-      
-      // Correct Big 12 check (ESPN ID 10)
-      if (confId === '10' || confName.includes('big 12') || confName.includes('b12')) return 'big12';
-      
-      // Strict ACC check (avoiding substring clashes with AAC)
+      if (confId === '5' || confName.includes('big ten') || confName.includes('b1g')) return 'btn';
       if (confId === '1' || confName === 'acc' || confName.includes('atlantic coast')) return 'acc';
-      
-      // Strict American Athletic Conference (AAC) check (ESPN ID 15)
+      if (confId === '10' || confName.includes('big 12') || confName.includes('b12')) return 'b12';
       if (confId === '15' || confName.includes('american athletic') || confName.includes('the american') || confName === 'aac') return 'aac';
-
-      // Mid-American Conference (MAC) check (ESPN ID 151)
+      if (confId === '12' || confName.includes('conference usa') || confName.includes('cusa')) return 'cusa';
+      if (confId === '18' || confName.includes('independent') || confName.includes('indep')) return 'indep';
       if (confId === '151' || confName.includes('mid-american') || confName === 'mac') return 'mac';
-      
-      return 'other';
+      if (confId === '17' || confName.includes('mountain west') || confName.includes('mwc')) return 'mwc';
+      if (confId === '9' || confId === '37' || confName.includes('pac-12') || confName.includes('pac12')) return 'pac12';
+      return 'sbc';
     }
 
-    // Determines highest priority conference tier involved in a game (Order: Big Ten -> ACC -> Big 12 -> AAC -> MAC -> Other)
-    function getGameConfTier(game) {
+    // Strict priority hierarchy: SEC -> Ranked -> Big Ten -> ACC -> Big 12 -> AAC -> CUSA -> INDEP -> MAC -> MWC -> PAC12 -> SBC
+    function getGamePriority(game) {
+      if (isSEC(game)) return 1;
+      if (isRanked(game)) return 2;
       const comps = game.competitions[0].competitors;
-      const confs = comps.map(c => getConfKey(c.team));
-      if (confs.includes('sec')) return 1;
-      if (confs.includes('bigten')) return 2;
-      if (confs.includes('acc')) return 3;
-      if (confs.includes('big12')) return 4;
-      if (confs.includes('aac')) return 5;
-      if (confs.includes('mac')) return 6;
-      return 7;
+      const keys = comps.map(c => getConfKey(c.team));
+      
+      if (keys.includes('btn')) return 3;
+      if (keys.includes('acc')) return 4;
+      if (keys.includes('b12')) return 5;
+      if (keys.includes('aac')) return 6;
+      if (keys.includes('cusa')) return 7;
+      if (keys.includes('indep')) return 8;
+      if (keys.includes('mac')) return 9;
+      if (keys.includes('mwc')) return 10;
+      if (keys.includes('pac12')) return 11;
+      return 12; // SBC
     }
 
     // Returns sorting badge tag matching the strict hierarchy order
     function getGameSortTag(game) {
       if (isSEC(game)) return 'SEC';
       if (isRanked(game)) return 'RNK';
-      const tier = getGameConfTier(game);
-      if (tier === 2) return 'BTN';
-      if (tier === 3) return 'ACC';
-      if (tier === 4) return 'B12';
-      if (tier === 5) return 'AAC';
-      if (tier === 6) return 'MAC';
-      return 'OTHR';
+      const comps = game.competitions[0].competitors;
+      const keys = comps.map(c => getConfKey(c.team));
+      
+      if (keys.includes('btn')) return 'BTN';
+      if (keys.includes('acc')) return 'ACC';
+      if (keys.includes('b12')) return 'B12';
+      if (keys.includes('aac')) return 'AAC';
+      if (keys.includes('cusa')) return 'CUSA';
+      if (keys.includes('indep')) return 'INDEP';
+      if (keys.includes('mac')) return 'MAC';
+      if (keys.includes('mwc')) return 'MWC';
+      if (keys.includes('pac12')) return 'PAC12';
+      return 'SBC';
     }
 
     // Standard sort for active live games
     function sortGames(games) {
       return games.sort((a, b) => {
-        const aSEC = isSEC(a);
-        const bSEC = isSEC(b);
-        if (aSEC && !bSEC) return -1;
-        if (!aSEC && bSEC) return 1;
-
-        const aRanked = isRanked(a);
-        const bRanked = isRanked(b);
-        if (aRanked && !bRanked) return -1;
-        if (!aRanked && bRanked) return 1;
-
+        const pA = getGamePriority(a);
+        const pB = getGamePriority(b);
+        if (pA !== pB) return pA - pB;
         return new Date(a.date) - new Date(b.date);
       });
     }
 
-    // Custom sort specifically for completed games: SEC -> Ranked -> Big Ten -> ACC -> Big 12 -> Other
+    // Custom sort specifically for completed games following exact priority order
     function sortCompletedGames(games) {
       return games.sort((a, b) => {
-        const aSEC = isSEC(a);
-        const bSEC = isSEC(b);
-        if (aSEC && !bSEC) return -1;
-        if (!aSEC && bSEC) return 1;
-
-        const aRanked = isRanked(a);
-        const bRanked = isRanked(b);
-        if (aRanked && !bRanked) return -1;
-        if (!aRanked && bRanked) return 1;
-
-        const aTier = getGameConfTier(a);
-        const bTier = getGameConfTier(b);
-        if (aTier !== bTier) {
-          return aTier - bTier;
-        }
-
+        const pA = getGamePriority(a);
+        const pB = getGamePriority(b);
+        if (pA !== pB) return pA - pB;
         return new Date(a.date) - new Date(b.date);
       });
     }
