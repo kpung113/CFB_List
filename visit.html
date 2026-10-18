@@ -3,301 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Starkville Visit Planner</title>
-
-  <!-- Shared Navigation Script -->
+  <title>Bully's CFB Board - Closest Away Games</title>
   <script src="nav.js"></script>
-
-  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-8695308WQ8');
-
-    if (localStorage.getItem('dyslexiaMode') === 'enabled') {
-      document.documentElement.classList.add('dyslexia-font');
-    }
+    window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+    gtag('js',new Date());gtag('config','G-8695308WQ8');
+    if(localStorage.getItem('dyslexiaMode')==='enabled')document.documentElement.classList.add('dyslexia-font');
   </script>
-
   <style>
-    :root {
-      --bg: #0b0c10;
-      --card-bg: #181920;
-      --card-border: #272935;
-      --text: #f8fafc;
-      --accent-maroon: #5d1725;
-      --subtext: #94a3b8;
-      --gold: #84cc16;
-      --green: #22c55e;
-    }
-    * { box-sizing: border-box; }
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 16px;
-    }
-    body.dyslexia-font, body.dyslexia-font * {
-      font-family: "Comic Sans MS", "Verdana", sans-serif !important;
-      letter-spacing: 0.05em !important;
-      word-spacing: 0.1em !important;
-    }
-    .dyslexia-toggle {
-      background: #181920;
-      border: 1px solid var(--card-border);
-      color: #38bdf8;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    /* --- NAVIGATION DRAWER STYLES --- */
-    .nav-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 99;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition: 0.2s;
-    }
-    .nav-overlay.open {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-    }
-    .nav-drawer {
-      position: fixed;
-      top: 0;
-      left: -260px;
-      width: 260px;
-      height: 100vh;
-      background: #181920;
-      border-right: 1px solid var(--card-border);
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-      transition: 0.3s;
-      box-shadow: 4px 0 15px rgba(0, 0, 0, 0.5);
-    }
-    .nav-drawer.open { left: 0; }
-    .drawer-header {
-      padding: 14px 16px;
-      font-weight: 800;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      color: #38bdf8;
-      border-bottom: 1px solid var(--card-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .drawer-close {
-      background: none;
-      border: none;
-      color: var(--subtext);
-      font-size: 1.3rem;
-      cursor: pointer;
-    }
-    .drawer-links {
-      list-style: none;
-      padding: 8px 0;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-    }
-    .drawer-links a {
-      padding: 12px 18px;
-      color: var(--text);
-      text-decoration: none;
-      font-size: 0.85rem;
-      font-weight: 700;
-      display: block;
-      border-left: 3px solid transparent;
-    }
-    .drawer-links a:hover, .drawer-links a.active {
-      background-color: #222530;
-      border-left-color: #38bdf8;
-      color: #38bdf8;
-    }
-
-    /* --- HEADER STYLES --- */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid var(--accent-maroon);
-    }
-    .header-left, .header-right, .header-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .header-left { gap: 12px; }
-    .menu-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      width: 22px;
-      height: 18px;
-      padding: 0;
-      z-index: 101;
-    }
-    .menu-btn span {
-      display: block;
-      width: 100%;
-      height: 2px;
-      background-color: #38bdf8;
-      border-radius: 2px;
-    }
-    .msu-logo {
-      height: 38px;
-      width: auto;
-      object-fit: contain;
-      filter: drop-shadow(0 0 2px #fff);
-    }
-    h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
-
-    /* Filter Controls */
-    .filter-panel {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .filter-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.8rem;
-    }
-    .filter-label {
-      font-weight: 700;
-      color: var(--gold);
-      min-width: 110px;
-    }
-    .days-input-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    input[type="number"] {
-      background: #12131a;
-      color: #fff;
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      padding: 4px 8px;
-      width: 50px;
-      font-weight: bold;
-      text-align: center;
-      font-size: 0.85rem;
-    }
-    .sports-toggles {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .sports-toggles label {
-      background: #12131a;
-      border: 1px solid var(--card-border);
-      padding: 4px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      user-select: none;
-      font-size: 0.75rem;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .sports-toggles input:checked + span {
-      color: #fff;
-      font-weight: bold;
-    }
-    .search-btn {
-      background: var(--accent-maroon);
-      color: #fff;
-      border: 1px solid #7d2033;
-      padding: 6px 14px;
-      border-radius: 6px;
-      font-weight: 800;
-      font-size: 0.8rem;
-      cursor: pointer;
-      align-self: flex-start;
-      margin-top: 2px;
-    }
-
-    /* Candidate Cards */
-    .candidate-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 10px 12px;
-      margin-bottom: 8px;
-      border-left: 4px solid var(--accent-maroon);
-    }
-    .candidate-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-      padding-bottom: 4px;
-      border-bottom: 1px solid #222530;
-    }
-    .date-range {
-      font-weight: 800;
-      font-size: 0.85rem;
-      color: #fff;
-    }
-    .badge-group {
-      display: flex;
-      gap: 4px;
-    }
-    .badge {
-      background: rgba(132, 204, 22, 0.15);
-      color: var(--gold);
-      font-size: 0.7rem;
-      font-weight: bold;
-      padding: 2px 6px;
-      border-radius: 4px;
-      border: 1px solid rgba(132, 204, 22, 0.3);
-    }
-    .badge-multi {
-      background: rgba(34, 197, 94, 0.15);
-      color: var(--green);
-      border-color: rgba(34, 197, 94, 0.3);
-    }
-    .game-line {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.75rem;
-      padding: 3px 0;
-      color: var(--subtext);
-    }
-    .sport-title {
-      font-weight: 700;
-      color: var(--text);
-    }
+    :root{--bg:#0b0c10;--card-bg:#181920;--card-border:#272935;--text:#f8fafc;--accent-maroon:#5d1725;--subtext:#94a3b8;--gold:#84cc16}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:16px}
+    body.dyslexia-font,body.dyslexia-font *{font-family:"Comic Sans MS","Verdana",sans-serif!important;letter-spacing:.05em!important;word-spacing:.1em!important}
+    .dyslexia-toggle{background:#181920;border:1px solid var(--card-border);color:#38bdf8;font-size:.75rem;font-weight:700;padding:5px 10px;border-radius:6px;cursor:pointer}
+    .nav-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.6);z-index:99;opacity:0;visibility:hidden;pointer-events:none;transition:.2s}
+    .nav-overlay.open{opacity:1;visibility:visible;pointer-events:auto}
+    .nav-drawer{position:fixed;top:0;left:-260px;width:260px;height:100vh;background:#181920;border-right:1px solid var(--card-border);z-index:100;display:flex;flex-direction:column;transition:.3s;box-shadow:4px 0 15px rgba(0,0,0,.5)}
+    .nav-drawer.open{left:0}
+    .drawer-header{padding:14px 16px;font-weight:800;font-size:.9rem;text-transform:uppercase;color:#38bdf8;border-bottom:1px solid var(--card-border);display:flex;justify-content:space-between;align-items:center}
+    .drawer-close{background:none;border:none;color:var(--subtext);font-size:1.3rem;cursor:pointer}
+    .drawer-links{list-style:none;padding:8px 0;margin:0;display:flex;flex-direction:column}
+    .drawer-links a{padding:12px 18px;color:var(--text);text-decoration:none;font-size:.85rem;font-weight:700;display:block;border-left:3px solid transparent}
+    .drawer-links a:hover,.drawer-links a.active{background-color:#222530;border-left-color:#38bdf8;color:#38bdf8}
+    header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--accent-maroon)}
+    .header-left,.header-right,.header-title{display:flex;align-items:center;gap:8px}
+    .header-left{gap:12px}
+    .menu-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;width:22px;height:18px;padding:0;z-index:101}
+    .menu-btn span{display:block;width:100%;height:2px;background-color:#38bdf8;border-radius:2px}
+    .msu-logo{height:38px;width:auto;object-fit:contain;filter:drop-shadow(0 0 2px #fff)}
+    h1{margin:0;font-size:1.25rem;font-weight:800}
+    .zip-control-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:16px;margin-bottom:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+    .zip-input{background:#0b0c10;border:1px solid var(--card-border);color:var(--text);padding:8px 12px;border-radius:6px;width:110px;font-weight:700;font-size:1rem;text-align:center}
+    .calc-btn{background:var(--accent-maroon);color:#fff;border:1px solid #7d2033;padding:8px 16px;border-radius:6px;font-weight:700;cursor:pointer;font-size:.85rem;transition:background .2s}
+    .calc-btn:hover{background:#7d2033}
+    .zip-status{font-size:.8rem;color:var(--subtext);width:100%}
+    .game-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:16px;margin-bottom:12px;border-left:5px solid var(--accent-maroon);box-shadow:0 4px 12px rgba(0,0,0,.4)}
+    .card-header{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--subtext);margin-bottom:8px}
+    .team-row{display:flex;justify-content:space-between;align-items:center;margin:6px 0;font-size:1.1rem;font-weight:600}
+    .distance-badge{font-size:.8rem;background:rgba(132,204,22,.15);color:#84cc16;border:1px solid rgba(132,204,22,.3);padding:3px 8px;border-radius:6px;font-weight:700}
+    .sport-badge{font-size:.7rem;background:var(--accent-maroon);color:#fff;padding:2px 6px;border-radius:4px;font-weight:700}
+    .game-meta{font-size:.75rem;color:var(--subtext);margin-top:8px;padding-top:6px;border-top:1px solid var(--card-border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
   </style>
 </head>
 <body>
@@ -307,7 +53,7 @@
       <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
       <div class="header-title">
         <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" alt="MSU Logo" class="msu-logo">
-        <h1>Starkville Trip Planner</h1>
+        <h1>Bully's CFB Board</h1>
       </div>
     </div>
     <div class="header-right">
@@ -315,199 +61,164 @@
     </div>
   </header>
 
-  <div class="filter-panel">
-    <div class="filter-row">
-      <span class="filter-label">Days in Starkville:</span>
-      <div class="days-input-wrapper">
-        <input type="number" id="trip-days" min="1" max="5" value="2">
-        <span style="color:var(--subtext); font-size:0.75rem;">(1 to 5 days)</span>
-      </div>
-    </div>
-
-    <div class="filter-row">
-      <span class="filter-label">Sports Toggles:</span>
-      <div class="sports-toggles">
-        <label><input type="checkbox" value="football" checked> <span>🏈 Football</span></label>
-        <label><input type="checkbox" value="mens-basketball" checked> <span>🏀 Men's BB</span></label>
-        <label><input type="checkbox" value="womens-basketball" checked> <span>🏀 Women's BB</span></label>
-        <label><input type="checkbox" value="baseball" checked> <span>⚾ Baseball</span></label>
-        <label><input type="checkbox" value="softball" checked> <span>🥎 Softball</span></label>
-      </div>
-    </div>
-
-    <button class="search-btn" onclick="calculateHomestands()">Search Best Dates</button>
+  <div class="zip-control-card">
+    <label style="font-weight:700; font-size:0.85rem;">Enter Your Zip Code:</label>
+    <input type="text" id="zipInput" value="33813" maxlength="5" class="zip-input" />
+    <button onclick="calculateDistances()" class="calc-btn">Sort Away Games</button>
+    <div id="zipStatus" class="zip-status">Loading schedules...</div>
   </div>
+  
+  <div id="away-games-container"></div>
 
-  <div id="results-container">Scanning schedules...</div>
-
-  <!-- Include centralized dataset -->
   <script src="data.js"></script>
 
   <script>
-    function updateToggleButtonState() {
-      const btn = document.getElementById('fontToggleBtn');
-      if (!btn) return;
-      const active = localStorage.getItem('dyslexiaMode') === 'enabled';
-      btn.innerText = active ? 'Kate Button: ON' : 'Kate Button: OFF';
-      btn.style.borderColor = active ? '#38bdf8' : '#334155';
-    }
+    function updateToggleButtonState(){const e=document.getElementById('fontToggleBtn');if(!e)return;const t='enabled'===localStorage.getItem('dyslexiaMode');e.innerText=t?'Kate Button: ON':'Kate Button: OFF',e.style.borderColor=t?'#38bdf8':'#334155'}
+    function toggleDyslexiaFont(){const e='enabled'===localStorage.getItem('dyslexiaMode');localStorage.setItem('dyslexiaMode',e?'disabled':'enabled'),document.body.classList.toggle('dyslexia-font',!e),document.documentElement.classList.toggle('dyslexia-font',!e),updateToggleButtonState()}
+    document.addEventListener('DOMContentLoaded',()=>{updateToggleButtonState(),'enabled'===localStorage.getItem('dyslexiaMode')&&document.body.classList.add('dyslexia-font'),calculateDistances()});
 
-    function toggleDyslexiaFont() {
-      const active = localStorage.getItem('dyslexiaMode') === 'enabled';
-      localStorage.setItem('dyslexiaMode', active ? 'disabled' : 'enabled');
-      document.body.classList.toggle('dyslexia-font', !active);
-      document.documentElement.classList.toggle('dyslexia-font', !active);
-      updateToggleButtonState();
-    }
-
-    const sportLabels = {
-      'football': '🏈 Football',
-      'mens-basketball': '🏀 Men\'s Basketball',
-      'womens-basketball': '🏀 Women\'s Basketball',
-      'baseball': '⚾ Baseball',
-      'softball': '🥎 Softball'
+    const CITY_GEO_CACHE = {
+      "jackson, tn":{lat:35.6145,lon:-88.8139},"arlington, tx":{lat:32.7357,lon:-97.1081},"hoover, al":{lat:33.4054,lon:-86.8114},
+      "madison, al":{lat:34.6993,lon:-86.7483},"milwaukee, wi":{lat:43.0389,lon:-87.9065},"norman, ok":{lat:35.2059,lon:-97.4425},
+      "choctaw, ms":{lat:32.7765,lon:-89.2494},"biloxi, ms":{lat:30.396,lon:-88.8853},"los angeles, ca":{lat:34.0522,lon:-118.2437},
+      "gainesville, fl":{lat:29.6499,lon:-82.3486},"nashville, tn":{lat:36.1447,lon:-86.8089},"knoxville, tn":{lat:35.955,lon:-83.925},
+      "minneapolis, mn":{lat:44.9765,lon:-93.2248},"columbia, sc":{lat:33.9731,lon:-81.0192},"baton rouge, la":{lat:30.412,lon:-91.1838},
+      "austin, tx":{lat:30.2836,lon:-97.7325},"tuscaloosa, al":{lat:33.2082,lon:-87.5503},"auburn, al":{lat:32.6022,lon:-85.4892},
+      "athens, ga":{lat:33.9498,lon:-83.3734},"lexington, ky":{lat:38.0337,lon:-84.5024},"oxford, ms":{lat:34.3639,lon:-89.5342},
+      "columbia, mo":{lat:38.9358,lon:-92.3332},"college station, tx":{lat:30.6102,lon:-96.34},"fayetteville, ar":{lat:36.0681,lon:-94.1752},
+      "martin, tn":{lat:36.3434,lon:-88.8503},"buffalo, ny":{lat:42.8864,lon:-78.8784},"hattiesburg, ms":{lat:31.3271,lon:-89.2903},
+      "fort myers, fl":{lat:26.6406,lon:-81.8723},"davidson, nc":{lat:35.4993,lon:-80.8487},"greensboro, nc":{lat:36.0726,lon:-79.792},
+      "white sulphur springs, wv":{lat:37.7954,lon:-80.3031},"orlando, fl":{lat:28.5383,lon:-81.3792},"jackson, ms":{lat:32.2988,lon:-90.1848},
+      "paradise island, the bahamas":{lat:25.0854,lon:-77.321},"paradise island, bahamas":{lat:25.0854,lon:-77.321}
     };
 
-    function calculateHomestands() {
-      const container = document.getElementById("results-container");
-      if (!container) return;
-      container.innerHTML = "<p style='color:var(--subtext);'>Calculating homestand windows...</p>";
+    const STATE_MAP = {
+      wis:"wi",wis: "wi",okla:"ok",miss:"ms",texas:"tx",fla:"fl",tenn:"tn",ala:"al",
+      "n.c.":"nc","s.c.":"sc","w.va.":"wv","w va":"wv","wv":"wv",ga:"ga",ky:"ky",
+      mo:"mo",ar:"ar",ark:"ar",ny:"ny",mn:"mn",la:"la",ca:"ca"
+    };
 
-      if (typeof masterDataset === 'undefined' || !masterDataset.length) {
-        container.innerHTML = "<p style='color:var(--subtext);'>Unable to load data from data.js.</p>";
-        return;
-      }
-
-      const daysInput = document.getElementById("trip-days");
-      let selectedDays = parseInt(daysInput.value);
-      if (isNaN(selectedDays) || selectedDays < 1) selectedDays = 1;
-      if (selectedDays > 5) selectedDays = 5;
-      daysInput.value = selectedDays;
-
-      const checkedSports = Array.from(document.querySelectorAll('.sports-toggles input:checked')).map(cb => cb.value);
-
-      if (checkedSports.length === 0) {
-        container.innerHTML = "<p style='color:var(--subtext);'>Please select at least one sport toggle.</p>";
-        return;
-      }
-
-      const homeGames = masterDataset.filter(ev => ev.isHome && checkedSports.includes(ev.sportKey));
-
-      if (homeGames.length === 0) {
-        container.innerHTML = "<p style='color:var(--subtext);'>No home games found for selected filters.</p>";
-        return;
-      }
-
-      homeGames.sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
-
-      const gamesByDate = {};
-      homeGames.forEach(game => {
-        if (!gamesByDate[game.isoDate]) gamesByDate[game.isoDate] = [];
-        gamesByDate[game.isoDate].push(game);
-      });
-
-      const sortedIsoDates = Object.keys(gamesByDate).sort();
-      const candidateWindows = [];
-
-      for (let i = 0; i < sortedIsoDates.length; i++) {
-        const startDate = new Date(sortedIsoDates[i] + 'T00:00:00');
-        const windowEndDate = new Date(startDate);
-        windowEndDate.setDate(startDate.getDate() + (selectedDays - 1));
-
-        let windowGames = [];
-        sortedIsoDates.forEach(dateStr => {
-          const d = new Date(dateStr + 'T00:00:00');
-          if (d >= startDate && d <= windowEndDate) {
-            windowGames.push(...gamesByDate[dateStr]);
-          }
-        });
-
-        if (windowGames.length >= 2) {
-          const sportsSet = new Set(windowGames.map(g => g.sportKey));
-          candidateWindows.push({
-            startDate,
-            windowEndDate,
-            games: windowGames,
-            sportCount: sportsSet.size
-          });
-        }
-      }
-
-      const uniqueCandidates = [];
-      const seenSignatures = new Set();
-
-      candidateWindows.forEach(w => {
-        const sig = w.games.map(g => g.isoDate + g.sportKey + g.opponent).join('|');
-        if (!seenSignatures.has(sig)) {
-          seenSignatures.add(sig);
-          uniqueCandidates.push(w);
-        }
-      });
-
-      renderCandidates(uniqueCandidates, selectedDays);
+    function parseCityState(s) {
+      if (!s) return null;
+      let c = s.replace(/\([^\(\)]*(stadium|field|arena|center)[^\(\)]*\)/gi, '');
+      if (c.toLowerCase().includes("paradise island")) return { city: "Paradise Island", state: "Bahamas" };
+      if (c.toLowerCase().includes("biloxi")) return { city: "Biloxi", state: "MS" };
+      if (c.toLowerCase().includes("white sulphur springs")) return { city: "White Sulphur Springs", state: "WV" };
+      const m = c.match(/([A-Za-z\s]+),\s*([A-Za-z\.\s]+)/);
+      return m ? { city: m[1].replace(/[\(\)]/g, '').trim(), state: m[2].replace(/[\(\)]/g, '').trim() } : null;
     }
 
-    function renderCandidates(windows, tripDays) {
-      const container = document.getElementById("results-container");
-      container.innerHTML = "";
+    async function geocode(city, rawState) {
+      if (!city || !rawState) return null;
+      const st = rawState.toLowerCase().replace(/\./g, '').trim();
+      const mappedSt = STATE_MAP[st] || st;
+      const key = `${city.toLowerCase().trim()}, ${mappedSt}`;
+      if (CITY_GEO_CACHE[key]) return CITY_GEO_CACHE[key];
 
-      if (windows.length === 0) {
-        container.innerHTML = `<p style='color:var(--subtext);'>No multi-game homestands found for a ${tripDays}-day trip with current filters.</p>`;
-        return;
-      }
-
-      windows.forEach(w => {
-        const startLabel = w.startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
-        const endLabel = w.windowEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
-
-        const dateHeaderStr = (tripDays === 1 || w.startDate.getTime() === w.windowEndDate.getTime())
-          ? startLabel
-          : `${startLabel} – ${endLabel}`;
-
-        const card = document.createElement("div");
-        card.className = "candidate-card";
-
-        let gamesHtml = w.games.map(g => {
-          const gameDate = new Date(g.isoDate + 'T00:00:00');
-          const dayName = gameDate.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
-          return `
-            <div class="game-line">
-              <span><strong class="sport-title">${sportLabels[g.sportKey]}</strong> vs ${g.opponent}</span>
-              <span>${dayName} • ${g.timeStr}</span>
-            </div>
-          `;
-        }).join('');
-
-        const multiSportBadge = w.sportCount > 1 
-          ? `<span class="badge badge-multi">${w.sportCount} Sports Crossover</span>` 
-          : '';
-
-        card.innerHTML = `
-          <div class="candidate-header">
-            <span class="date-range">${dateHeaderStr}</span>
-            <div class="badge-group">
-              ${multiSportBadge}
-              <span class="badge">${w.games.length} Home Games</span>
-            </div>
-          </div>
-          ${gamesHtml}
-        `;
-
-        container.appendChild(card);
-      });
-    }
-
-    window.onload = function() {
-      updateToggleButtonState();
-      if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
       try {
-        calculateHomestands();
-      } catch (err) {
-        const container = document.getElementById("results-container");
-        if (container) container.innerHTML = "<p style='color:var(--subtext);'>Error calculating trip windows.</p>";
-      }
-    };
-  </script>
+        const res = await fetch(`https://api.zippopotam.us/us/${mappedSt}/${encodeURIComponent(city.trim().toLowerCase())}`);
+        if (res.ok) {
+          const d = await res.json();
+          if (d.places?.[0]) {
+            const coords = { lat: parseFloat(d.places[0].latitude), lon: parseFloat(d.places[0].longitude) };
+            CITY_GEO_CACHE[key] = coords;
+            return coords;
+          }
+        }
+      } catch (e) {}
+      return null;
+    }
 
+    const ENDPOINTS = [
+      { name: "Football", url: "https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?limit=100" },
+      { name: "Baseball", url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?limit=100" },
+      { name: "Men's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?limit=100" },
+      { name: "Women's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?limit=100" }
+    ];
+
+    function getDist(lat1, lon1, lat2, lon2) {
+      const R = 3958.8, dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+      return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+    }
+
+    async function fetchAllEvents() {
+      const events = [];
+      for (const sp of ENDPOINTS) {
+        try {
+          const res = await fetch(sp.url);
+          if (!res.ok) continue;
+          const data = await res.json();
+          for (const e of (data.events || [])) {
+            const comp = e.competitions?.[0]; if (!comp) continue;
+            const msu = comp.competitors?.find(c => String(c.id) === "344" || String(c.team?.id) === "344");
+            const opp = comp.competitors?.find(c => String(c.id) !== "344" && String(c.team?.id) !== "344");
+            if (msu?.homeAway === 'away' || comp.neutralSite) {
+              const venue = comp.venue, addr = venue?.address;
+              let lat = venue?.geometry?.coordinates?.[1] || addr?.latitude, lon = venue?.geometry?.coordinates?.[0] || addr?.longitude;
+              let city = addr?.city, state = addr?.state;
+              if (!city || !state) {
+                const parsed = parseCityState(venue?.fullName) || parseCityState(addr?.summary);
+                if (parsed) { city = parsed.city; state = parsed.state; }
+              }
+              if ((!lat || !lon) && city && state) {
+                const geo = await geocode(city, state);
+                if (geo) { lat = geo.lat; lon = geo.lon; }
+              }
+              events.push({ sport: sp.name, date: new Date(e.date), opponent: opp?.team?.displayName || "Opponent", venueName: venue?.fullName || "Away Venue", location: city ? `${city}${state ? ', ' + state : ''}` : (addr?.summary || ""), lat: lat ? parseFloat(lat) : null, lon: lon ? parseFloat(lon) : null, isNeutral: comp.neutralSite });
+            }
+          }
+        } catch (err) {}
+      }
+
+      if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
+        for (const localGame of masterDataset) {
+          if (!localGame.isHome) {
+            if (!events.some(e => e.date.toISOString().split('T')[0] === localGame.isoDate && e.opponent.includes(localGame.opponent))) {
+              let lat = null, lon = null;
+              const parsed = parseCityState(localGame.location) || parseCityState(localGame.venue);
+              if (parsed) { const geo = await geocode(parsed.city, parsed.state); if (geo) { lat = geo.lat; lon = geo.lon; } }
+              events.push({ sport: localGame.sportKey || "Sports", date: new Date(localGame.isoDate + 'T00:00:00'), opponent: localGame.opponent, venueName: localGame.venue || "Away Venue", location: localGame.location || "", lat: lat, lon: lon, isNeutral: false });
+            }
+          }
+        }
+      }
+      return events;
+    }
+
+    async function calculateDistances() {
+      const zip = document.getElementById('zipInput').value.trim(), statusEl = document.getElementById('zipStatus'), container = document.getElementById('away-games-container');
+      if (!/^\d{5}$/.test(zip)) { statusEl.innerText = "Please enter a valid 5-digit US zip code."; return; }
+      statusEl.innerText = `Fetching away games and calculating distances for zip code ${zip}...`;
+      try {
+        let zipRes;
+        try {
+          zipRes = await fetch(`https://api.zippopotam.us/us/${zip}`);
+        } catch (e) {}
+        
+        const awayEvents = await fetchAllEvents();
+        
+        let uLat = 28.0395, uLon = -81.9498, placeName = zip;
+        if (zipRes && zipRes.ok) {
+          const zipData = await zipRes.json();
+          if (zipData.places?.[0]) {
+            uLat = parseFloat(zipData.places[0].latitude);
+            uLon = parseFloat(zipData.places[0].longitude);
+            placeName = `${zipData.places[0]['place name']}, ${zipData.places[0]['state abbreviation']}`;
+          }
+        }
+
+        const games = awayEvents.map(g => ({ ...g, distance: (g.lat && g.lon) ? getDist(uLat, uLon, g.lat, g.lon) : 9999 })).sort((a,b) => a.distance - b.distance);
+        statusEl.innerText = `Showing ${games.length} away/neutral games sorted by distance from ${placeName} (${zip}).`;
+        container.innerHTML = "";
+        games.forEach(game => {
+          const card = document.createElement('div'); card.className = "game-card";
+          const formattedDate = game.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+          card.innerHTML = `<div class="card-header"><span><span class="sport-badge">${game.sport}</span> • ${formattedDate}</span><span class="distance-badge">${game.distance !== 9999 ? `📍 ~${game.distance} miles away` : 'Location Pending'}</span></div><div class="team-row"><span>${game.isNeutral ? 'vs.' : 'at'} ${game.opponent}</span></div><div class="game-meta"><span><strong>Venue:</strong> ${game.venueName} ${game.location ? `(${game.location})` : ''}</span></div>`;
+          container.appendChild(card);
+        });
+      } catch (err) { statusEl.innerText = "Error fetching schedules or zip code location. Please check your connection."; }
+    }
+  </script>
 </body>
 </html>
