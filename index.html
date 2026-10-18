@@ -12,7 +12,7 @@
     if (localStorage.getItem('dyslexiaMode') === 'enabled') document.documentElement.classList.add('dyslexia-font');
   </script>
   <style>
-    :root { --bg:#0b0c10; --card-bg:#181920; --card-border:#272935; --text:#f8fafc; --accent-maroon:#5d1725; --accent-red:#ef4444; --subtext:#94a3b8; --gold:#fbbf24; }
+    :root { --bg:#0b0c10; --card-bg:#181920; --card-border:#272935; --text:#f8fafc; --accent-maroon:#5d1725; --accent-red:#ef4444; --subtext:#94a3b8; --gold:#84cc16; }
     * { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 16px; }
     body.dyslexia-font, body.dyslexia-font * { font-family: "Comic Sans MS", "Verdana", sans-serif !important; letter-spacing: 0.05em !important; word-spacing: 0.1em !important; }
@@ -118,7 +118,11 @@
           if (!home || !away) return;
 
           const state = e.status?.type?.state;
-          const isSec = (home.team?.conferenceId === "8" || away.team?.conferenceId === "8");
+          const isSec = comp.competitors.some(c => {
+            const cid = c.team?.conferenceId || c.team?.conference?.id;
+            return String(cid) === "8";
+          });
+
           const hRank = home.curatedRank?.current, aRank = away.curatedRank?.current;
           const hasRanked = (hRank && hRank <= 25) || (aRank && aRank <= 25);
           let bestRank = 99;
@@ -152,8 +156,8 @@
             id: e.id, homeId: home.id, awayId: away.id,
             homeTeam: home.team?.shortDisplayName || home.team?.name || 'Home',
             awayTeam: away.team?.shortDisplayName || away.team?.name || 'Away',
-            homeRank: (hRank && hRank <= 25) ? `<span style="color:#fbbf24;font-weight:bold;">#${hRank}</span> ` : '',
-            awayRank: (aRank && aRank <= 25) ? `<span style="color:#fbbf24;font-weight:bold;">#${aRank}</span> ` : '',
+            homeRank: (hRank && hRank <= 25) ? `<span style="color:#84cc16;font-weight:bold;">#${hRank}</span> ` : '',
+            awayRank: (aRank && aRank <= 25) ? `<span style="color:#84cc16;font-weight:bold;">#${aRank}</span> ` : '',
             homeScore: home.score || "0", awayScore: away.score || "0",
             state, statusDetail: e.status?.type?.shortDetail || '', period: e.status?.period || 0,
             isSec, hasRanked, bestRank, tv, spread, winProb,
@@ -165,6 +169,17 @@
           else if (state === 'post' && now <= monEnd) finals.push(gameObj);
         });
 
+        // SORT LIVE GAMES: SEC games first, then Ranked games, then best rank, then start time
+        live.sort((a, b) => {
+          if (a.isSec && !b.isSec) return -1;
+          if (!a.isSec && b.isSec) return 1;
+          if (a.hasRanked && !b.hasRanked) return -1;
+          if (!a.hasRanked && b.hasRanked) return 1;
+          if (a.bestRank !== b.bestRank) return a.bestRank - b.bestRank;
+          return a.gDate - b.gDate;
+        });
+
+        // SORT UPCOMING GAMES
         upcoming.sort((a, b) => {
           if (a.gDate.toDateString() !== b.gDate.toDateString()) return a.gDate - b.gDate;
           const tierA = a.isSec ? 1 : (a.hasRanked ? 2 : 3);
@@ -245,7 +260,7 @@
         <div class="card-header">
           <span>${g.statusDetail} ${g.isSec ? '<strong style="color:#fff;background:#5d1725;padding:1px 5px;border-radius:3px;font-size:0.7rem;">SEC</strong>' : ''}</span>
           <span class="card-header-right">
-            <strong style="color:#fbbf24;">📺 ${g.tv}</strong>
+            <strong style="color:#84cc16;">📺 ${g.tv}</strong>
             <a href="https://www.espn.com/college-football/game/_/gameId/${g.id}" target="_blank" rel="noopener noreferrer" class="watch-btn">Gamecast</a>
           </span>
         </div>
@@ -262,4 +277,3 @@
   </script>
 </body>
 </html>
-
