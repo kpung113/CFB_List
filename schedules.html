@@ -157,16 +157,16 @@
         } catch (e) {}
       }));
 
-      // Merge local fallback dataset
+      // Merge local fallback dataset (deferring to live API scores if available)
       if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
         masterDataset.forEach(local => {
           const match = combinedDataset.find(e => e.sportKey === local.sportKey && e.isoDate === local.isoDate);
           if (match) {
-            if (local.result) match.result = local.result;
+            if (!match.result && local.result) match.result = local.result;
             if (local.isSec !== undefined) match.isSec = local.isSec;
             if (!match.tv && local.tv) match.tv = local.tv;
           } else {
-            combinedDataset.push({ isSec: false, ...local, source: 'js' });
+            combinedDataset.push({ isSec: false, result: '', ...local, source: 'js' });
           }
         });
       }
