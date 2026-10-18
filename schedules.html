@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mississippi State Schedules</title>
   <script src="nav.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-8695308WQ8');
+    gtag('js', new Date()); gtag('config', 'G-8695308WQ8');
     if (localStorage.getItem('dyslexiaMode') === 'enabled') document.documentElement.classList.add('dyslexia-font');
   </script>
   <style>
@@ -159,11 +157,12 @@
         } catch (e) {}
       }));
 
+      // Merge local fallback dataset
       if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
         masterDataset.forEach(local => {
           const match = combinedDataset.find(e => e.sportKey === local.sportKey && e.isoDate === local.isoDate);
           if (match) {
-            if (!match.result && local.result) match.result = local.result;
+            if (local.result) match.result = local.result; // Force local result update (e.g. L 0-31)
             if (local.isSec !== undefined) match.isSec = local.isSec;
             if (!match.tv && local.tv) match.tv = local.tv;
           } else {
@@ -195,7 +194,8 @@
         container.insertAdjacentHTML('beforeend', `<div class="record-banner"><div class="record-item"><span class="record-label">Overall Record</span><span class="record-value">${wins}-${losses}</span></div><div class="record-item"><span class="record-label">SEC Record</span><span class="record-value">${secWins}-${secLosses}</span></div></div>`);
       }
 
-      const filtered = combinedDataset.filter(e => currentFilter === 'all' ? e.isoDate >= todayIso : e.sportKey === currentFilter);
+      // Filter games: Include past completed games in 'all' view if they have a result
+      const filtered = combinedDataset.filter(e => currentFilter === 'all' ? (e.isoDate >= todayIso || Boolean(e.result)) : e.sportKey === currentFilter);
       if (!filtered.length) { container.innerHTML = "<p style='color:var(--sub);'>No games found for this selection.</p>"; return; }
 
       filtered.forEach(e => {
@@ -228,4 +228,3 @@
   </script>
 </body>
 </html>
-
