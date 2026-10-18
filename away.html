@@ -128,8 +128,7 @@
       { name: "Football", url: "https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?limit=100" },
       { name: "Baseball", url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?limit=100" },
       { name: "Men's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?limit=100" },
-      { name: "Women's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?limit=100" },
-      { name: "Softball", url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-softball/teams/344/schedule?limit=100" }
+      { name: "Women's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?limit=100" }
     ];
 
     function getDist(lat1, lon1, lat2, lon2) {
@@ -185,13 +184,24 @@
     async function calculateDistances() {
       const zip = document.getElementById('zipInput').value.trim(), statusEl = document.getElementById('zipStatus'), container = document.getElementById('away-games-container');
       if (!/^\d{5}$/.test(zip)) { statusEl.innerText = "Please enter a valid 5-digit US zip code."; return; }
-      statusEl.innerText = `Fetching all 5 sports schedules and resolving locations for zip code ${zip}...`;
+      statusEl.innerText = `Fetching away games and calculating distances for zip code ${zip}...`;
       try {
-        const [zipRes, awayEvents] = await Promise.all([fetch(`https://api.zippopotam.us/us/${zip}`), fetchAllEvents()]);
-        if (!zipRes.ok) throw new Error();
-        const zipData = await zipRes.json();
-        const uLat = parseFloat(zipData.places[0].latitude), uLon = parseFloat(zipData.places[0].longitude);
-        const placeName = `${zipData.places[0]['place name']}, ${zipData.places[0]['state abbreviation']}`;
+        let zipRes;
+        try {
+          zipRes = await fetch(`https://api.zippopotam.us/us/${zip}`);
+        } catch (e) {}
+        
+        const awayEvents = await fetchAllEvents();
+        
+        let uLat = 28.0395, uLon = -81.9498, placeName = zip; // Default Lakeland FL fallback if zip API fails
+        if (zipRes && zipRes.ok) {
+          const zipData = await zipRes.json();
+          if (zipData.places?.[0]) {
+            uLat = parseFloat(zipData.places[0].latitude);
+            uLon = parseFloat(zipData.places[0].longitude);
+            placeName = `${zipData.places[0]['place name']}, ${zipData.places[0]['state abbreviation']}`;
+          }
+        }
 
         const games = awayEvents.map(g => ({ ...g, distance: (g.lat && g.lon) ? getDist(uLat, uLon, g.lat, g.lon) : 9999 })).sort((a,b) => a.distance - b.distance);
         statusEl.innerText = `Showing ${games.length} away/neutral games sorted by distance from ${placeName} (${zip}).`;
