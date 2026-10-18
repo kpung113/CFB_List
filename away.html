@@ -7,144 +7,43 @@
   <script src="nav.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date()); gtag('config', 'G-8695308WQ8');
-    if (localStorage.getItem('dyslexiaMode') === 'enabled') document.documentElement.classList.add('dyslexia-font');
+    window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+    gtag('js',new Date());gtag('config','G-8695308WQ8');
+    if(localStorage.getItem('dyslexiaMode')==='enabled')document.documentElement.classList.add('dyslexia-font');
   </script>
   <style>
-    :root { --bg:#0b0c10; --card-bg:#181920; --card-border:#272935; --text:#f8fafc; --accent-maroon:#5d1725; --accent-red:#ef4444; --subtext:#94a3b8; --gold:#84cc16; }
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 16px; }
-    body.dyslexia-font, body.dyslexia-font * { font-family: "Comic Sans MS", "Verdana", sans-serif !important; letter-spacing: 0.05em !important; word-spacing: 0.1em !important; }
-    .dyslexia-toggle { background: #181920; border: 1px solid var(--card-border); color: #38bdf8; font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
-
-    /* --- NAVIGATION DRAWER STYLES --- */
-    .nav-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 99;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition: 0.2s;
-    }
-    .nav-overlay.open {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-    }
-    .nav-drawer {
-      position: fixed;
-      top: 0;
-      left: -260px;
-      width: 260px;
-      height: 100vh;
-      background: #181920;
-      border-right: 1px solid var(--card-border);
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-      transition: 0.3s;
-      box-shadow: 4px 0 15px rgba(0, 0, 0, 0.5);
-    }
-    .nav-drawer.open { left: 0; }
-    .drawer-header {
-      padding: 14px 16px;
-      font-weight: 800;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      color: #38bdf8;
-      border-bottom: 1px solid var(--card-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .drawer-close {
-      background: none;
-      border: none;
-      color: var(--subtext);
-      font-size: 1.3rem;
-      cursor: pointer;
-    }
-    .drawer-links {
-      list-style: none;
-      padding: 8px 0;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-    }
-    .drawer-links a {
-      padding: 12px 18px;
-      color: var(--text);
-      text-decoration: none;
-      font-size: 0.85rem;
-      font-weight: 700;
-      display: block;
-      border-left: 3px solid transparent;
-    }
-    .drawer-links a:hover, .drawer-links a.active {
-      background-color: #222530;
-      border-left-color: #38bdf8;
-      color: #38bdf8;
-    }
-
-    /* --- HEADER STYLES --- */
-    header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--accent-maroon); }
-    .header-left, .header-right, .header-title { display: flex; align-items: center; gap: 8px; }
-    .header-left { gap: 12px; }
-    .menu-btn { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; width: 22px; height: 18px; padding: 0; z-index: 101; }
-    .menu-btn span { display: block; width: 100%; height: 2px; background-color: #38bdf8; border-radius: 2px; }
-    .msu-logo { height: 38px; width: auto; object-fit: contain; filter: drop-shadow(0 0 2px #fff); }
-    h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
-    
-    .zip-control-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 20px;
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-    .zip-input {
-      background: #0b0c10;
-      border: 1px solid var(--card-border);
-      color: var(--text);
-      padding: 8px 12px;
-      border-radius: 6px;
-      width: 110px;
-      font-weight: bold;
-      font-size: 1rem;
-      text-align: center;
-    }
-    .calc-btn {
-      background: var(--accent-maroon);
-      color: #fff;
-      border: 1px solid #7d2033;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: background 0.2s;
-    }
-    .calc-btn:hover { background: #7d2033; }
-    .zip-status { font-size: 0.8rem; color: var(--subtext); width: 100%; }
-
-    .game-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 5px solid var(--accent-maroon); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
-    .card-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--subtext); margin-bottom: 8px; }
-    .team-row { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; font-size: 1.1rem; font-weight: 600; }
-    .distance-badge { font-size: 0.8rem; background: rgba(132, 204, 22, 0.15); color: #84cc16; border: 1px solid rgba(132, 204, 22, 0.3); padding: 3px 8px; border-radius: 6px; font-weight: bold; }
-    .sport-badge { font-size: 0.7rem; background: var(--accent-maroon); color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-    .game-meta { font-size: 0.75rem; color: var(--subtext); margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--card-border); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+    :root{--bg:#0b0c10;--card-bg:#181920;--card-border:#272935;--text:#f8fafc;--accent-maroon:#5d1725;--subtext:#94a3b8;--gold:#84cc16}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:16px}
+    body.dyslexia-font,body.dyslexia-font *{font-family:"Comic Sans MS","Verdana",sans-serif!important;letter-spacing:.05em!important;word-spacing:.1em!important}
+    .dyslexia-toggle{background:#181920;border:1px solid var(--card-border);color:#38bdf8;font-size:.75rem;font-weight:700;padding:5px 10px;border-radius:6px;cursor:pointer}
+    .nav-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.6);z-index:99;opacity:0;visibility:hidden;pointer-events:none;transition:.2s}
+    .nav-overlay.open{opacity:1;visibility:visible;pointer-events:auto}
+    .nav-drawer{position:fixed;top:0;left:-260px;width:260px;height:100vh;background:#181920;border-right:1px solid var(--card-border);z-index:100;display:flex;flex-direction:column;transition:.3s;box-shadow:4px 0 15px rgba(0,0,0,.5)}
+    .nav-drawer.open{left:0}
+    .drawer-header{padding:14px 16px;font-weight:800;font-size:.9rem;text-transform:uppercase;color:#38bdf8;border-bottom:1px solid var(--card-border);display:flex;justify-content:space-between;align-items:center}
+    .drawer-close{background:none;border:none;color:var(--subtext);font-size:1.3rem;cursor:pointer}
+    .drawer-links{list-style:none;padding:8px 0;margin:0;display:flex;flex-direction:column}
+    .drawer-links a{padding:12px 18px;color:var(--text);text-decoration:none;font-size:.85rem;font-weight:700;display:block;border-left:3px solid transparent}
+    .drawer-links a:hover,.drawer-links a.active{background-color:#222530;border-left-color:#38bdf8;color:#38bdf8}
+    header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--accent-maroon)}
+    .header-left,.header-right,.header-title{display:flex;align-items:center;gap:8px}
+    .header-left{gap:12px}
+    .menu-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;width:22px;height:18px;padding:0;z-index:101}
+    .menu-btn span{display:block;width:100%;height:2px;background-color:#38bdf8;border-radius:2px}
+    .msu-logo{height:38px;width:auto;object-fit:contain;filter:drop-shadow(0 0 2px #fff)}
+    h1{margin:0;font-size:1.25rem;font-weight:800}
+    .zip-control-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:16px;margin-bottom:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+    .zip-input{background:#0b0c10;border:1px solid var(--card-border);color:var(--text);padding:8px 12px;border-radius:6px;width:110px;font-weight:700;font-size:1rem;text-align:center}
+    .calc-btn{background:var(--accent-maroon);color:#fff;border:1px solid #7d2033;padding:8px 16px;border-radius:6px;font-weight:700;cursor:pointer;font-size:.85rem;transition:background .2s}
+    .calc-btn:hover{background:#7d2033}
+    .zip-status{font-size:.8rem;color:var(--subtext);width:100%}
+    .game-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:16px;margin-bottom:12px;border-left:5px solid var(--accent-maroon);box-shadow:0 4px 12px rgba(0,0,0,.4)}
+    .card-header{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--subtext);margin-bottom:8px}
+    .team-row{display:flex;justify-content:space-between;align-items:center;margin:6px 0;font-size:1.1rem;font-weight:600}
+    .distance-badge{font-size:.8rem;background:rgba(132,204,22,.15);color:#84cc16;border:1px solid rgba(132,204,22,.3);padding:3px 8px;border-radius:6px;font-weight:700}
+    .sport-badge{font-size:.7rem;background:var(--accent-maroon);color:#fff;padding:2px 6px;border-radius:4px;font-weight:700}
+    .game-meta{font-size:.75rem;color:var(--subtext);margin-top:8px;padding-top:6px;border-top:1px solid var(--card-border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
   </style>
 </head>
 <body>
@@ -171,141 +70,61 @@
   
   <div id="away-games-container"></div>
 
-  <!-- Include fallback dataset -->
   <script src="data.js"></script>
 
   <script>
-    function updateToggleButtonState() {
-      const btn = document.getElementById('fontToggleBtn');
-      if (!btn) return;
-      const active = localStorage.getItem('dyslexiaMode') === 'enabled';
-      btn.innerText = active ? 'Kate Button: ON' : 'Kate Button: OFF';
-      btn.style.borderColor = active ? '#38bdf8' : '#334155';
-    }
-
-    function toggleDyslexiaFont() {
-      const active = localStorage.getItem('dyslexiaMode') === 'enabled';
-      localStorage.setItem('dyslexiaMode', active ? 'disabled' : 'enabled');
-      document.body.classList.toggle('dyslexia-font', !active);
-      document.documentElement.classList.toggle('dyslexia-font', !active);
-      updateToggleButtonState();
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      updateToggleButtonState();
-      if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
-      calculateDistances();
-    });
+    function updateToggleButtonState(){const e=document.getElementById('fontToggleBtn');if(!e)return;const t='enabled'===localStorage.getItem('dyslexiaMode');e.innerText=t?'Kate Button: ON':'Kate Button: OFF',e.style.borderColor=t?'#38bdf8':'#334155'}
+    function toggleDyslexiaFont(){const e='enabled'===localStorage.getItem('dyslexiaMode');localStorage.setItem('dyslexiaMode',e?'disabled':'enabled'),document.body.classList.toggle('dyslexia-font',!e),document.documentElement.classList.toggle('dyslexia-font',!e),updateToggleButtonState()}
+    document.addEventListener('DOMContentLoaded',()=>{updateToggleButtonState(),'enabled'===localStorage.getItem('dyslexiaMode')&&document.body.classList.add('dyslexia-font'),calculateDistances()});
 
     const CITY_GEO_CACHE = {
-      "jackson, tn": { lat: 35.6145, lon: -88.8139 },
-      "arlington, tx": { lat: 32.7357, lon: -97.1081 },
-      "hoover, al": { lat: 33.4054, lon: -86.8114 },
-      "madison, al": { lat: 34.6993, lon: -86.7483 },
-      "milwaukee, wi": { lat: 43.0389, lon: -87.9065 },
-      "norman, ok": { lat: 35.2059, lon: -97.4425 },
-      "choctaw, ms": { lat: 32.7765, lon: -89.2494 },
-      "biloxi, ms": { lat: 30.3960, lon: -88.8853 },
-      "los angeles, ca": { lat: 34.0522, lon: -118.2437 },
-      "gainesville, fl": { lat: 29.6499, lon: -82.3486 },
-      "nashville, tn": { lat: 36.1447, lon: -86.8089 },
-      "knoxville, tn": { lat: 35.9550, lon: -83.9250 },
-      "minneapolis, mn": { lat: 44.9765, lon: -93.2248 },
-      "columbia, sc": { lat: 33.9731, lon: -81.0192 },
-      "baton rouge, la": { lat: 30.4120, lon: -91.1838 },
-      "austin, tx": { lat: 30.2836, lon: -97.7325 },
-      "tuscaloosa, al": { lat: 33.2082, lon: -87.5503 },
-      "auburn, al": { lat: 32.6022, lon: -85.4892 },
-      "athens, ga": { lat: 33.9498, lon: -83.3734 },
-      "lexington, ky": { lat: 38.0337, lon: -84.5024 },
-      "oxford, ms": { lat: 34.3639, lon: -89.5342 },
-      "columbia, mo": { lat: 38.9358, lon: -92.3332 },
-      "college station, tx": { lat: 30.6102, lon: -96.3400 },
-      "fayetteville, ar": { lat: 36.0681, lon: -94.1752 },
-      "martin, tn": { lat: 36.3434, lon: -88.8503 },
-      "buffalo, ny": { lat: 42.8864, lon: -78.8784 },
-      "hattiesburg, ms": { lat: 31.3271, lon: -89.2903 },
-      "fort myers, fl": { lat: 26.6406, lon: -81.8723 },
-      "davidson, nc": { lat: 35.4993, lon: -80.8487 },
-      "greensboro, nc": { lat: 36.0726, lon: -79.7920 },
-      "white sulphur springs, wv": { lat: 37.7954, lon: -80.3031 },
-      "orlando, fl": { lat: 28.5383, lon: -81.3792 },
-      "jackson, ms": { lat: 32.2988, lon: -90.1848 },
-      "paradise island, the bahamas": { lat: 25.0854, lon: -77.3210 },
-      "paradise island, bahamas": { lat: 25.0854, lon: -77.3210 }
+      "jackson, tn":{lat:35.6145,lon:-88.8139},"arlington, tx":{lat:32.7357,lon:-97.1081},"hoover, al":{lat:33.4054,lon:-86.8114},
+      "madison, al":{lat:34.6993,lon:-86.7483},"milwaukee, wi":{lat:43.0389,lon:-87.9065},"norman, ok":{lat:35.2059,lon:-97.4425},
+      "choctaw, ms":{lat:32.7765,lon:-89.2494},"biloxi, ms":{lat:30.396,lon:-88.8853},"los angeles, ca":{lat:34.0522,lon:-118.2437},
+      "gainesville, fl":{lat:29.6499,lon:-82.3486},"nashville, tn":{lat:36.1447,lon:-86.8089},"knoxville, tn":{lat:35.955,lon:-83.925},
+      "minneapolis, mn":{lat:44.9765,lon:-93.2248},"columbia, sc":{lat:33.9731,lon:-81.0192},"baton rouge, la":{lat:30.412,lon:-91.1838},
+      "austin, tx":{lat:30.2836,lon:-97.7325},"tuscaloosa, al":{lat:33.2082,lon:-87.5503},"auburn, al":{lat:32.6022,lon:-85.4892},
+      "athens, ga":{lat:33.9498,lon:-83.3734},"lexington, ky":{lat:38.0337,lon:-84.5024},"oxford, ms":{lat:34.3639,lon:-89.5342},
+      "columbia, mo":{lat:38.9358,lon:-92.3332},"college station, tx":{lat:30.6102,lon:-96.34},"fayetteville, ar":{lat:36.0681,lon:-94.1752},
+      "martin, tn":{lat:36.3434,lon:-88.8503},"buffalo, ny":{lat:42.8864,lon:-78.8784},"hattiesburg, ms":{lat:31.3271,lon:-89.2903},
+      "fort myers, fl":{lat:26.6406,lon:-81.8723},"davidson, nc":{lat:35.4993,lon:-80.8487},"greensboro, nc":{lat:36.0726,lon:-79.792},
+      "white sulphur springs, wv":{lat:37.7954,lon:-80.3031},"orlando, fl":{lat:28.5383,lon:-81.3792},"jackson, ms":{lat:32.2988,lon:-90.1848},
+      "paradise island, the bahamas":{lat:25.0854,lon:-77.321},"paradise island, bahamas":{lat:25.0854,lon:-77.321}
     };
 
-    const STATE_MAP = {
-      "wis": "wi", "wis.": "wi", "wi": "wi",
-      "okla": "ok", "okla.": "ok", "ok": "ok",
-      "miss": "ms", "miss.": "ms", "ms": "ms",
-      "texas": "tx", "tx": "tx", "tx.": "tx",
-      "fla": "fl", "fla.": "fl", "fl": "fl",
-      "tenn": "tn", "tenn.": "tn", "tn": "tn",
-      "ala": "al", "ala.": "al", "al": "al",
-      "n.c.": "nc", "nc": "nc",
-      "s.c.": "sc", "sc": "sc",
-      "w.va.": "wv", "w va": "wv", "wv": "wv",
-      "ga": "ga", "ga.": "ga",
-      "ky": "ky", "ky.": "ky",
-      "mo": "mo", "mo.": "mo",
-      "ar": "ar", "ar.": "ar", "ark": "ar", "ark.": "ar",
-      "ny": "ny", "ny.": "ny",
-      "mn": "mn", "mn.": "mn",
-      "la": "la", "la.": "la",
-      "ca": "ca", "ca.": "ca"
-    };
+    const STATE_MAP = {wis:"wi",okla:"ok",miss:"ms",texas:"tx",fla:"fl",tenn:"tn",ala:"al","n.c.":"nc","s.c.":"sc","w.va.":"wv",ga:"ga",ky:"ky",mo:"mo",ar:"ar",ark:"ar",ny:"ny",mn:"mn",la:"la",ca:"ca"};
 
-    function parseCityStateFromString(rawStr) {
-      if (!rawStr) return null;
-
-      // First clean out nested stadium parenthesis, e.g. "(Rockabillys Stadium)" or "(Globe Life Field)"
-      let str = rawStr.replace(/\([^\(\)]*stadium[^\(\)]*\)/gi, '');
-      str = str.replace(/\([^\(\)]*field[^\(\)]*\)/gi, '');
-      str = str.replace(/\([^\(\)]*arena[^\(\)]*\)/gi, '');
-      str = str.replace(/\([^\(\)]*center[^\(\)]*\)/gi, '');
-      
-      const lower = str.toLowerCase();
-      if (lower.includes("paradise island")) return { city: "Paradise Island", state: "Bahamas" };
-      if (lower.includes("biloxi")) return { city: "Biloxi", state: "MS" };
-
-      // Match city & state
-      const match = str.match(/([A-Za-z\s]+),\s*([A-Za-z\.\s]+)/);
-      if (match) {
-        return { city: match[1].replace(/[\(\)]/g, '').trim(), state: match[2].replace(/[\(\)]/g, '').trim() };
-      }
-      return null;
+    function parseCityState(s) {
+      if (!s) return null;
+      let c = s.replace(/\([^\(\)]*(stadium|field|arena|center)[^\(\)]*\)/gi, '');
+      if (c.toLowerCase().includes("paradise island")) return { city: "Paradise Island", state: "Bahamas" };
+      if (c.toLowerCase().includes("biloxi")) return { city: "Biloxi", state: "MS" };
+      const m = c.match(/([A-Za-z\s]+),\s*([A-Za-z\.\s]+)/);
+      return m ? { city: m[1].replace(/[\(\)]/g, '').trim(), state: m[2].replace(/[\(\)]/g, '').trim() } : null;
     }
 
-    async function geocodeCityState(city, stateRaw) {
-      if (!city || !stateRaw) return null;
-      const cleanState = stateRaw.toLowerCase().replace(/\./g, '').trim();
-      const mappedState = STATE_MAP[cleanState] || cleanState;
-      const cleanCity = city.toLowerCase().trim();
-      
-      const key = `${cleanCity}, ${mappedState}`;
+    async function geocode(city, rawState) {
+      if (!city || !rawState) return null;
+      const st = rawState.toLowerCase().replace(/\./g, '').trim();
+      const mappedSt = STATE_MAP[st] || st;
+      const key = `${city.toLowerCase().trim()}, ${mappedSt}`;
       if (CITY_GEO_CACHE[key]) return CITY_GEO_CACHE[key];
 
       try {
-        const res = await fetch(`https://api.zippopotam.us/us/${mappedState}/${encodeURIComponent(cleanCity)}`);
+        const res = await fetch(`https://api.zippopotam.us/us/${mappedSt}/${encodeURIComponent(city.trim().toLowerCase())}`);
         if (res.ok) {
-          const data = await res.json();
-          if (data.places && data.places[0]) {
-            const coords = {
-              lat: parseFloat(data.places[0].latitude),
-              lon: parseFloat(data.places[0].longitude)
-            };
+          const d = await res.json();
+          if (d.places?.[0]) {
+            const coords = { lat: parseFloat(d.places[0].latitude), lon: parseFloat(d.places[0].longitude) };
             CITY_GEO_CACHE[key] = coords;
             return coords;
           }
         }
-      } catch (e) {
-        // Fallback catch
-      }
+      } catch (e) {}
       return null;
     }
 
-    const SPORTS_ENDPOINTS = [
+    const ENDPOINTS = [
       { name: "Football", url: "https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?limit=100" },
       { name: "Baseball", url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?limit=100" },
       { name: "Men's Basketball", url: "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?limit=100" },
@@ -313,167 +132,78 @@
       { name: "Softball", url: "https://site.api.espn.com/apis/site/v2/sports/baseball/college-softball/teams/344/schedule?limit=100" }
     ];
 
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-      const R = 3958.8;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = 
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      return Math.round(R * c);
+    function getDist(lat1, lon1, lat2, lon2) {
+      const R = 3958.8, dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+      return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
     }
 
-    async function fetchAllSportSchedules() {
-      const allAwayEvents = [];
-
-      for (const sport of SPORTS_ENDPOINTS) {
+    async function fetchAllEvents() {
+      const events = [];
+      for (const sp of ENDPOINTS) {
         try {
-          const res = await fetch(sport.url);
+          const res = await fetch(sp.url);
           if (!res.ok) continue;
           const data = await res.json();
-          
           for (const e of (data.events || [])) {
-            const comp = e.competitions?.[0];
-            if (!comp) continue;
-
+            const comp = e.competitions?.[0]; if (!comp) continue;
             const msu = comp.competitors?.find(c => String(c.id) === "344" || String(c.team?.id) === "344");
-            const opponent = comp.competitors?.find(c => String(c.id) !== "344" && String(c.team?.id) !== "344");
-
-            const isAway = msu?.homeAway === 'away' || comp.neutralSite;
-            const venue = comp.venue;
-            const address = venue?.address;
-            
-            if (isAway) {
-              let lat = venue?.geometry?.coordinates?.[1] || address?.latitude;
-              let lon = venue?.geometry?.coordinates?.[0] || address?.longitude;
-
-              let city = address?.city;
-              let state = address?.state;
-
+            const opp = comp.competitors?.find(c => String(c.id) !== "344" && String(c.team?.id) !== "344");
+            if (msu?.homeAway === 'away' || comp.neutralSite) {
+              const venue = comp.venue, addr = venue?.address;
+              let lat = venue?.geometry?.coordinates?.[1] || addr?.latitude, lon = venue?.geometry?.coordinates?.[0] || addr?.longitude;
+              let city = addr?.city, state = addr?.state;
               if (!city || !state) {
-                const parsed = parseCityStateFromString(venue?.fullName) || parseCityStateFromString(address?.summary);
-                if (parsed) {
-                  city = parsed.city;
-                  state = parsed.state;
-                }
+                const parsed = parseCityState(venue?.fullName) || parseCityState(addr?.summary);
+                if (parsed) { city = parsed.city; state = parsed.state; }
               }
-
               if ((!lat || !lon) && city && state) {
-                const cleanStateKey = state.toLowerCase().replace(/\./g, '').trim();
-                const mappedSt = STATE_MAP[cleanStateKey] || cleanStateKey;
-                const cacheKey = `${city.toLowerCase().trim()}, ${mappedSt}`;
-                
-                if (CITY_GEO_CACHE[cacheKey]) {
-                  lat = CITY_GEO_CACHE[cacheKey].lat;
-                  lon = CITY_GEO_CACHE[cacheKey].lon;
-                } else {
-                  const geo = await geocodeCityState(city, state);
-                  if (geo) {
-                    lat = geo.lat;
-                    lon = geo.lon;
-                  }
-                }
+                const geo = await geocode(city, state);
+                if (geo) { lat = geo.lat; lon = geo.lon; }
               }
-
-              allAwayEvents.push({
-                sport: sport.name,
-                date: new Date(e.date),
-                opponent: opponent?.team?.displayName || opponent?.team?.name || "Opponent",
-                venueName: venue?.fullName || "Away Venue",
-                location: city ? `${city}${state ? ', ' + state : ''}` : (address?.summary || ""),
-                lat: lat ? parseFloat(lat) : null,
-                lon: lon ? parseFloat(lon) : null,
-                isNeutral: comp.neutralSite
-              });
+              events.push({ sport: sp.name, date: new Date(e.date), opponent: opp?.team?.displayName || "Opponent", venueName: venue?.fullName || "Away Venue", location: city ? `${city}${state ? ', ' + state : ''}` : (addr?.summary || ""), lat: lat ? parseFloat(lat) : null, lon: lon ? parseFloat(lon) : null, isNeutral: comp.neutralSite });
             }
           }
-        } catch (err) {
-          console.error(`Error loading ${sport.name} schedule:`, err);
-        }
+        } catch (err) {}
       }
 
       if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
         for (const localGame of masterDataset) {
           if (!localGame.isHome) {
-            const exists = allAwayEvents.some(e => e.date.toISOString().split('T')[0] === localGame.isoDate && e.opponent.includes(localGame.opponent));
-            if (!exists) {
+            if (!events.some(e => e.date.toISOString().split('T')[0] === localGame.isoDate && e.opponent.includes(localGame.opponent))) {
               let lat = null, lon = null;
-              const parsed = parseCityStateFromString(localGame.location) || parseCityStateFromString(localGame.venue);
-              if (parsed) {
-                const geo = await geocodeCityState(parsed.city, parsed.state);
-                if (geo) {
-                  lat = geo.lat;
-                  lon = geo.lon;
-                }
-              }
-
-              allAwayEvents.push({
-                sport: localGame.sportKey || "Sports",
-                date: new Date(localGame.isoDate + 'T00:00:00'),
-                opponent: localGame.opponent,
-                venueName: localGame.venue || "Away Venue",
-                location: localGame.location || "",
-                lat: lat,
-                lon: lon,
-                isNeutral: false
-              });
+              const parsed = parseCityState(localGame.location) || parseCityState(localGame.venue);
+              if (parsed) { const geo = await geocode(parsed.city, parsed.state); if (geo) { lat = geo.lat; lon = geo.lon; } }
+              events.push({ sport: localGame.sportKey || "Sports", date: new Date(localGame.isoDate + 'T00:00:00'), opponent: localGame.opponent, venueName: localGame.venue || "Away Venue", location: localGame.location || "", lat: lat, lon: lon, isNeutral: false });
             }
           }
         }
       }
-
-      return allAwayEvents;
+      return events;
     }
 
     async function calculateDistances() {
-      const zip = document.getElementById('zipInput').value.trim();
-      const statusEl = document.getElementById('zipStatus');
-      const container = document.getElementById('away-games-container');
-
-      if (!/^\d{5}$/.test(zip)) {
-        statusEl.innerText = "Please enter a valid 5-digit US zip code.";
-        return;
-      }
-
+      const zip = document.getElementById('zipInput').value.trim(), statusEl = document.getElementById('zipStatus'), container = document.getElementById('away-games-container');
+      if (!/^\d{5}$/.test(zip)) { statusEl.innerText = "Please enter a valid 5-digit US zip code."; return; }
       statusEl.innerText = `Fetching all 5 sports schedules and resolving locations for zip code ${zip}...`;
-
       try {
-        const [zipRes, awayEvents] = await Promise.all([
-          fetch(`https://api.zippopotam.us/us/${zip}`),
-          fetchAllSportSchedules()
-        ]);
-
-        if (!zipRes.ok) throw new Error("Zip code not found");
+        const [zipRes, awayEvents] = await Promise.all([fetch(`https://api.zippopotam.us/us/${zip}`), fetchAllEvents()]);
+        if (!zipRes.ok) throw new Error();
         const zipData = await zipRes.json();
-
-        const userLat = parseFloat(zipData.places[0].latitude);
-        const userLon = parseFloat(zipData.places[0].longitude);
+        const uLat = parseFloat(zipData.places[0].latitude), uLon = parseFloat(zipData.places[0].longitude);
         const placeName = `${zipData.places[0]['place name']}, ${zipData.places[0]['state abbreviation']}`;
 
-        const calculatedGames = awayEvents.map(game => {
-          let dist = 9999;
-          if (game.lat && game.lon) {
-            dist = calculateDistance(userLat, userLon, game.lat, game.lon);
-          }
-          return { ...game, distance: dist };
-        });
-
-        calculatedGames.sort((a, b) => a.distance - b.distance);
-
-        statusEl.innerText = `Showing ${calculatedGames.length} away/neutral games sorted by distance from ${placeName} (${zip}).`;
-
+        const games = awayEvents.map(g => ({ ...g, distance: (g.lat && g.lon) ? getDist(uLat, uLon, g.lat, g.lon) : 9999 })).sort((a,b) => a.distance - b.distance);
+        statusEl.innerText = `Showing ${games.length} away/neutral games sorted by distance from ${placeName} (${zip}).`;
         container.innerHTML = "";
-        calculatedGames.forEach(game => {
-          const card = document.createElement('div');
-          card.className = "game-card";
+        games.forEach(game => {
+          const card = document.createElement('div'); card.className = "game-card";
           const formattedDate = game.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-          
-          card.innerHTML = `
-            <div class="card-header">
-              <span><span class="sport-badge">${game.sport}</span> • ${formattedDate}</span>
-              <span class="distance-badge">${game.distance !== 9999 ? `📍 ~${game.distance} miles away` : 'Location Pending'}</span>
-            </div>
-            <div class="team-row">
-        
+          card.innerHTML = `<div class="card-header"><span><span class="sport-badge">${game.sport}</span> • ${formattedDate}</span><span class="distance-badge">${game.distance !== 9999 ? `📍 ~${game.distance} miles away` : 'Location Pending'}</span></div><div class="team-row"><span>${game.isNeutral ? 'vs.' : 'at'} ${game.opponent}</span></div><div class="game-meta"><span><strong>Venue:</strong> ${game.venueName} ${game.location ? `(${game.location})` : ''}</span></div>`;
+          container.appendChild(card);
+        });
+      } catch (err) { statusEl.innerText = "Error fetching schedules or zip code location. Please check your connection."; }
+    }
+  </script>
+</body>
+</html>
