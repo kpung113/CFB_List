@@ -19,7 +19,7 @@
     .dyslexia-toggle { background: var(--card); border: 1px solid var(--border); color: #38bdf8; font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
     .nav-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index:99; opacity:0; visibility:hidden; pointer-events:none; transition:0.2s; }
     .nav-overlay.open { opacity:1; visibility:visible; pointer-events:auto; }
-    .nav-drawer { position: fixed; top: 0; left: -260px; width:260px; height:100vh; background:#181920; border-right:1px solid var(--border); z-index:100; display:flex; flex-direction:column; transition:0.3s; box-shadow: 4px 0 15px rgba(0,0,0,.5); }
+    .nav-drawer { position: fixed; top: 0; left: -260px; width:260px; height:100vh; background:#181920; border-right:1px solid var(--border); z-index:100; display:flex; flex-direction:column; transition:0.3s; box-shadow:4px 0 15px rgba(0,0,0,.5); }
     .nav-drawer.open { left:0; }
     .drawer-header { padding:14px 16px; font-weight:800; font-size:.9rem; text-transform:uppercase; color:#38bdf8; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
     .drawer-close { background:none; border:none; color:var(--sub); font-size:1.3rem; cursor:pointer; }
@@ -33,10 +33,10 @@
     .menu-btn span { display:block; width:100%; height:2px; background:#38bdf8; border-radius:2px; }
     .msu-logo { height:38px; width:auto; object-fit:contain; filter:drop-shadow(0 0 2px #fff); }
     h1 { margin:0; font-size:1.25rem; font-weight:800; }
-    .filter-bar { background: var(--card); border: 1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .filter-bar { background: var(--card); border: 1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
     .filter-label { font-size:0.8rem; font-weight:700; color:var(--gold); text-transform:uppercase; letter-spacing:0.04em; }
     select { background:#10141b; color:var(--text); border:1px solid var(--border); border-radius:6px; padding:8px 10px; font-size:0.85rem; font-weight:700; min-width:180px; }
-    .summary-bar { background: rgba(132,204,22,0.08); border:1px solid rgba(132,204,22,0.25); border-radius:8px; padding:10px 12px; margin-bottom:16px; color:var(--sub); font-size:0.8rem; font-weight:700; }
+    .summary-bar { background: rgba(132,204,22,0.08); border:1px solid rgba(132,204,22,0.25); border-radius:8px; padding:10px 12px; margin-bottom:16px; color:var(--sub); font-size:0.8rem; font-weight:600; }
     .schedule-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
     .game-left, .game-right { display:flex; flex-direction:column; gap:2px; min-width:0; }
     .game-right { text-align:right; align-items:flex-end; flex-shrink:0; }
@@ -49,6 +49,7 @@
     .result-neutral { background: rgba(56,189,248,0.12); color:#38bdf8; border:1px solid rgba(56,189,248,0.25); }
     .sport-tag { font-size:0.62rem; color:var(--gold); font-weight:700; text-transform:uppercase; letter-spacing:0.05em; }
     .location-text { font-size:0.72rem; color:var(--sub); }
+    .network-badge { display:inline-flex; align-items:center; justify-content:center; background: rgba(59,130,246,0.12); color:#93c5fd; border:1px solid rgba(96,165,250,0.4); border-radius:999px; padding:2px 7px; font-size:0.65rem; font-weight:800; letter-spacing:0.04em; }
     .empty-state { background: var(--card); border:1px solid var(--border); border-radius:10px; padding:20px; color:var(--sub); font-size:0.9rem; text-align:center; }
   </style>
 </head>
@@ -92,6 +93,68 @@
     };
 
     const FUTURE_CUTOFF = '2026-10-19';
+    const CHANNEL_CACHE = new Map();
+
+    const ESPN_SCHEDULE_ENDPOINTS = {
+      football: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?limit=100',
+      'mens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?limit=100',
+      'womens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?limit=100',
+      baseball: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?limit=100',
+      softball: 'https://site.api.espn.com/apis/site/v2/sports/softball/college-softball/teams/344/schedule?limit=100'
+    };
+
+    function normalizeNetworkValue(value) {
+      if (!value) return '';
+      return String(value)
+        .replace(/\s*\|\s*/g, ' / ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function normalizeOpponentForKey(value) {
+      return String(value || '')
+        .replace(/[^a-z0-9]/gi, '')
+        .toLowerCase();
+    }
+
+    async function fetchBroadcastNetworkMap() {
+      if (CHANNEL_CACHE.size) return CHANNEL_CACHE;
+
+      for (const [sportKey, url] of Object.entries(ESPN_SCHEDULE_ENDPOINTS)) {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) continue;
+          const data = await res.json();
+
+          for (const event of (data.events || [])) {
+            const comp = event.competitions?.[0];
+            if (!comp) continue;
+
+            const isMsuCompetitor = (competitor) => {
+              const id = String(competitor?.id || competitor?.team?.id || '');
+              return id === '344';
+            };
+
+            const msu = comp.competitors?.find(isMsuCompetitor);
+            const opp = comp.competitors?.find(c => !isMsuCompetitor(c));
+            if (!msu || !opp) continue;
+
+            const dateKey = event.date ? new Date(event.date).toISOString().split('T')[0] : '';
+            if (!dateKey) continue;
+
+            const channel = comp.broadcasts?.[0]?.names?.[0] || comp.broadcasts?.map(b => b.names?.join('/')).filter(Boolean).join(' / ') || '';
+            const key = `${sportKey}|${dateKey}|${normalizeOpponentForKey(opp.team?.displayName || opp.team?.name || opp.team?.shortDisplayName || '')}`;
+            if (channel) {
+              CHANNEL_CACHE.set(key, normalizeNetworkValue(channel));
+            }
+          }
+        } catch (err) {
+          // Skip sports that fail to load and continue.
+        }
+      }
+
+      return CHANNEL_CACHE;
+    }
 
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
@@ -146,11 +209,12 @@
       return `${sportText}: ${totalGames} ${futureText} • ${homeGames} home • ${awayGames} away`;
     }
 
-    function renderSchedule() {
+    async function renderSchedule() {
       const container = document.getElementById('schedule-container');
       const summaryBar = document.getElementById('summary-bar');
       const selectedSport = document.getElementById('sportFilter')?.value || 'all';
       const games = getVisibleGames();
+      const broadcastMap = await fetchBroadcastNetworkMap();
 
       summaryBar.innerText = buildSummaryText(games, selectedSport);
 
@@ -164,6 +228,9 @@
       container.innerHTML = '';
 
       games.forEach(game => {
+        const gameKey = `${game.sportKey}|${game.isoDate}|${normalizeOpponentForKey(game.opponent)}`;
+        const broadcast = broadcastMap.get(gameKey) || game.network || '';
+
         const card = document.createElement('div');
         card.className = 'schedule-card';
 
@@ -182,6 +249,8 @@
                 : `<span class="result-badge result-neutral">${game.result}</span>`)
           : `<span class="result-badge result-neutral">${game.timeStr || 'TBD'}</span>`;
 
+        const networkBadge = broadcast ? `<span class="network-badge">${broadcast}</span>` : '';
+
         card.innerHTML = `
           <div class="game-left">
             <span class="sport-tag">${sportLabels[game.sportKey] || game.sportKey}</span>
@@ -193,6 +262,7 @@
           </div>
           <div class="game-right">
             ${badge}
+            ${networkBadge}
             <span class="location-text">${game.location || 'Location TBD'}</span>
           </div>
         `;
@@ -201,7 +271,7 @@
       });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       updateToggleButtonState();
       if (localStorage.getItem('dyslexiaMode') === 'enabled') {
         document.body.classList.add('dyslexia-font');
@@ -209,10 +279,10 @@
 
       const sportFilter = document.getElementById('sportFilter');
       if (sportFilter) {
-        sportFilter.addEventListener('change', renderSchedule);
+        sportFilter.addEventListener('change', () => renderSchedule());
       }
 
-      renderSchedule();
+      await renderSchedule();
     });
   </script>
 </body>
