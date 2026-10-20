@@ -1,42 +1,273 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mississippi State Football Schedule</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mississippi State Athletics Schedules</title>
   <script src="nav.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);} 
-    gtag('js', new Date()); gtag('config', 'G-8695308WQ8');
-    if (localStorage.getItem('dyslexiaMode') === 'enabled') document.documentElement.classList.add('dyslexia-font');
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-8695308WQ8');
+    if (localStorage.getItem('dyslexiaMode') === 'enabled') {
+      document.documentElement.classList.add('dyslexia-font');
+    }
   </script>
   <style>
-    :root { --bg: #0b0c10; --card: #181920; --border: #272935; --text: #f8fafc; --maroon: #5d1725; --sub: #94a3b8; --gold: #84cc16; --green: #22c55e; --red: #ef4444; }
+    :root {
+      --bg: #0b0c10;
+      --card: #181920;
+      --border: #272935;
+      --text: #f8fafc;
+      --maroon: #5d1725;
+      --sub: #94a3b8;
+      --gold: #84cc16;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #38bdf8;
+    }
+
     * { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 16px; }
-    body.dyslexia-font, body.dyslexia-font * { font-family: "Comic Sans MS", Verdana, sans-serif !important; letter-spacing: 0.05em !important; word-spacing: 0.1em !important; }
-    .dyslexia-toggle { background: var(--card); border: 1px solid var(--border); color: #38bdf8; font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
-    header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--maroon); }
-    .header-left, .header-right, .header-title { display: flex; align-items: center; gap: 8px; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+    }
+
+    body.dyslexia-font, body.dyslexia-font * {
+      font-family: "Comic Sans MS", Verdana, sans-serif !important;
+      letter-spacing: 0.05em !important;
+      word-spacing: 0.1em !important;
+    }
+
+    .dyslexia-toggle {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--blue);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--maroon);
+    }
+
+    .header-left, .header-right, .header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .header-left { gap: 12px; }
-    .menu-btn { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; width: 22px; height: 18px; padding: 0; z-index: 101; }
-    .menu-btn span { display: block; width: 100%; height: 2px; background: #38bdf8; border-radius: 2px; }
-    .msu-logo { height: 38px; width: auto; object-fit: contain; filter: drop-shadow(0 0 2px #fff); }
-    h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
-    .record-banner { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--gold); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
-    .record-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-    .record-label { font-size: 0.65rem; color: var(--sub); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
-    .record-value { font-size: 0.95rem; font-weight: 800; color: #fff; }
-    .schedule-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
-    .game-left, .game-right { display: flex; flex-direction: column; gap: 2px; }
-    .game-right { text-align: right; align-items: flex-end; }
-    .game-date { font-size: 0.7rem; color: var(--sub); font-weight: 600; }
-    .opponent-name { font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-    .result-badge { font-weight: 800; font-size: 0.85rem; padding: 3px 8px; border-radius: 4px; display: inline-block; }
-    .result-win { background: rgba(34, 197, 94, 0.2); color: var(--green); border: 1px solid rgba(34, 197, 94, 0.4); }
-    .result-loss { background: rgba(239, 68, 68, 0.2); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.4); }
-    .sport-tag, .tv-tag { font-size: 0.65rem; color: var(--gold); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 22px;
+      height: 18px;
+      padding: 0;
+      z-index: 101;
+    }
+
+    .menu-btn span {
+      display: block;
+      width: 100%;
+      height: 2px;
+      background: var(--blue);
+      border-radius: 2px;
+    }
+
+    .msu-logo {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 0 2px #fff);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 800;
+    }
+
+    .filter-bar {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .filter-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    select {
+      background: #10141b;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      min-width: 180px;
+    }
+
+    .summary-bar {
+      background: rgba(132, 204, 22, 0.08);
+      border: 1px solid rgba(132, 204, 22, 0.25);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 16px;
+      color: var(--sub);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .sport-section {
+      margin-bottom: 18px;
+    }
+
+    .sport-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: #12151d;
+      border-left: 4px solid var(--maroon);
+      border-radius: 6px 6px 0 0;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      font-weight: 800;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.78rem;
+    }
+
+    .schedule-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .game-left, .game-right {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .game-right {
+      text-align: right;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    .game-date {
+      font-size: 0.7rem;
+      color: var(--sub);
+      font-weight: 600;
+    }
+
+    .opponent-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .opponent-name .homeaway {
+      color: var(--sub);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .result-badge {
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .result-win {
+      background: rgba(34, 197, 94, 0.2);
+      color: var(--green);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+
+    .result-loss {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--red);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .result-neutral {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--blue);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .sport-tag {
+      font-size: 0.62rem;
+      color: var(--gold);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .location-text {
+      font-size: 0.72rem;
+      color: var(--sub);
+    }
+
+    .empty-state {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      color: var(--sub);
+      font-size: 0.9rem;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -45,7 +276,7 @@
       <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
       <div class="header-title">
         <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" alt="MSU Logo" class="msu-logo">
-        <h1>2026 Football Schedule</h1>
+        <h1>MSU Schedule Tracker</h1>
       </div>
     </div>
     <div class="header-right">
@@ -53,10 +284,31 @@
     </div>
   </header>
 
-  <div id="schedule-container">Loading 2026 Football Schedule...</div>
+  <div class="filter-bar">
+    <span class="filter-label">Sport</span>
+    <select id="sportFilter" aria-label="Choose sport">
+      <option value="all">All Sports</option>
+      <option value="football">Football</option>
+      <option value="mens-basketball">Men's Basketball</option>
+      <option value="womens-basketball">Women's Basketball</option>
+      <option value="baseball">Baseball</option>
+      <option value="softball">Softball</option>
+    </select>
+  </div>
+
+  <div id="summary-bar" class="summary-bar">Loading schedules...</div>
+  <div id="schedule-container"></div>
 
   <script src="data.js"></script>
   <script>
+    const sportLabels = {
+      football: 'Football',
+      'mens-basketball': "Men's Basketball",
+      'womens-basketball': "Women's Basketball",
+      baseball: 'Baseball',
+      softball: 'Softball'
+    };
+
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
       if (!btn) return;
@@ -73,150 +325,119 @@
       updateToggleButtonState();
     }
 
-    const FOOTBALL_URL = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?season=2026&seasontype=2';
-    let combinedDataset = [];
+    function getVisibleGames() {
+      if (typeof masterDataset === 'undefined' || !Array.isArray(masterDataset)) {
+        return [];
+      }
 
-    function parseScore(scoreObj) {
-      if (scoreObj == null) return null;
-      if (typeof scoreObj !== 'object') return String(scoreObj);
-      return scoreObj.value !== undefined ? String(scoreObj.value) : scoreObj.displayValue !== undefined ? String(scoreObj.displayValue) : null;
+      const selectedSport = document.getElementById('sportFilter')?.value || 'all';
+      return masterDataset
+        .filter(game => selectedSport === 'all' || game.sportKey === selectedSport)
+        .sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
     }
 
-    async function loadFootballDataset() {
-      combinedDataset = [];
-
-      // 1. Pull baseline football entries from data.js
-      if (typeof masterDataset !== 'undefined' && Array.isArray(masterDataset)) {
-        masterDataset.filter(d => d.sportKey === 'football').forEach(local => {
-          combinedDataset.push({ ...local, result: '' });
-        });
+    function buildSummaryText(games, selectedSport) {
+      if (!games.length) {
+        return 'No games found for the selected sport.';
       }
 
-      // 2. Fetch live and historical results from ESPN
-      try {
-        const res = await fetch(FOOTBALL_URL);
-        if (res.ok) {
-          const data = await res.json();
-          const eventsList = data?.events || data?.team?.schedule || data?.schedule || [];
+      const totalGames = games.length;
+      const homeGames = games.filter(g => g.isHome).length;
+      const awayGames = games.filter(g => !g.isHome).length;
+      const sportText = selectedSport === 'all' ? 'All sports' : sportLabels[selectedSport];
 
-          eventsList.forEach(event => {
-            const comp = event.competitions?.[0];
-            if (!comp || !comp.competitors) return;
-
-            const msu = comp.competitors.find(c => String(c.id || c.team?.id) === '344');
-            const opp = comp.competitors.find(c => String(c.id || c.team?.id) !== '344');
-            if (!msu || !opp) return;
-
-            const isoDate = event.date.split('T')[0];
-            const dateObj = new Date(event.date);
-            const timeStr = (!isNaN(dateObj) && event.timeValid !== false) 
-              ? dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) 
-              : 'TBD';
-
-            let result = null;
-            const statusType = event.status?.type;
-            const isCompleted = statusType?.completed === true || statusType?.state === 'post';
-
-            if (isCompleted) {
-              const mScore = parseScore(msu.score);
-              const oScore = parseScore(opp.score);
-              if (mScore !== null && oScore !== null) {
-                const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
-                result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
-              }
-            } else if (statusType?.state === 'in') {
-              result = `LIVE ${parseScore(msu.score) || 0}-${parseScore(opp.score) || 0}`;
-            }
-
-            const tv = comp?.broadcasts?.[0]?.media?.shortName || comp?.broadcasts?.[0]?.names?.[0] || '';
-            const isHomeGame = msu.homeAway === 'home';
-
-            // Match back to data.js array by isoDate
-            const existingIndex = combinedDataset.findIndex(e => e.isoDate === isoDate);
-
-            if (existingIndex !== -1) {
-              if (result) combinedDataset[existingIndex].result = result;
-              if (tv) combinedDataset[existingIndex].tv = tv;
-              combinedDataset[existingIndex].timeStr = timeStr;
-              combinedDataset[existingIndex].isHome = isHomeGame;
-            } else {
-              // Push if game was missing in data.js
-              combinedDataset.push({
-                sportKey: 'football',
-                opponent: opp.team?.displayName || opp.team?.shortDisplayName || 'Opponent',
-                isoDate,
-                timeStr,
-                isHome: isHomeGame,
-                tv,
-                result
-              });
-            }
-          });
-        }
-      } catch (err) {
-        console.warn('Error loading ESPN football data:', err);
-      }
-
-      combinedDataset.sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
+      return `${sportText}: ${totalGames} games total • ${homeGames} home • ${awayGames} away`;
     }
 
     function renderSchedule() {
-      const container = document.getElementById("schedule-container");
-      if (!container) return;
-      container.innerHTML = "";
+      const container = document.getElementById('schedule-container');
+      const summaryBar = document.getElementById('summary-bar');
+      const selectedSport = document.getElementById('sportFilter')?.value || 'all';
+      const games = getVisibleGames();
 
-      let wins = 0, losses = 0;
-      combinedDataset.forEach(e => {
-        if (e.result?.startsWith('W')) wins++;
-        if (e.result?.startsWith('L')) losses++;
+      summaryBar.innerText = buildSummaryText(games, selectedSport);
+
+      if (!container || !games.length) {
+        if (container) {
+          container.innerHTML = '<div class="empty-state">No games match the current selection.</div>';
+        }
+        return;
+      }
+
+      const groups = {};
+      games.forEach(game => {
+        const key = selectedSport === 'all' ? game.sportKey : 'single';
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(game);
       });
 
-      // Show top record banner
-      container.insertAdjacentHTML('beforeend', `
-        <div class="record-banner">
-          <div class="record-item">
-            <span class="record-label">2026 Football Record</span>
-            <span class="record-value">${wins}-${losses}</span>
-          </div>
-        </div>
-      `);
+      container.innerHTML = '';
 
-      combinedDataset.forEach(e => {
-        const dateStr = new Date(e.isoDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-        
-        // Display score badge if available, otherwise display kickoff time
-        const badge = e.result 
-          ? `<span class="result-badge ${e.result.startsWith('W') ? 'result-win' : 'result-loss'}">${e.result}</span>` 
-          : `<span class="game-date">${e.timeStr}</span>`;
+      Object.entries(groups).forEach(([sportKey, entries]) => {
+        const section = document.createElement('div');
+        section.className = 'sport-section';
 
-        const tv = e.tv && !e.result ? `<span class="tv-tag">📺 ${e.tv}</span>` : '';
-
-        const card = document.createElement("div");
-        card.className = "schedule-card";
-        card.innerHTML = `
-          <div class="game-left">
-            <span class="sport-tag">Football</span>
-            <span class="game-date">${dateStr}</span>
-            <div class="opponent-name">
-              <span style="color:var(--sub); font-size:0.75rem;">${e.isHome ? 'vs' : '@'}</span>
-              ${e.opponent}
-            </div>
-          </div>
-          <div class="game-right">
-            ${badge}
-            ${tv}
-          </div>
+        const header = document.createElement('div');
+        header.className = 'sport-header';
+        header.innerHTML = `
+          <span>${selectedSport === 'all' ? sportLabels[sportKey] : sportLabels[selectedSport]}</span>
+          <span>${entries.length}</span>
         `;
-        container.appendChild(card);
+        section.appendChild(header);
+
+        entries.forEach(game => {
+          const card = document.createElement('div');
+          card.className = 'schedule-card';
+
+          const dateStr = new Date(game.isoDate + 'T00:00:00').toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric'
+          });
+
+          const badge = game.result
+            ? (game.result.startsWith('W')
+                ? `<span class="result-badge result-win">${game.result}</span>`
+                : game.result.startsWith('L')
+                  ? `<span class="result-badge result-loss">${game.result}</span>`
+                  : `<span class="result-badge result-neutral">${game.result}</span>`)
+            : `<span class="result-badge result-neutral">${game.timeStr || 'TBD'}</span>`;
+
+          card.innerHTML = `
+            <div class="game-left">
+              <span class="sport-tag">${selectedSport === 'all' ? sportLabels[game.sportKey] : sportLabels[selectedSport]}</span>
+              <span class="game-date">${dateStr}</span>
+              <div class="opponent-name">
+                <span class="homeaway">${game.isHome ? 'vs' : '@'}</span>
+                ${game.opponent}
+              </div>
+            </div>
+            <div class="game-right">
+              ${badge}
+              <span class="location-text">${game.location || 'Location TBD'}</span>
+            </div>
+          `;
+
+          section.appendChild(card);
+        });
+
+        container.appendChild(section);
       });
     }
 
-    window.onload = async () => {
+    document.addEventListener('DOMContentLoaded', () => {
       updateToggleButtonState();
-      if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
-      await loadFootballDataset(); 
-      renderSchedule(); 
-    };
+      if (localStorage.getItem('dyslexiaMode') === 'enabled') {
+        document.body.classList.add('dyslexia-font');
+      }
+
+      const sportFilter = document.getElementById('sportFilter');
+      if (sportFilter) {
+        sportFilter.addEventListener('change', renderSchedule);
+      }
+
+      renderSchedule();
+    });
   </script>
 </body>
 </html>
