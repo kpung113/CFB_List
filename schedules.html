@@ -234,33 +234,12 @@
       font-weight: 700;
     }
 
-    .sport-section {
-      margin-bottom: 18px;
-    }
-
-    .sport-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      background: #12151d;
-      border-left: 4px solid var(--maroon);
-      border-radius: 6px 6px 0 0;
-      padding: 10px 12px;
-      margin-bottom: 8px;
-      font-weight: 800;
-      color: #fff;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      font-size: 0.78rem;
-    }
-
     .schedule-card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 8px 12px;
-      margin-bottom: 6px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -391,6 +370,8 @@
       softball: 'Softball'
     };
 
+    const FUTURE_CUTOFF = '2026-10-19';
+
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
       if (!btn) return;
@@ -413,14 +394,26 @@
       }
 
       const selectedSport = document.getElementById('sportFilter')?.value || 'all';
+      const cutoff = new Date(`${FUTURE_CUTOFF}T00:00:00`);
+
       return masterDataset
-        .filter(game => selectedSport === 'all' || game.sportKey === selectedSport)
-        .sort((a, b) => new Date(a.isoDate) - new Date(b.isoDate));
+        .filter(game => {
+          const gameDate = new Date(`${game.isoDate}T00:00:00`);
+          const isFuture = gameDate >= cutoff;
+          const matchesSport = selectedSport === 'all' || game.sportKey === selectedSport;
+          return isFuture && matchesSport;
+        })
+        .sort((a, b) => {
+          const aDate = new Date(`${a.isoDate}T00:00:00`).getTime();
+          const bDate = new Date(`${b.isoDate}T00:00:00`).getTime();
+          if (aDate !== bDate) return aDate - bDate;
+          return (a.timeStr || '').localeCompare(b.timeStr || '');
+        });
     }
 
     function buildSummaryText(games, selectedSport) {
       if (!games.length) {
-        return 'No games found for the selected sport.';
+        return 'No future games found for the selected sport.';
       }
 
       const totalGames = games.length;
@@ -428,7 +421,7 @@
       const awayGames = games.filter(g => !g.isHome).length;
       const sportText = selectedSport === 'all' ? 'All sports' : sportLabels[selectedSport];
 
-      return `${sportText}: ${totalGames} games total • ${homeGames} home • ${awayGames} away`;
+      return `${sportText}: ${totalGames} future games • ${homeGames} home • ${awayGames} away`;
     }
 
     function renderSchedule() {
@@ -441,69 +434,48 @@
 
       if (!container || !games.length) {
         if (container) {
-          container.innerHTML = '<div class="empty-state">No games match the current selection.</div>';
+          container.innerHTML = '<div class="empty-state">No future games match the current selection.</div>';
         }
         return;
       }
 
-      const groups = {};
-      games.forEach(game => {
-        const key = selectedSport === 'all' ? game.sportKey : 'single';
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(game);
-      });
-
       container.innerHTML = '';
 
-      Object.entries(groups).forEach(([sportKey, entries]) => {
-        const section = document.createElement('div');
-        section.className = 'sport-section';
+      games.forEach(game => {
+        const card = document.createElement('div');
+        card.className = 'schedule-card';
 
-        const header = document.createElement('div');
-        header.className = 'sport-header';
-        header.innerHTML = `
-          <span>${selectedSport === 'all' ? sportLabels[sportKey] : sportLabels[selectedSport]}</span>
-          <span>${entries.length}</span>
-        `;
-        section.appendChild(header);
-
-        entries.forEach(game => {
-          const card = document.createElement('div');
-          card.className = 'schedule-card';
-
-          const dateStr = new Date(game.isoDate + 'T00:00:00').toLocaleDateString('en-US', {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric'
-          });
-
-          const badge = game.result
-            ? (game.result.startsWith('W')
-                ? `<span class="result-badge result-win">${game.result}</span>`
-                : game.result.startsWith('L')
-                  ? `<span class="result-badge result-loss">${game.result}</span>`
-                  : `<span class="result-badge result-neutral">${game.result}</span>`)
-            : `<span class="result-badge result-neutral">${game.timeStr || 'TBD'}</span>`;
-
-          card.innerHTML = `
-            <div class="game-left">
-              <span class="sport-tag">${selectedSport === 'all' ? sportLabels[game.sportKey] : sportLabels[selectedSport]}</span>
-              <span class="game-date">${dateStr}</span>
-              <div class="opponent-name">
-                <span class="homeaway">${game.isHome ? 'vs' : '@'}</span>
-                ${game.opponent}
-              </div>
-            </div>
-            <div class="game-right">
-              ${badge}
-              <span class="location-text">${game.location || 'Location TBD'}</span>
-            </div>
-          `;
-
-          section.appendChild(card);
+        const dateObj = new Date(`${game.isoDate}T00:00:00`);
+        const dateStr = dateObj.toLocaleDateString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric'
         });
 
-        container.appendChild(section);
+        const badge = game.result
+          ? (game.result.startsWith('W')
+              ? `<span class="result-badge result-win">${game.result}</span>`
+              : game.result.startsWith('L')
+                ? `<span class="result-badge result-loss">${game.result}</span>`
+                : `<span class="result-badge result-neutral">${game.result}</span>`)
+          : `<span class="result-badge result-neutral">${game.timeStr || 'TBD'}</span>`;
+
+        card.innerHTML = `
+          <div class="game-left">
+            <span class="sport-tag">${sportLabels[game.sportKey] || game.sportKey}</span>
+            <span class="game-date">${dateStr}</span>
+            <div class="opponent-name">
+              <span class="homeaway">${game.isHome ? 'vs' : '@'}</span>
+              ${game.opponent}
+            </div>
+          </div>
+          <div class="game-right">
+            ${badge}
+            <span class="location-text">${game.location || 'Location TBD'}</span>
+          </div>
+        `;
+
+        container.appendChild(card);
       });
     }
 
