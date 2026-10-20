@@ -49,7 +49,7 @@
     .result-neutral { background: rgba(56,189,248,0.12); color:#38bdf8; border:1px solid rgba(56,189,248,0.25); }
     .sport-tag { font-size:0.62rem; color:var(--gold); font-weight:700; text-transform:uppercase; letter-spacing:0.05em; }
     .location-text { font-size:0.72rem; color:var(--sub); }
-    .network-badge { display:inline-flex; align-items:center; justify-content:center; background: rgba(59,130,246,0.12); color:#93c5fd; border:1px solid rgba(96,165,250,0.4); border-radius:999px; padding:2px 7px; font-size:0.65rem; font-weight:800; letter-spacing:0.04em; }
+    .network-badge { display:inline-flex; align-items:center; justify-content:center; background: rgba(59,130,246,0.12); color:#93c5fd; border:1px solid rgba(96,165,250,0.4); border-radius:999px; padding:2px 7px; font-size:0.65rem; font-weight:800; letter-spacing:0.04em; margin-top:2px; }
     .empty-state { background: var(--card); border:1px solid var(--border); border-radius:10px; padding:20px; color:var(--sub); font-size:0.9rem; text-align:center; }
   </style>
 </head>
@@ -111,22 +111,33 @@
         .trim();
     }
 
-    function normalizeOpponentForKey(value) {
-      return String(value || '')
-        .replace(/[^a-z0-9]/gi, '')
-        .toLowerCase();
+    function parseNetworkFromCompetition(comp) {
+      if (!comp) return '';
+      // Primary search inside broadcasts array
+      const broadcastList = comp.broadcasts || [];
+      for (const b of broadcastList) {
+        if (b.media?.shortName) return normalizeNetworkValue(b.media.shortName);
+        if (b.names && b.names.length) return normalizeNetworkValue(b.names.join(' / '));
+        if (b.market && b.name) return normalizeNetworkValue(b.name);
+      }
+      if (comp.geoBroadcasts && comp.geoBroadcasts.length) {
+        const geo = comp.geoBroadcasts[0];
+        if (geo?.media?.shortName) return normalizeNetworkValue(geo.media.shortName);
+      }
+      return '';
     }
 
     async function fetchBroadcastNetworkMap() {
-      if (CHANNEL_CACHE.size) return CHANNEL_CACHE;
+      if (CHANNEL_CACHE.size > 0) return CHANNEL_CACHE;
 
       for (const [sportKey, url] of Object.entries(ESPN_SCHEDULE_ENDPOINTS)) {
         try {
           const res = await fetch(url);
           if (!res.ok) continue;
           const data = await res.json();
+          const eventsList = data?.events || data?.team?.schedule || data?.schedule || [];
 
-          for (const event of (data.events || [])) {
+          for (const event of eventsList) {
             const comp = event.competitions?.[0];
             if (!comp) continue;
 
@@ -139,17 +150,19 @@
             const opp = comp.competitors?.find(c => !isMsuCompetitor(c));
             if (!msu || !opp) continue;
 
-            const dateKey = event.date ? new Date(event.date).toISOString().split('T')[0] : '';
+            const dateKey = event.date ? event.date.split('T')[0] : '';
             if (!dateKey) continue;
 
-            const channel = comp.broadcasts?.[0]?.names?.[0] || comp.broadcasts?.map(b => b.names?.join('/')).filter(Boolean).join(' / ') || '';
-            const key = `${sportKey}|${dateKey}|${normalizeOpponentForKey(opp.team?.displayName || opp.team?.name || opp.team?.shortDisplayName || '')}`;
+            const channel = parseNetworkFromCompetition(comp);
+            
+            // Map by sport + date
+            const dateMapKey = `${sportKey}|${dateKey}`;
             if (channel) {
-              CHANNEL_CACHE.set(key, normalizeNetworkValue(channel));
+              CHANNEL_CACHE.set(dateMapKey, channel);
             }
           }
         } catch (err) {
-          // Skip sports that fail to load and continue.
+          // Skip sports that fail to load
         }
       }
 
@@ -228,8 +241,8 @@
       container.innerHTML = '';
 
       games.forEach(game => {
-        const gameKey = `${game.sportKey}|${game.isoDate}|${normalizeOpponentForKey(game.opponent)}`;
-        const broadcast = broadcastMap.get(gameKey) || game.network || '';
+        const dateMapKey = `${game.sportKey}|${game.isoDate}`;
+        const broadcast = broadcastMap.get(dateMapKey) || game.network || '';
 
         const card = document.createElement('div');
         card.className = 'schedule-card';
