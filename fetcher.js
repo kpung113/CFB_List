@@ -1,14 +1,11 @@
-// fetcher.js - Bulletproof multi-sport fetcher
-
-// fetcher.js - Corrected endpoint paths for all sports
+// fetcher.js - Force Regular Season (seasontype=2) for Men's Basketball
 
 const ESPN_SCHEDULE_ENDPOINTS = {
   football: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?season=2026&seasontype=2&limit=100',
-  'mens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?season=2027&limit=100',
-  'womens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?season=2027&limit=100',
-  baseball: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?season=2027&limit=100'
+  'mens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?season=2027&seasontype=2&limit=100',
+  'womens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?season=2027&seasontype=2&limit=100',
+  baseball: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?season=2027&seasontype=2&limit=100'
 };
-
 
 function showDebug(msg) {
   console.log(msg);
@@ -56,8 +53,8 @@ async function fetchLiveSchedules() {
       }
       const data = await res.json();
       
-      let events = data.events || data.requestedSeason?.events || data.team?.schedule || data.schedule || [];
-      showDebug(`${sportKey}: fetched ${events.length} events`);
+      let events = data.events || data.team?.schedule || data.schedule || [];
+      showDebug(`${sportKey}: fetched ${events.length} events (season ${data.season?.year || 'N/A'}, type ${data.season?.type || 'N/A'})`);
 
       let wins = 0, losses = 0;
       let secWins = 0, secLosses = 0;
