@@ -8,6 +8,14 @@ const ESPN_SCHEDULE_ENDPOINTS = {
   softball: 'https://site.api.espn.com/apis/site/v2/sports/softball/college-softball/teams/344/schedule?limit=100'
 };
 
+function showDebug(msg) {
+  console.log(msg);
+  const box = document.getElementById('debug-box');
+  if (box) {
+    box.innerText += '\n' + msg;
+  }
+}
+
 function parseScore(scoreObj) {
   if (scoreObj == null) return null;
   if (typeof scoreObj !== 'object') return String(scoreObj);
@@ -29,12 +37,18 @@ async function fetchLiveSchedules() {
   // Store computed records per sport: { overall: '5-2', sec: '2-2' }
   const sportRecordsMap = {};
 
+  showDebug("Starting ESPN fetch...");
+
   const fetchPromises = Object.entries(ESPN_SCHEDULE_ENDPOINTS).map(async ([sportKey, url]) => {
     try {
       const res = await fetch(url);
-      if (!res.ok) return;
+      if (!res.ok) {
+        showDebug(`Err ${sportKey}: HTTP ${res.status}`);
+        return;
+      }
       const data = await res.json();
       const events = data.events || data.team?.schedule || [];
+      showDebug(`${sportKey}: fetched ${events.length} events`);
 
       let wins = 0, losses = 0;
       let secWins = 0, secLosses = 0;
@@ -63,6 +77,8 @@ async function fetchLiveSchedules() {
         if (isCompleted) {
           const mScore = parseScore(msu.score);
           const oScore = parseScore(opp.score);
+          showDebug(`Done match! ${isoDate} vs ${opp.team?.displayName}: status name = ${status.name}, scores = [${mScore}, ${oScore}]`);
+          
           if (mScore !== null && oScore !== null) {
             const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
             result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
@@ -105,10 +121,11 @@ async function fetchLiveSchedules() {
       };
 
     } catch (err) {
-      console.warn(`Failed fetching live data for ${sportKey}:`, err);
+      showDebug(`Fetch exception (${sportKey}): ${err.message}`);
     }
   });
 
   await Promise.all(fetchPromises);
+  showDebug("Fetch complete. Map size: " + liveEventsMap.size);
   return { liveEventsMap, sportRecordsMap };
 }
