@@ -4,7 +4,8 @@ const ESPN_SCHEDULE_ENDPOINTS = {
   football: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?limit=100',
   'mens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?limit=100',
   'womens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?limit=100',
-  baseball: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?limit=100'
+  baseball: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?limit=100',
+  softball: 'https://site.api.espn.com/apis/site/v2/sports/softball/college-softball/teams/344/schedule?limit=100'
 };
 
 function showDebug(msg) {
@@ -45,7 +46,13 @@ async function fetchLiveSchedules() {
         return;
       }
       const data = await res.json();
-      const events = data.events || data.team?.schedule || [];
+      
+      // Handle different JSON nesting structures across sports (team.schedule, events, or schedule array)
+      let events = [];
+      if (data.events) events = data.events;
+      else if (data.team?.schedule) events = data.team.schedule;
+      else if (data.schedule) events = data.schedule;
+
       showDebug(`${sportKey}: fetched ${events.length} events`);
 
       let wins = 0, losses = 0;
@@ -72,7 +79,6 @@ async function fetchLiveSchedules() {
         const statusState = statusType?.state || '';
         const statusName = statusType?.name || '';
         
-        // Multi-check for completed state
         const isCompleted = statusType?.completed === true || 
                             statusState === 'post' || 
                             statusName.includes('FINAL') || 
@@ -85,7 +91,6 @@ async function fetchLiveSchedules() {
           if (mScore !== null && oScore !== null) {
             const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
             result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
-            showDebug(`Parsed result for ${isoDate} vs ${opp.team?.displayName || 'Opp'}: ${result}`);
 
             if (win) {
               wins++;
