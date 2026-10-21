@@ -1,11 +1,10 @@
 // fetcher.js - Responsible for fetching live schedules, scores, TV networks, and records from ESPN APIs
 
 const ESPN_SCHEDULE_ENDPOINTS = {
-  football: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?limit=100',
+  football: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?season=2026&limit=100',
   'mens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?limit=100',
   'womens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?limit=100',
-  baseball: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?limit=100',
-  softball: 'https://site.api.espn.com/apis/site/v2/sports/softball/college-softball/teams/344/schedule?limit=100'
+  baseball: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?limit=100'
 };
 
 function showDebug(msg) {
@@ -36,7 +35,7 @@ async function fetchLiveSchedules() {
   const liveEventsMap = new Map();
   const sportRecordsMap = {};
 
-  showDebug("Starting ESPN fetch...");
+  showDebug("Starting ESPN fetch with explicit season parameters...");
 
   const fetchPromises = Object.entries(ESPN_SCHEDULE_ENDPOINTS).map(async ([sportKey, url]) => {
     try {
@@ -47,7 +46,6 @@ async function fetchLiveSchedules() {
       }
       const data = await res.json();
       
-      // Handle different JSON nesting structures across sports (team.schedule, events, or schedule array)
       let events = [];
       if (data.events) events = data.events;
       else if (data.team?.schedule) events = data.team.schedule;
@@ -87,10 +85,12 @@ async function fetchLiveSchedules() {
         const mScore = parseScore(msu.score);
         const oScore = parseScore(opp.score);
 
+        // If game is marked completed OR scores are populated in the response
         if (isCompleted || (mScore !== null && oScore !== null && mScore !== "" && oScore !== "")) {
           if (mScore !== null && oScore !== null) {
             const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
             result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
+            showDebug(`[${sportKey}] ${isoDate} vs ${opp.team?.displayName || 'Opp'}: ${result}`);
 
             if (win) {
               wins++;
