@@ -113,19 +113,26 @@
       updateToggleButtonState();
     }
 
-    async function getVisibleGames() {
+        async function getVisibleGames() {
       const masterDataset = await getUnifiedSchedule();
       if (!Array.isArray(masterDataset)) return [];
 
       const selectedSport = document.getElementById('sportFilter')?.value || 'all';
-      const cutoff = new Date(`${FUTURE_CUTOFF}T00:00:00`);
+      
+      // Get today's date formatted as YYYY-MM-DD for comparison
+      const todayStr = new Date().toISOString().split('T')[0];
+      const today = new Date(`${todayStr}T00:00:00`);
 
       return masterDataset
         .filter(game => {
           const gameDate = new Date(`${game.isoDate}T00:00:00`);
           const matchesSport = selectedSport === 'all' || game.sportKey === selectedSport;
-          const isFuture = selectedSport === 'all' ? gameDate >= cutoff : true;
-          return matchesSport && isFuture;
+          
+          // If 'all' sports is selected, only show today and future games.
+          // If a specific sport is selected, show the entire schedule (past + future).
+          const isEligibleByDate = selectedSport === 'all' ? gameDate >= today : true;
+
+          return matchesSport && isEligibleByDate;
         })
         .sort((a, b) => {
           const aDate = new Date(`${a.isoDate}T00:00:00`).getTime();
@@ -133,7 +140,8 @@
           if (aDate !== bDate) return aDate - bDate;
           return (a.timeStr || '').localeCompare(b.timeStr || '');
         });
-    }
+        }
+    
 
     function buildSummaryText(games, selectedSport) {
       if (!games.length) {
