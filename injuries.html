@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEC Football Availability & Injury Tracker</title>
+  <style>
+    :root {
+      --bg-dark: #121212;
+      --card-bg: #1e1e24;
+      --accent-maroon: #5d1725;
+      --text-main: #f0f0f0;
+      --text-muted: #a0a0a0;
+      --status-out: #d9534f;
+      --status-quest: #f0ad4e;
+      --status-prob: #5cb85c;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 16px;
+    }
+
+    /* Kate Button / Dyslexia Support Override */
+    body.dyslexia-mode {
+      font-family: "OpenDyslexic", "Comic Sans MS", sans-serif !important;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--accent-maroon);
+      padding-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      margin: 0;
+    }
+
+    .kate-btn {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #loading-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+
+    .injury-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .team-card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 16px;
+      border-left: 4px solid var(--accent-maroon);
+    }
+
+    .team-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .team-name {
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .player-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #2a2a32;
+    }
+
+    .player-row:last-child {
+      border-bottom: none;
+    }
+
+    .player-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .player-name {
+      font-weight: 600;
+    }
+
+    .player-pos-type {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .status-badge {
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .status-out { background: var(--status-out); color: #fff; }
+    .status-questionable { background: var(--status-quest); color: #000; }
+    .status-probable { background: var(--status-prob); color: #000; }
+    .status-default { background: #444; color: #fff; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>SEC Availability Report</h1>
+    <button class="kate-btn" id="kate-toggle" onclick="toggleDyslexia()">Kate Button</button>
+  </header>
+
+  <div id="loading-state">Fetching SEC injury reports from ESPN...</div>
+  <div class="injury-grid" id="injury-container"></div>
+
+  <!-- Project Script Pipeline -->
+  <script src="injuries.js"></script>
+  <script>
+    // Global Kate Button Persistence
+    if (localStorage.getItem('dyslexiaMode') === 'true') {
+      document.body.classList.add('dyslexia-mode');
+    }
+
+    function toggleDyslexia() {
+      document.body.classList.toggle('dyslexia-mode');
+      localStorage.setItem('dyslexiaMode', document.body.classList.contains('dyslexia-mode'));
+    }
+
+    function getStatusClass(status) {
+      const s = String(status).toLowerCase();
+      if (s.includes('out')) return 'status-out';
+      if (s.includes('questionable') || s.includes('doubtful')) return 'status-questionable';
+      if (s.includes('probable') || s.includes('available')) return 'status-prob';
+      return 'status-default';
+    }
+
+    async function loadInjuryDashboard() {
+      const container = document.getElementById('injury-container');
+      const loader = document.getElementById('loading-state');
+
+      try {
+        const secData = await fetchAllSECInjuries();
+        loader.style.display = 'none';
+
+        const teamNames = Object.keys(secData);
+        if (teamNames.length === 0) {
+          container.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">No official injuries reported across the SEC today.</p>';
+          return;
+        }
+
+        teamNames.forEach(teamName => {
+          const teamInfo = secData[teamName];
+          const card = document.createElement('div');
+          card.className = 'team-card';
+
+          let playersHTML = teamInfo.players.map(p => `
+            <div class="player-row">
+              <div class="player-info">
+                <span class="player-name">${p.player} ${p.position ? `(${p.position})` : ''}</span>
+                <span class="player-pos-type">${p.details || p.type}</span>
+              </div>
+              <span class="status-badge ${getStatusClass(p.status)}">${p.status}</span>
+            </div>
+          `).join('');
+
+          card.innerHTML = `
+            <div class="team-header">
+              <span class="team-name">${teamName}</span>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">${teamInfo.players.length} Reported</span>
+            </div>
+            ${playersHTML}
+          `;
+
+          container.appendChild(card);
+        });
+
+      } catch (err) {
+        loader.innerText = "Failed to load injury reports.";
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadInjuryDashboard);
+  </script>
+</body>
+</html>
