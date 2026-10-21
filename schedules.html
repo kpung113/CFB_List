@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mississippi State Football Schedule</title>
+  <title>Mississippi State Schedule Tracker</title>
   <script src="nav.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
@@ -82,7 +82,10 @@
   <div id="summary-bar" class="summary-bar">Loading schedules...</div>
   <div id="schedule-container"></div>
 
+  <!-- Modular script pipeline -->
   <script src="data.js"></script>
+  <script src="fetcher.js"></script>
+  <script src="endschedule.js"></script>
   <script>
     const sportLabels = {
       football: 'Football',
@@ -93,81 +96,6 @@
     };
 
     const FUTURE_CUTOFF = '2026-10-19';
-    const CHANNEL_CACHE = new Map();
-
-    const ESPN_SCHEDULE_ENDPOINTS = {
-      football: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?limit=100',
-      'mens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?limit=100',
-      'womens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?limit=100',
-      baseball: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?limit=100',
-      softball: 'https://site.api.espn.com/apis/site/v2/sports/softball/college-softball/teams/344/schedule?limit=100'
-    };
-
-    function normalizeNetworkValue(value) {
-      if (!value) return '';
-      return String(value)
-        .replace(/\s*\|\s*/g, ' / ')
-        .replace(/\s+/g, ' ')
-        .trim();
-    }
-
-    function parseNetworkFromCompetition(comp) {
-      if (!comp) return '';
-      // Primary search inside broadcasts array
-      const broadcastList = comp.broadcasts || [];
-      for (const b of broadcastList) {
-        if (b.media?.shortName) return normalizeNetworkValue(b.media.shortName);
-        if (b.names && b.names.length) return normalizeNetworkValue(b.names.join(' / '));
-        if (b.market && b.name) return normalizeNetworkValue(b.name);
-      }
-      if (comp.geoBroadcasts && comp.geoBroadcasts.length) {
-        const geo = comp.geoBroadcasts[0];
-        if (geo?.media?.shortName) return normalizeNetworkValue(geo.media.shortName);
-      }
-      return '';
-    }
-
-    async function fetchBroadcastNetworkMap() {
-      if (CHANNEL_CACHE.size > 0) return CHANNEL_CACHE;
-
-      for (const [sportKey, url] of Object.entries(ESPN_SCHEDULE_ENDPOINTS)) {
-        try {
-          const res = await fetch(url);
-          if (!res.ok) continue;
-          const data = await res.json();
-          const eventsList = data?.events || data?.team?.schedule || data?.schedule || [];
-
-          for (const event of eventsList) {
-            const comp = event.competitions?.[0];
-            if (!comp) continue;
-
-            const isMsuCompetitor = (competitor) => {
-              const id = String(competitor?.id || competitor?.team?.id || '');
-              return id === '344';
-            };
-
-            const msu = comp.competitors?.find(isMsuCompetitor);
-            const opp = comp.competitors?.find(c => !isMsuCompetitor(c));
-            if (!msu || !opp) continue;
-
-            const dateKey = event.date ? event.date.split('T')[0] : '';
-            if (!dateKey) continue;
-
-            const channel = parseNetworkFromCompetition(comp);
-            
-            // Map by sport + date
-            const dateMapKey = `${sportKey}|${dateKey}`;
-            if (channel) {
-              CHANNEL_CACHE.set(dateMapKey, channel);
-            }
-          }
-        } catch (err) {
-          // Skip sports that fail to load
-        }
-      }
-
-      return CHANNEL_CACHE;
-    }
 
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
@@ -185,10 +113,9 @@
       updateToggleButtonState();
     }
 
-    function getVisibleGames() {
-      if (typeof masterDataset === 'undefined' || !Array.isArray(masterDataset)) {
-        return [];
-      }
+    async function getVisibleGames() {
+      const masterDataset = await getUnifiedSchedule();
+      if (!Array.isArray(masterDataset)) return [];
 
       const selectedSport = document.getElementById('sportFilter')?.value || 'all';
       const cutoff = new Date(`${FUTURE_CUTOFF}T00:00:00`);
@@ -226,9 +153,8 @@
       const container = document.getElementById('schedule-container');
       const summaryBar = document.getElementById('summary-bar');
       const selectedSport = document.getElementById('sportFilter')?.value || 'all';
-      const games = getVisibleGames();
-      const broadcastMap = await fetchBroadcastNetworkMap();
-
+      
+      const games = await getVisibleGames();
       summaryBar.innerText = buildSummaryText(games, selectedSport);
 
       if (!container || !games.length) {
@@ -241,8 +167,7 @@
       container.innerHTML = '';
 
       games.forEach(game => {
-        const dateMapKey = `${game.sportKey}|${game.isoDate}`;
-        const broadcast = broadcastMap.get(dateMapKey) || game.network || '';
+        const broadcast = game.network || '';
 
         const card = document.createElement('div');
         card.className = 'schedule-card';
