@@ -4,20 +4,15 @@ const ESPN_SCHEDULE_ENDPOINTS = {
   football: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?limit=100',
   'mens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?limit=100',
   'womens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?limit=100',
-  baseball: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?limit=100',
-  softball: 'https://site.api.espn.com/apis/site/v2/sports/softball/college-softball/teams/344/schedule?limit=100'
+  baseball: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?limit=100'
 };
 
 function showDebug(msg) {
   console.log(msg);
   try {
     const box = document.getElementById('debug-box');
-    if (box) {
-      box.innerText += '\n' + msg;
-    }
-  } catch (e) {
-    // Ignore DOM missing errors during early load
-  }
+    if (box) box.innerText += '\n' + msg;
+  } catch (e) {}
 }
 
 function parseScore(scoreObj) {
@@ -73,16 +68,24 @@ async function fetchLiveSchedules() {
         const tv = parseNetworkFromCompetition(comp);
         
         let result = '';
-        const status = event.status?.type;
-        const isCompleted = status?.completed === true || status?.state === 'post';
+        const statusType = event.status?.type;
+        const statusState = statusType?.state || '';
+        const statusName = statusType?.name || '';
+        
+        // Multi-check for completed state
+        const isCompleted = statusType?.completed === true || 
+                            statusState === 'post' || 
+                            statusName.includes('FINAL') || 
+                            statusName.includes('POST');
 
-        if (isCompleted) {
-          const mScore = parseScore(msu.score);
-          const oScore = parseScore(opp.score);
-          
+        const mScore = parseScore(msu.score);
+        const oScore = parseScore(opp.score);
+
+        if (isCompleted || (mScore !== null && oScore !== null && mScore !== "" && oScore !== "")) {
           if (mScore !== null && oScore !== null) {
             const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
             result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
+            showDebug(`Parsed result for ${isoDate} vs ${opp.team?.displayName || 'Opp'}: ${result}`);
 
             if (win) {
               wins++;
@@ -92,8 +95,8 @@ async function fetchLiveSchedules() {
               if (isSecGame) secLosses++;
             }
           }
-        } else if (status?.state === 'in') {
-          result = `LIVE ${parseScore(msu.score) || 0}-${parseScore(opp.score) || 0}`;
+        } else if (statusState === 'in') {
+          result = `LIVE ${mScore || 0}-${oScore || 0}`;
         }
 
         const dateObj = new Date(event.date);
