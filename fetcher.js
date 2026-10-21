@@ -1,8 +1,6 @@
-// fetcher.js - Bulletproof multi-sport fetcher with correct endpoints and IDs
+// fetcher.js - Bulletproof multi-sport fetcher with correct season parameters & ID matching
 
 const ESPN_SCHEDULE_ENDPOINTS = {
-  // Note: Verify or use the correct sport-specific team IDs if 344 is football-only.
-  // For multi-sport lookup, ESPN often uses distinct team IDs per sport.
   football: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?season=2026&limit=100',
   'mens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?season=2027&limit=100',
   'womens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?season=2027&limit=100',
@@ -33,11 +31,18 @@ function parseNetworkFromCompetition(comp) {
   return '';
 }
 
+function isMSUCompetitor(c) {
+  if (!c) return false;
+  const idStr = String(c.id || c.team?.id || '');
+  const abbrev = String(c.team?.abbreviation || '').toUpperCase();
+  return idStr === '344' || abbrev === 'MSST' || abbrev === 'MSU';
+}
+
 async function fetchLiveSchedules() {
   const liveEventsMap = new Map();
   const sportRecordsMap = {};
 
-  showDebug("Starting ESPN fetch...");
+  showDebug("Starting ESPN multi-sport fetch...");
 
   const fetchPromises = Object.entries(ESPN_SCHEDULE_ENDPOINTS).map(async ([sportKey, url]) => {
     try {
@@ -48,12 +53,9 @@ async function fetchLiveSchedules() {
       }
       const data = await res.json();
       
-      let events = [];
-      if (data.events) events = data.events;
-      else if (data.team?.schedule) events = data.team.schedule;
-      else if (data.schedule) events = data.schedule;
-
-      showDebug(`${sportKey}: fetched ${events.length} events`);
+      // Extract array regardless of endpoint structure
+      let events = data.events || data.team?.schedule || data.schedule || [];
+      showDebug(`${sportKey}: fetched ${events.length} raw events`);
 
       let wins = 0, losses = 0;
       let secWins = 0, secLosses = 0;
@@ -62,8 +64,10 @@ async function fetchLiveSchedules() {
         const comp = event.competitions?.[0];
         if (!comp) return;
 
-        const msu = comp.competitors?.find(c => String(c.id || c.team?.id) === '344');
-        const opp = comp.competitors?.find(c => String(c.id || c.team?.id) !== '344');
+        const competitors = comp.competitors || [];
+        const msu = competitors.find(c => isMSUCompetitor(c));
+        const opp = competitors.find(c => !isMSUCompetitor(c));
+
         if (!msu || !opp) return;
 
         const isoDate = event.date ? event.date.split('T')[0] : '';
