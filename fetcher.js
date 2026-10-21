@@ -10,9 +10,13 @@ const ESPN_SCHEDULE_ENDPOINTS = {
 
 function showDebug(msg) {
   console.log(msg);
-  const box = document.getElementById('debug-box');
-  if (box) {
-    box.innerText += '\n' + msg;
+  try {
+    const box = document.getElementById('debug-box');
+    if (box) {
+      box.innerText += '\n' + msg;
+    }
+  } catch (e) {
+    // Ignore DOM missing errors during early load
   }
 }
 
@@ -34,7 +38,6 @@ function parseNetworkFromCompetition(comp) {
 
 async function fetchLiveSchedules() {
   const liveEventsMap = new Map();
-  // Store computed records per sport: { overall: '5-2', sec: '2-2' }
   const sportRecordsMap = {};
 
   showDebug("Starting ESPN fetch...");
@@ -64,7 +67,6 @@ async function fetchLiveSchedules() {
         const isoDate = event.date ? event.date.split('T')[0] : '';
         if (!isoDate) return;
 
-        // Check if SEC game (either opponent notes conference game or conference name check)
         const isSecGame = comp.conferenceCompetition === true || 
                           (event.notes && event.notes.some(n => n.headline?.toLowerCase().includes('sec')));
 
@@ -77,13 +79,11 @@ async function fetchLiveSchedules() {
         if (isCompleted) {
           const mScore = parseScore(msu.score);
           const oScore = parseScore(opp.score);
-          showDebug(`Done match! ${isoDate} vs ${opp.team?.displayName}: status name = ${status.name}, scores = [${mScore}, ${oScore}]`);
           
           if (mScore !== null && oScore !== null) {
             const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
             result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
 
-            // Tally records
             if (win) {
               wins++;
               if (isSecGame) secWins++;
