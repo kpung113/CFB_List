@@ -1,11 +1,10 @@
-// fetcher.js - Multi-sport fetcher with correct sport-specific team IDs and season parameters
+// fetcher.js - Bulletproof multi-sport fetcher
 
 const ESPN_SCHEDULE_ENDPOINTS = {
-  football: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?season=2026&limit=100',
-  // Men's basketball uses internal team ID 2432 in ESPN's database
-  'mens-basketball': 'https://site.web.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/2432/schedule?season=2027&limit=100',
-  'womens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?season=2027&limit=100',
-  baseball: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?season=2027&limit=100'
+  football: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?season=2026&seasontype=2&limit=100',
+  'mens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?season=2027&seasontype=2&limit=100',
+  'womens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?season=2027&seasontype=2&limit=100',
+  baseball: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?season=2027&seasontype=2&limit=100'
 };
 
 function showDebug(msg) {
@@ -32,12 +31,11 @@ function parseNetworkFromCompetition(comp) {
   return '';
 }
 
-function isMSUCompetitor(c, sportKey) {
+function isMSUCompetitor(c) {
   if (!c) return false;
   const idStr = String(c.id || c.team?.id || '');
   const abbrev = String(c.team?.abbreviation || '').toUpperCase();
-  const targetId = sportKey === 'mens-basketball' ? '2432' : '344';
-  return idStr === targetId || abbrev === 'MSST' || abbrev === 'MSU';
+  return idStr === '344' || abbrev === 'MSST' || abbrev === 'MSU';
 }
 
 async function fetchLiveSchedules() {
@@ -55,7 +53,7 @@ async function fetchLiveSchedules() {
       }
       const data = await res.json();
       
-      let events = data.events || data.team?.schedule || data.schedule || [];
+      let events = data.events || data.requestedSeason?.events || data.team?.schedule || data.schedule || [];
       showDebug(`${sportKey}: fetched ${events.length} events`);
 
       let wins = 0, losses = 0;
@@ -66,8 +64,8 @@ async function fetchLiveSchedules() {
         if (!comp) return;
 
         const competitors = comp.competitors || [];
-        const msu = competitors.find(c => isMSUCompetitor(c, sportKey));
-        const opp = competitors.find(c => !isMSUCompetitor(c, sportKey));
+        const msu = competitors.find(c => isMSUCompetitor(c));
+        const opp = competitors.find(c => !isMSUCompetitor(c));
 
         if (!msu || !opp) return;
 
