@@ -1,4 +1,4 @@
-// fetcher.js - Responsible for fetching and parsing live schedules from ESPN APIs
+// fetcher.js - Responsible for fetching live schedules, scores, TV networks, and records from ESPN APIs
 
 const ESPN_SCHEDULE_ENDPOINTS = {
   football: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?limit=100',
@@ -8,8 +8,26 @@ const ESPN_SCHEDULE_ENDPOINTS = {
   softball: 'https://site.api.espn.com/apis/site/v2/sports/softball/college-softball/teams/344/schedule?limit=100'
 };
 
+function parseScore(scoreObj) {
+  if (scoreObj == null) return null;
+  if (typeof scoreObj !== 'object') return String(scoreObj);
+  return scoreObj.value !== undefined ? String(scoreObj.value) : scoreObj.displayValue !== undefined ? String(scoreObj.displayValue) : null;
+}
+
+function parseNetworkFromCompetition(comp) {
+  if (!comp) return '';
+  const broadcastList = comp.broadcasts || [];
+  for (const b of broadcastList) {
+    if (b.media?.shortName) return b.media.shortName;
+    if (b.names && b.names.length) return b.names.join(' / ');
+  }
+  return '';
+}
+
 async function fetchLiveSchedules() {
   const liveEventsMap = new Map();
+  // Store computed records per sport: { overall: '5-2', sec: '2-2' }
+  const sportRecordsMap = {};
 
   const fetchPromises = Object.entries(ESPN_SCHEDULE_ENDPOINTS).map(async ([sportKey, url]) => {
     try {
@@ -17,6 +35,9 @@ async function fetchLiveSchedules() {
       if (!res.ok) return;
       const data = await res.json();
       const events = data.events || data.team?.schedule || [];
+
+      let wins = 0, losses = 0;
+      let secWins = 0, secLosses = 0;
 
       events.forEach(event => {
         const comp = event.competitions?.[0];
@@ -29,21 +50,34 @@ async function fetchLiveSchedules() {
         const isoDate = event.date ? event.date.split('T')[0] : '';
         if (!isoDate) return;
 
-        // Extract broadcast TV channel
-        const tv = comp.broadcasts?.[0]?.names?.[0] || comp.broadcasts?.[0]?.media?.shortName || '';
+        // Check if SEC game (either opponent notes conference game or conference name check)
+        const isSecGame = comp.conferenceCompetition === true || 
+                          (event.notes && event.notes.some(n => n.headline?.toLowerCase().includes('sec')));
+
+        const tv = parseNetworkFromCompetition(comp);
         
-        // Extract game result / status
         let result = '';
         const status = event.status?.type;
-        if (status?.completed || status?.state === 'post') {
-          const mScore = msu.score?.value ?? msu.score;
-          const oScore = opp.score?.value ?? opp.score;
-          if (mScore !== undefined && oScore !== undefined) {
+        const isCompleted = status?.completed === true || status?.state === 'post';
+
+        if (isCompleted) {
+          const mScore = parseScore(msu.score);
+          const oScore = parseScore(opp.score);
+          if (mScore !== null && oScore !== null) {
             const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
             result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
+
+            // Tally records
+            if (win) {
+              wins++;
+              if (isSecGame) secWins++;
+            } else {
+              losses++;
+              if (isSecGame) secLosses++;
+            }
           }
         } else if (status?.state === 'in') {
-          result = `LIVE ${msu.score?.value || 0}-${opp.score?.value || 0}`;
+          result = `LIVE ${parseScore(msu.score) || 0}-${parseScore(opp.score) || 0}`;
         }
 
         const dateObj = new Date(event.date);
@@ -60,14 +94,21 @@ async function fetchLiveSchedules() {
           isHome: msu.homeAway === 'home',
           location: comp.venue?.fullName || 'Location TBD',
           network: tv,
-          result
+          result,
+          isSec: isSecGame
         });
       });
+
+      sportRecordsMap[sportKey] = {
+        overall: `${wins}-${losses}`,
+        sec: `${secWins}-${secLosses}`
+      };
+
     } catch (err) {
       console.warn(`Failed fetching live data for ${sportKey}:`, err);
     }
   });
 
   await Promise.all(fetchPromises);
-  return liveEventsMap;
+  return { liveEventsMap, sportRecordsMap };
 }
