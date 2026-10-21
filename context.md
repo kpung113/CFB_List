@@ -3,9 +3,10 @@
 ## 1. Project Overview & Operational Philosophy
 This repository hosts a mobile-first multi-sport web application for **Mississippi State University Athletics** hosted statically via **GitHub Pages**. 
 
-The core architectural principle is **zero manual score maintenance**:
-* Baseline schedules, metadata, and seasonal dates (Fall 2026 and Spring 2027) reside statically in `data.js`.
-* Live scores, completed game results, broadcast channels, rankings, and status indicators are fetched at runtime via public ESPN API endpoints.
+The core architectural principle is **zero manual score maintenance via a modular hydration pattern**:
+* **Baseline Schedules (`data.js`):** Hardcoded baseline fallback schedules, metadata, and seasonal dates (Fall 2026 and Spring 2027) reside statically.
+* **Live API Fetcher (`fetcher.js`):** Queries public ESPN API endpoints at runtime to pull live scores, completed game results, TV broadcast channels, game states, and team records.
+* **Centralized Merger (`endschedule.js`):** Combines and overrides baseline data with live fetched metadata into a unified reference set (`getUnifiedSchedule()` and `getSportRecords()`) consumed cleanly across all pages.
 
 ---
 
@@ -15,9 +16,11 @@ The core architectural principle is **zero manual score maintenance**:
 * **Google Analytics:** Property ID `G-8695308WQ8`. Included in the `<head>` of all HTML pages.
 * **Dyslexia Font Mode ("Kate Button"):** Global font toggle persisted across sessions via `localStorage.getItem('dyslexiaMode') === 'enabled'`. Applies the `dyslexia-font` CSS class to `document.documentElement` and `document.body`.
 
-### Global Shared Scripts
+### Global Shared Scripts & Architecture Pipeline
 * **`nav.js`:** Manages the mobile slide-out navigation drawer across all pages (`index.html`, `schedules.html`, `grid.html`, `away.html`, `visit.html`).
-* **`data.js`:** Exports `masterDataset`, containing full schedules and metadata for Mississippi State sports (Football, Men's Basketball, Women's Basketball, Baseball, Softball) covering Fall 2026 through Spring 2027.
+* **`data.js`:** Exports `masterDataset`, containing the baseline hardcoded schedule and metadata fallback for Mississippi State sports (Football, Men's Basketball, Women's Basketball, Baseball, Softball) covering Fall 2026 through Spring 2027.
+* **`fetcher.js`:** Handles concurrent API requests to ESPN endpoints for all sports, parsing score objects, broadcast networks, game completion statuses, and calculating overall/SEC W/L records.
+* **`endschedule.js`:** The core store/merger layer. Merges `data.js` with live updates from `fetcher.js`, handles chronological sorting, caches the dataset in memory, and exposes `getUnifiedSchedule()` and `getSportRecords()`.
 
 ---
 
@@ -34,9 +37,10 @@ The core architectural principle is **zero manual score maintenance**:
 ### 2. `schedules.html` (Multi-Sport Schedule, TV, & Record Tracker)
 * **Purpose:** Display comprehensive schedules for Mississippi State sports (Football, Men's Basketball, Women's Basketball, Baseball, Softball) across the Fall 2026 and Spring 2027 seasons.
 * **Key Features & Display Rules:**
+  * **Filter Behavior:** "All Sports" view displays upcoming/future games from today onward. Selecting a specific sport displays the full season timeline (past results + future games).
   * **Upcoming Games:** Displays date, opponent, home/away indicator, and TV broadcast channel.
   * **Completed Games:** Automatically displays the final score and W/L result badge.
-  * **Record Banners:** Dynamically calculates and displays both the overall record and SEC record for the selected sport.
+  * **Record Banners:** Dynamically calculates and displays both the overall record and SEC record for the selected sport using the unified store.
 
 ### 3. `grid.html` (Saturday Master Game Matrix)
 * **Purpose:** Provide a high-density, minimal-scrolling view of all live games and completed games happening on Saturdays, capturing everything going on across college sports on a given Saturday.
@@ -57,4 +61,4 @@ The core architectural principle is **zero manual score maintenance**:
 * **Key Metrics Returned:**
   * **Total Games:** Total number of home sporting events occurring during the specified day span.
   * **Crossover Sports:** Number of distinct sports playing during the trip (e.g., a 5-day visit capturing 2 baseball games and 1 men's basketball game outputs **3 total games** and **2 crossover sports**).
-    
+  * 
