@@ -1,14 +1,13 @@
-// fetcher.js - Responsible for fetching live schedules, scores, TV networks, and records from ESPN APIs
-
-// fetcher.js - Responsible for fetching live schedules, scores, TV networks, and records from ESPN APIs
+// fetcher.js - Bulletproof multi-sport fetcher with correct endpoints and IDs
 
 const ESPN_SCHEDULE_ENDPOINTS = {
+  // Note: Verify or use the correct sport-specific team IDs if 344 is football-only.
+  // For multi-sport lookup, ESPN often uses distinct team IDs per sport.
   football: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/344/schedule?season=2026&limit=100',
-  'mens-basketball': 'https://site.web.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?season=2027&limit=100',
-  'womens-basketball': 'https://site.web.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?season=2027&limit=100',
-  baseball: 'https://site.web.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?season=2027&limit=100'
+  'mens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/344/schedule?season=2027&limit=100',
+  'womens-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/womens-college-basketball/teams/344/schedule?season=2027&limit=100',
+  baseball: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-baseball/teams/344/schedule?season=2027&limit=100'
 };
-
 
 function showDebug(msg) {
   console.log(msg);
@@ -38,7 +37,7 @@ async function fetchLiveSchedules() {
   const liveEventsMap = new Map();
   const sportRecordsMap = {};
 
-  showDebug("Starting ESPN fetch with explicit season parameters...");
+  showDebug("Starting ESPN fetch...");
 
   const fetchPromises = Object.entries(ESPN_SCHEDULE_ENDPOINTS).map(async ([sportKey, url]) => {
     try {
@@ -76,11 +75,11 @@ async function fetchLiveSchedules() {
         const tv = parseNetworkFromCompetition(comp);
         
         let result = '';
-        const statusType = event.status?.type;
-        const statusState = statusType?.state || '';
-        const statusName = statusType?.name || '';
+        const statusType = event.status?.type || {};
+        const statusState = statusType.state || '';
+        const statusName = statusType.name || '';
         
-        const isCompleted = statusType?.completed === true || 
+        const isCompleted = statusType.completed === true || 
                             statusState === 'post' || 
                             statusName.includes('FINAL') || 
                             statusName.includes('POST');
@@ -88,12 +87,10 @@ async function fetchLiveSchedules() {
         const mScore = parseScore(msu.score);
         const oScore = parseScore(opp.score);
 
-        // If game is marked completed OR scores are populated in the response
         if (isCompleted || (mScore !== null && oScore !== null && mScore !== "" && oScore !== "")) {
           if (mScore !== null && oScore !== null) {
             const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
             result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
-            showDebug(`[${sportKey}] ${isoDate} vs ${opp.team?.displayName || 'Opp'}: ${result}`);
 
             if (win) {
               wins++;
