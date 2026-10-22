@@ -1,4 +1,4 @@
-// flightChecker.js - Structured Google Flights Deep-Link Generator
+// flightChecker.js - Multi-Airport & Multi-Passenger Google Flights Deep-Link Generator
 
 /**
  * Calculates Friday departure and Sunday return dates from a Saturday game date.
@@ -19,12 +19,11 @@ function getGameWeekendDates(saturdayDateStr) {
 }
 
 /**
- * Builds a clean Google Flights URL embedding passengers directly in the query text.
- * Pre-set for 2 Adults and 2 Children (in seats).
+ * Builds a multi-airport Google Flights URL embedding all departure/arrival choices
+ * and pre-setting 2 Adults + 2 Children in seats.
  */
-function buildGoogleFlightsUrl(origin, destination, departDate, returnDate) {
-  // Including passenger count explicitly inside the natural-language query string
-  const searchQuery = `flights from ${origin} to ${destination} on ${departDate} returning ${returnDate} for 2 adults 2 children`;
+function buildGoogleFlightsUrl(originQuery, destinationQuery, departDate, returnDate) {
+  const searchQuery = `flights from ${originQuery} to ${destinationQuery} on ${departDate} returning ${returnDate} for 2 adults 2 children`;
   const encodedQuery = encodeURIComponent(searchQuery);
   return `https://www.google.com/travel/flights?q=${encodedQuery}`;
 }
@@ -35,13 +34,13 @@ function buildGoogleFlightsUrl(origin, destination, departDate, returnDate) {
 function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
   const dates = getGameWeekendDates(saturdayDateStr);
 
-  // Primary origin grouping
-  const origins = "TPA";
+  // Multi-airport origin group for Central/West Florida
+  const origins = "TPA or MCO or PIE or LAL or SRQ";
 
-  // 1. HOME GAMES (Starkville)
+  // 1. HOME GAMES (Starkville & surrounding regional hubs)
   if (!isAway) {
-    const homeDestination = "GTR"; // Golden Triangle Regional (Starkville)
-    const flightUrl = buildGoogleFlightsUrl(origins, homeDestination, dates.departDate, dates.returnDate);
+    const homeDestinations = "GTR or BHM or JAN or MEM";
+    const flightUrl = buildGoogleFlightsUrl(origins, homeDestinations, dates.departDate, dates.returnDate);
 
     return `
       <div class="card-travel-action">
@@ -55,7 +54,7 @@ function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
   // 2. AWAY GAMES
   const travelInfo = typeof SEC_TRAVEL_MAP !== 'undefined' ? SEC_TRAVEL_MAP[opponentAbbrev] : null;
 
-  // Drive-only destinations
+  // Drive-only destinations (e.g. Florida / Gainesville)
   if (travelInfo && travelInfo.driveOnly) {
     return `
       <div class="card-travel-action">
