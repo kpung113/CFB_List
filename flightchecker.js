@@ -1,9 +1,14 @@
-// flightchecker.js - Kayak Flight Deep-Link Generator
+// flightChecker.js - Direct Google Flights Deep-Link Generator
 
+/**
+ * Calculates Friday departure and Sunday return dates from a Saturday game date.
+ */
 function getGameWeekendDates(saturdayDateStr) {
   const saturday = new Date(saturdayDateStr + 'T12:00:00');
+  
   const friday = new Date(saturday);
   friday.setDate(saturday.getDate() - 1);
+  
   const sunday = new Date(saturday);
   sunday.setDate(saturday.getDate() + 1);
 
@@ -13,22 +18,37 @@ function getGameWeekendDates(saturdayDateStr) {
   };
 }
 
-function buildKayakUrl(originList, destList, departDate, returnDate) {
+/**
+ * Builds a direct Google Flights deep-link using clean URL parameters.
+ */
+function buildGoogleFlightsUrl(originList, destList, departDate, returnDate) {
+  const baseUrl = "https://www.google.com/travel/flights";
+  
+  // Clean up airport lists for query formatting
   const origins = originList.replace(/\s+/g, '').toUpperCase();
   const dests = destList.replace(/\s+/g, '').toUpperCase();
-  const dep = departDate.trim();
-  const ret = returnDate.trim();
 
-  return `https://www.kayak.com/flights/${origins}-${dests}/${dep}/${ret}/2adults/children-3-5`;
+  // Google Flights parameter structure
+  const params = new URLSearchParams({
+    q: `flights from ${origins} to ${dests} on ${departDate} returning ${returnDate}`
+  });
+
+  return `${baseUrl}?${params.toString()}`;
 }
 
+/**
+ * Generates compact HTML for travel action buttons on game cards.
+ */
 function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
   const dates = getGameWeekendDates(saturdayDateStr);
+
+  // Central/West FL Origin Airports
   const origins = "TPA,MCO,PIE,LAL,SRQ";
 
+  // 1. HOME GAMES (Starkville & Surrounding Hubs)
   if (!isAway) {
     const homeDestinations = "GTR,BHM,JAN,MEM";
-    const flightUrl = buildKayakUrl(origins, homeDestinations, dates.departDate, dates.returnDate);
+    const flightUrl = buildGoogleFlightsUrl(origins, homeDestinations, dates.departDate, dates.returnDate);
 
     return `
       <div class="card-travel-action">
@@ -39,8 +59,10 @@ function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
     `;
   }
 
+  // 2. AWAY GAMES
   const travelInfo = (typeof SEC_TRAVEL_MAP !== 'undefined' && SEC_TRAVEL_MAP) ? SEC_TRAVEL_MAP[opponentAbbrev] : null;
 
+  // Drive-only destinations (e.g. Florida / Gainesville)
   if (travelInfo && travelInfo.driveOnly) {
     return `
       <div class="card-travel-action">
@@ -49,8 +71,9 @@ function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
     `;
   }
 
+  // Away flight destinations
   const destAirport = travelInfo ? (travelInfo.airports || travelInfo.primaryAirport || opponentAbbrev) : opponentAbbrev;
-  const flightUrl = buildKayakUrl(origins, destAirport, dates.departDate, dates.returnDate);
+  const flightUrl = buildGoogleFlightsUrl(origins, destAirport, dates.departDate, dates.returnDate);
 
   return `
     <div class="card-travel-action">
