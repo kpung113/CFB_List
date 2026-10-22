@@ -25,15 +25,24 @@ function getGameWeekendDates(saturdayDateStr) {
  * lists (e.g., "TPA,MCO,PIE"). We extract the primary (first) airport to ensure 
  * the search link resolves cleanly instead of redirecting to the homepage.
  */
+/**
+ * Builds a robust Google Flights deep-link supporting multi-airport 
+ * groupings and passenger counts via natural language query structuring.
+ */
 function buildGoogleFlightsUrl(originList, destList, departDate, returnDate) {
   const baseUrl = "https://www.google.com/travel/flights";
   
-  // Extract primary airports to prevent Google's NLU parser from crashing
-  const primaryOrigin = originList.split(',')[0].trim();
-  const primaryDest = destList.split(',')[0].trim();
+  // Transform comma-separated lists into natural language "OR" clusters 
+  // that Google Flights' text parser can successfully resolve.
+  const formattedOrigins = originList.split(',').map(s => s.trim()).join(' or ');
+  const formattedDests = destList.split(',').map(s => s.trim()).join(' or ');
+
+  // Explicitly state passenger breakdown in the query string so 
+  // Google's NLU parser configures the state panel correctly.
+  const passengerQuery = "2 adults and 2 children";
 
   const params = new URLSearchParams({
-    q: `Flights from ${primaryOrigin} to ${primaryDest} on ${departDate} returning ${returnDate}`
+    q: `Flights from ${formattedOrigins} to ${formattedDests} on ${departDate} returning ${returnDate} for ${passengerQuery}`
   });
 
   return `${baseUrl}?${params.toString()}`;
