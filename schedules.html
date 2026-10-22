@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mississippi State Schedule Tracker</title>
+  <script src="sec_airports.js"></script>
+  <script src="flightChecker.js"></script>
   <script src="nav.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
@@ -37,7 +39,8 @@
     .filter-label { font-size:0.8rem; font-weight:700; color:var(--gold); text-transform:uppercase; letter-spacing:0.04em; }
     select { background:#10141b; color:var(--text); border:1px solid var(--border); border-radius:6px; padding:8px 10px; font-size:0.85rem; font-weight:700; min-width:180px; }
     .summary-bar { background: rgba(132,204,22,0.08); border:1px solid rgba(132,204,22,0.25); border-radius:8px; padding:10px 12px; margin-bottom:16px; color:var(--sub); font-size:0.8rem; font-weight:600; }
-    .schedule-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .schedule-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px; display:flex; flex-direction:column; gap:8px; }
+    .card-top { display:flex; justify-content:space-between; align-items:center; gap:12px; }
     .game-left, .game-right { display:flex; flex-direction:column; gap:2px; min-width:0; }
     .game-right { text-align:right; align-items:flex-end; flex-shrink:0; }
     .game-date { font-size:0.7rem; color:var(--sub); font-weight:600; }
@@ -51,6 +54,43 @@
     .location-text { font-size:0.72rem; color:var(--sub); }
     .network-badge { display:inline-flex; align-items:center; justify-content:center; background: rgba(59,130,246,0.12); color:#93c5fd; border:1px solid rgba(96,165,250,0.4); border-radius:999px; padding:2px 7px; font-size:0.65rem; font-weight:800; letter-spacing:0.04em; margin-top:2px; }
     .empty-state { background: var(--card); border:1px solid var(--border); border-radius:10px; padding:20px; color:var(--sub); font-size:0.9rem; text-align:center; }
+    
+    /* Travel Action & Flight Button Styles */
+    .card-travel-action {
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+      text-align: right;
+    }
+    .card-flight-btn {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 700;
+      transition: opacity 0.2s ease;
+    }
+    .card-flight-btn:hover {
+      opacity: 0.85;
+    }
+    .card-flight-btn.away-btn {
+      background-color: #0284c7;
+      color: #ffffff;
+    }
+    .card-flight-btn.home-btn {
+      background-color: var(--maroon);
+      color: #ffffff;
+      border: 1px solid #832034;
+    }
+    .drive-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      color: var(--sub);
+      background: #111319;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
   </style>
 </head>
 <body>
@@ -83,7 +123,6 @@
   <div id="schedule-container"></div>
 
   <div id="debug-box" style="background:#221010; border:1px solid #ef4444; border-radius:8px; padding:12px; margin-top:20px; font-family:monospace; font-size:0.75rem; color:#fca5a5; white-space:pre-wrap; word-break:break-all;">Debug logs will appear here...</div>
-  
 
   <!-- Modular script pipeline -->
   <script src="data.js"></script>
@@ -116,13 +155,12 @@
       updateToggleButtonState();
     }
 
-        async function getVisibleGames() {
+    async function getVisibleGames() {
       const masterDataset = await getUnifiedSchedule();
       if (!Array.isArray(masterDataset)) return [];
 
       const selectedSport = document.getElementById('sportFilter')?.value || 'all';
       
-      // Get today's date formatted as YYYY-MM-DD for comparison
       const todayStr = new Date().toISOString().split('T')[0];
       const today = new Date(`${todayStr}T00:00:00`);
 
@@ -130,9 +168,6 @@
         .filter(game => {
           const gameDate = new Date(`${game.isoDate}T00:00:00`);
           const matchesSport = selectedSport === 'all' || game.sportKey === selectedSport;
-          
-          // If 'all' sports is selected, only show today and future games.
-          // If a specific sport is selected, show the entire schedule (past + future).
           const isEligibleByDate = selectedSport === 'all' ? gameDate >= today : true;
 
           return matchesSport && isEligibleByDate;
@@ -143,8 +178,7 @@
           if (aDate !== bDate) return aDate - bDate;
           return (a.timeStr || '').localeCompare(b.timeStr || '');
         });
-        }
-    
+    }
 
     function buildSummaryText(games, selectedSport) {
       if (!games.length) {
@@ -200,20 +234,28 @@
 
         const networkBadge = broadcast ? `<span class="network-badge">${broadcast}</span>` : '';
 
+        // Generate travel button HTML for football games
+        const travelActionHtml = (game.sportKey === 'football' && typeof getTravelButtonHtml === 'function') 
+          ? getTravelButtonHtml(game.abbrev || game.opponentAbbrev, game.isoDate, !game.isHome) 
+          : '';
+
         card.innerHTML = `
-          <div class="game-left">
-            <span class="sport-tag">${sportLabels[game.sportKey] || game.sportKey}</span>
-            <span class="game-date">${dateStr}</span>
-            <div class="opponent-name">
-              <span class="homeaway">${game.isHome ? 'vs' : '@'}</span>
-              ${game.opponent}
+          <div class="card-top">
+            <div class="game-left">
+              <span class="sport-tag">${sportLabels[game.sportKey] || game.sportKey}</span>
+              <span class="game-date">${dateStr}</span>
+              <div class="opponent-name">
+                <span class="homeaway">${game.isHome ? 'vs' : '@'}</span>
+                ${game.opponent}
+              </div>
+            </div>
+            <div class="game-right">
+              ${badge}
+              ${networkBadge}
+              <span class="location-text">${game.location || 'Location TBD'}</span>
             </div>
           </div>
-          <div class="game-right">
-            ${badge}
-            ${networkBadge}
-            <span class="location-text">${game.location || 'Location TBD'}</span>
-          </div>
+          ${travelActionHtml}
         `;
 
         container.appendChild(card);
