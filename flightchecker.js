@@ -23,7 +23,6 @@ function getGameWeekendDates(saturdayDateStr) {
  * Pre-set for 2 Adults and 2 Children.
  */
 function buildGoogleFlightsUrl(origin, destination, departDate, returnDate) {
-  // Using explicit text search query that Google Flights reliably parses
   const searchQuery = `flights from ${origin} to ${destination} on ${departDate} returning ${departDate}`;
   const encodedQuery = encodeURIComponent(searchQuery);
   return `https://www.google.com/travel/flights?q=${encodedQuery}&px=2,2,0,0`;
@@ -35,10 +34,10 @@ function buildGoogleFlightsUrl(origin, destination, departDate, returnDate) {
 function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
   const dates = getGameWeekendDates(saturdayDateStr);
 
-  // Primary origin grouping (using TPA as the main hub since Google Flights natively expands nearby airports, or primary codes)
+  // Primary origin grouping
   const origins = "TPA";
 
-  // 1. HOME GAMES (Starkville Regional Hubs)
+  // 1. HOME GAMES (Starkville)
   if (!isAway) {
     const homeDestination = "GTR"; // Golden Triangle Regional (Starkville)
     const flightUrl = buildGoogleFlightsUrl(origins, homeDestination, dates.departDate, dates.returnDate);
@@ -46,7 +45,7 @@ function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
     return `
       <div class="card-travel-action">
         <a href="${flightUrl}" target="_blank" rel="noopener" class="card-flight-btn">
-          ✈️ Fly to Starkville (GTR)
+          ✈️ Fly to Starkville
         </a>
       </div>
     `;
@@ -70,7 +69,7 @@ function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
 
   return `
     <div class="card-travel-action">
-      <a href="${flightUrl}" target="_blank" rel="noopener" class="card-flight-dfn card-flight-btn">
+      <a href="${flightUrl}" target="_blank" rel="noopener" class="card-flight-btn">
         ✈️ Check Flights (${destAirport})
       </a>
     </div>
