@@ -4,16 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SEC Football Availability & Injury Tracker</title>
+  <script src="nav.js"></script>
   <style>
     :root {
       --bg-dark: #121212;
       --card-bg: #1e1e24;
+      --border: #272935;
       --accent-maroon: #5d1725;
       --text-main: #f0f0f0;
       --text-muted: #a0a0a0;
       --status-out: #d9534f;
       --status-quest: #f0ad4e;
       --status-prob: #5cb85c;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
@@ -29,26 +35,139 @@
       font-family: "OpenDyslexic", "Comic Sans MS", sans-serif !important;
     }
 
+    /* Hamburger Nav Drawer Overlay & Drawer Styling */
+    .nav-overlay { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100vw; 
+      height: 100vh; 
+      background: rgba(0,0,0,0.6); 
+      z-index: 99; 
+      opacity: 0; 
+      visibility: hidden; 
+      pointer-events: none; 
+      transition: 0.2s; 
+    }
+    .nav-overlay.open { 
+      opacity: 1; 
+      visibility: visible; 
+      pointer-events: auto; 
+    }
+    .nav-drawer { 
+      position: fixed; 
+      top: 0; 
+      left: -260px; 
+      width: 260px; 
+      height: 100vh; 
+      background: #181920; 
+      border-right: 1px solid var(--border); 
+      z-index: 100; 
+      display: flex; 
+      flex-direction: column; 
+      transition: 0.3s; 
+      box-shadow: 4px 0 15px rgba(0,0,0,.5); 
+    }
+    .nav-drawer.open { 
+      left: 0; 
+    }
+    .drawer-header { 
+      padding: 14px 16px; 
+      font-weight: 800; 
+      font-size: .9rem; 
+      text-transform: uppercase; 
+      color: #38bdf8; 
+      border-bottom: 1px solid var(--border); 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+    }
+    .drawer-close { 
+      background: none; 
+      border: none; 
+      color: var(--text-muted); 
+      font-size: 1.3rem; 
+      cursor: pointer; 
+    }
+    .drawer-links { 
+      list-style: none; 
+      padding: 8px 0; 
+      margin: 0; 
+      display: flex; 
+      flex-direction: column; 
+    }
+    .drawer-links a { 
+      padding: 12px 18px; 
+      color: var(--text-main); 
+      text-decoration: none; 
+      font-size: .85rem; 
+      font-weight: 700; 
+      display: block; 
+      border-left: 3px solid transparent; 
+    }
+    .drawer-links a:hover, .drawer-links a.active { 
+      background-color: #222530; 
+      border-left-color: #38bdf8; 
+      color: #38bdf8; 
+    }
+
+    /* Header & Navigation Bar */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
       margin-bottom: 20px;
+      padding-bottom: 12px;
       border-bottom: 2px solid var(--accent-maroon);
-      padding-bottom: 10px;
+    }
+
+    .header-left, .header-right, .header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-left {
+      gap: 12px;
+    }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 22px;
+      height: 18px;
+      padding: 0;
+      z-index: 101;
+    }
+
+    .menu-btn span {
+      display: block;
+      width: 100%;
+      height: 2px;
+      background: #38bdf8;
+      border-radius: 2px;
     }
 
     h1 {
-      font-size: 1.4rem;
+      font-size: 1.25rem;
+      font-weight: 800;
       margin: 0;
     }
 
     .kate-btn {
-      background: #333;
-      color: #fff;
-      border: 1px solid #555;
-      padding: 6px 12px;
-      border-radius: 4px;
+      background: var(--card-bg);
+      color: #38bdf8;
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 6px;
       cursor: pointer;
     }
 
@@ -126,8 +245,17 @@
 <body>
 
   <header>
-    <h1>SEC Availability Report</h1>
-    <button class="kate-btn" id="kate-toggle" onclick="toggleDyslexia()">Kate Button</button>
+    <div class="header-left">
+      <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="header-title">
+        <h1>SEC Availability Report</h1>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="kate-btn" id="kate-toggle" onclick="toggleDyslexia()">Kate Button</button>
+    </div>
   </header>
 
   <div id="loading-state">Fetching SEC injury reports from ESPN...</div>
