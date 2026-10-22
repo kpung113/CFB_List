@@ -1,4 +1,4 @@
-// flightChecker.js - Multi-Airport & Multi-Passenger Google Flights Deep-Link Generator
+// flightChecker.js - Direct Multi-Airport & Passenger Payload Deep-Link Generator
 
 /**
  * Calculates Friday departure and Sunday return dates from a Saturday game date.
@@ -19,13 +19,17 @@ function getGameWeekendDates(saturdayDateStr) {
 }
 
 /**
- * Builds a multi-airport Google Flights URL embedding all departure/arrival choices
- * and pre-setting 2 Adults + 2 Children in seats.
+ * Builds a direct Google Flights deep-link supporting multi-airport comma lists and family passenger counts.
  */
-function buildGoogleFlightsUrl(originQuery, destinationQuery, departDate, returnDate) {
-  const searchQuery = `flights from ${originQuery} to ${destinationQuery} on ${departDate} returning ${returnDate} for 2 adults 2 children`;
-  const encodedQuery = encodeURIComponent(searchQuery);
-  return `https://www.google.com/travel/flights?q=${encodedQuery}`;
+function buildGoogleFlightsUrl(originList, destList, departDate, returnDate) {
+  // Direct parameter encoding forces Google Flights to preserve multi-airport lists and passenger payloads
+  const baseUrl = "https://www.google.com/travel/flights";
+  const params = new URLSearchParams({
+    q: `Flights from ${originList} to ${destList} ${departDate} through ${returnDate}`,
+    px: "2,2,0,0" // 2 Adults, 2 Children in seats
+  });
+
+  return `${baseUrl}?${params.toString()}`;
 }
 
 /**
@@ -34,12 +38,12 @@ function buildGoogleFlightsUrl(originQuery, destinationQuery, departDate, return
 function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
   const dates = getGameWeekendDates(saturdayDateStr);
 
-  // Multi-airport origin group for Central/West Florida
-  const origins = "TPA or MCO or PIE or LAL or SRQ";
+  // Central/West FL Origin Airports
+  const origins = "TPA,MCO,PIE,LAL,SRQ";
 
-  // 1. HOME GAMES (Starkville & surrounding regional hubs)
+  // 1. HOME GAMES (Starkville & Surrounding Hubs)
   if (!isAway) {
-    const homeDestinations = "GTR or BHM or JAN or MEM";
+    const homeDestinations = "GTR,BHM,JAN,MEM";
     const flightUrl = buildGoogleFlightsUrl(origins, homeDestinations, dates.departDate, dates.returnDate);
 
     return `
