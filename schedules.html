@@ -238,6 +238,8 @@
 
       container.innerHTML = '';
 
+      const now = new Date();
+
       games.forEach(game => {
         const broadcast = game.network || '';
 
@@ -261,9 +263,14 @@
 
         const networkBadge = broadcast ? `<span class="network-badge">${broadcast}</span>` : '';
 
-        // Generate travel button HTML for football games
+        // Determine if game is completed or in the past
+        const isGameComplete = Boolean(game.result);
+        const gameEndCutoff = new Date(`${game.isoDate}T23:59:59`);
+        const isPastGame = gameEndCutoff < now;
+
+        // Generate travel button ONLY if football, incomplete, and in the future
         const abbrev = getOpponentAbbrev(game);
-        const travelActionHtml = (game.sportKey === 'football' && typeof getTravelButtonHtml === 'function') 
+        const travelActionHtml = (game.sportKey === 'football' && !isGameComplete && !isPastGame && typeof getTravelButtonHtml === 'function') 
           ? getTravelButtonHtml(abbrev, game.isoDate, !game.isHome) 
           : '';
 
