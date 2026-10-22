@@ -1,4 +1,4 @@
-// flightChecker.js - Direct Multi-Airport & Passenger Payload Deep-Link Generator
+// flightChecker.js - Reliable Google Flights Deep-Link Generator
 
 /**
  * Calculates Friday departure and Sunday return dates from a Saturday game date.
@@ -19,14 +19,21 @@ function getGameWeekendDates(saturdayDateStr) {
 }
 
 /**
- * Builds a direct Google Flights deep-link supporting multi-airport comma lists and family passenger counts.
+ * Builds a robust Google Flights deep-link.
+ * 
+ * NOTE: Google Flights' text parser breaks if fed comma-separated multi-airport 
+ * lists (e.g., "TPA,MCO,PIE"). We extract the primary (first) airport to ensure 
+ * the search link resolves cleanly instead of redirecting to the homepage.
  */
 function buildGoogleFlightsUrl(originList, destList, departDate, returnDate) {
-  // Direct parameter encoding forces Google Flights to preserve multi-airport lists and passenger payloads
   const baseUrl = "https://www.google.com/travel/flights";
+  
+  // Extract primary airports to prevent Google's NLU parser from crashing
+  const primaryOrigin = originList.split(',')[0].trim();
+  const primaryDest = destList.split(',')[0].trim();
+
   const params = new URLSearchParams({
-    q: `Flights from ${originList} to ${destList} ${departDate} through ${returnDate}`,
-    px: "2,2,0,0" // 2 Adults, 2 Children in seats
+    q: `Flights from ${primaryOrigin} to ${primaryDest} on ${departDate} returning ${returnDate}`
   });
 
   return `${baseUrl}?${params.toString()}`;
@@ -38,7 +45,7 @@ function buildGoogleFlightsUrl(originList, destList, departDate, returnDate) {
 function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
   const dates = getGameWeekendDates(saturdayDateStr);
 
-  // Central/West FL Origin Airports
+  // Central/West FL Origin Airports (Primary extraction will use 'TPA')
   const origins = "TPA,MCO,PIE,LAL,SRQ";
 
   // 1. HOME GAMES (Starkville & Surrounding Hubs)
