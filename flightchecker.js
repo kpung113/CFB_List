@@ -1,4 +1,4 @@
-// flightChecker.js - Multi-Airport Travel Link Generator (Comma-separated for Google Flights)
+// flightChecker.js - Structured Google Flights Deep-Link Generator
 
 /**
  * Calculates Friday departure and Sunday return dates from a Saturday game date.
@@ -19,11 +19,14 @@ function getGameWeekendDates(saturdayDateStr) {
 }
 
 /**
- * Builds a direct Google Flights URL using comma-separated airport codes.
+ * Builds a clean Google Flights URL using standard query parameters.
  * Pre-set for 2 Adults and 2 Children.
  */
-function buildGoogleFlightsUrl(originAirports, destAirports, departDate, returnDate) {
-  return `https://www.google.com/travel/flights?q=Flights%20to%20${destAirports}%20from%20${originAirports}%20on%20${departDate}%20through%20${returnDate}%20for%202%20adults%202%20children`;
+function buildGoogleFlightsUrl(origin, destination, departDate, returnDate) {
+  // Using explicit text search query that Google Flights reliably parses
+  const searchQuery = `flights from ${origin} to ${destination} on ${departDate} returning ${departDate}`;
+  const encodedQuery = encodeURIComponent(searchQuery);
+  return `https://www.google.com/travel/flights?q=${encodedQuery}&px=2,2,0,0`;
 }
 
 /**
@@ -32,18 +35,18 @@ function buildGoogleFlightsUrl(originAirports, destAirports, departDate, returnD
 function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
   const dates = getGameWeekendDates(saturdayDateStr);
 
-  // Comma-separated origin airports for Google Flights multi-origin search
-  const origins = "TPA%2CMCO%2CPIE%2CLAL%2CSRQ";
+  // Primary origin grouping (using TPA as the main hub since Google Flights natively expands nearby airports, or primary codes)
+  const origins = "TPA";
 
-  // 1. HOME GAMES (Starkville Regional Hubs: GTR, BHM, JAN, MEM)
+  // 1. HOME GAMES (Starkville Regional Hubs)
   if (!isAway) {
-    const homeDestinations = "GTR%2CBHM%2CJAN%2CMEM";
-    const flightUrl = buildGoogleFlightsUrl(origins, homeDestinations, dates.departDate, dates.returnDate);
+    const homeDestination = "GTR"; // Golden Triangle Regional (Starkville)
+    const flightUrl = buildGoogleFlightsUrl(origins, homeDestination, dates.departDate, dates.returnDate);
 
     return `
       <div class="card-travel-action">
         <a href="${flightUrl}" target="_blank" rel="noopener" class="card-flight-btn">
-          ✈️ Fly to Starkville (GTR/BHM/JAN/MEM)
+          ✈️ Fly to Starkville (GTR)
         </a>
       </div>
     `;
@@ -67,7 +70,7 @@ function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
 
   return `
     <div class="card-travel-action">
-      <a href="${flightUrl}" target="_blank" rel="noopener" class="card-flight-btn">
+      <a href="${flightUrl}" target="_blank" rel="noopener" class="card-flight-dfn card-flight-btn">
         ✈️ Check Flights (${destAirport})
       </a>
     </div>
