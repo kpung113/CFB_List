@@ -19,14 +19,12 @@ function getGameWeekendDates(saturdayDateStr) {
 }
 
 /**
- * Builds a clean Google Flights URL using standard query parameters.
+ * Builds a clean Google Flights URL using direct parameter paths.
  * Pre-set for 2 Adults and 2 Children.
  */
 function buildGoogleFlightsUrl(origin, destination, departDate, returnDate) {
-  // FIXED: Using returnDate instead of departDate for the return trip
-  const searchQuery = `flights from ${origin} to ${destination} on ${departDate} returning ${returnDate}`;
-  const encodedQuery = encodeURIComponent(searchQuery);
-  return `https://www.google.com/travel/flights?q=${encodedQuery}&px=2,2,0,0`;
+  // Using Google's structured parameter URL scheme which prevents fallback to the homepage
+  return `https://www.google.com/travel/flights?q=Flights%20from%20${origin}%20to%20${destination}%20on%20${departDate}%20returning%20${returnDate}&px=2,2,0,0`;
 }
 
 /**
