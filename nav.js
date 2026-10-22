@@ -1,7 +1,7 @@
 // Shared Navigation Drawer & Header Menu Management
 const NAV_LINKS = [
   { title: "Scores Board", url: "index.html" },
-  { title: "Saturday Game Grid", url: "grid.html" },
+  { title: "Game Grid", url: "grid.html" },
   { title: "MSU Schedule", url: "schedules.html" },
   { title: "SEC Injury Report", url: "injuries.html" },
   { title: "Closest Away Games", url: "away.html" },
