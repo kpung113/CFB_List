@@ -24,6 +24,7 @@
       --accent-maroon:#5d1725;
       --subtext:#94a3b8;
       --gold:#84cc16;
+      --blue:#38bdf8;
     }
     * { box-sizing: border-box; }
     body {
@@ -41,7 +42,7 @@
     .dyslexia-toggle {
       background: #181920;
       border: 1px solid var(--card-border);
-      color: #38bdf8;
+      color: var(--blue);
       font-size: .75rem;
       font-weight: 700;
       padding: 5px 10px;
@@ -86,7 +87,7 @@
       font-weight:800;
       font-size:.9rem;
       text-transform:uppercase;
-      color:#38bdf8;
+      color:var(--blue);
       border-bottom:1px solid var(--card-border);
       display:flex;
       justify-content:space-between;
@@ -117,8 +118,8 @@
     }
     .drawer-links a:hover, .drawer-links a.active {
       background-color:#222530;
-      border-left-color:#38bdf8;
-      color:#38bdf8;
+      border-left-color:var(--blue);
+      color:var(--blue);
     }
     header {
       display:flex;
@@ -152,7 +153,7 @@
       display:block;
       width:100%;
       height:2px;
-      background-color:#38bdf8;
+      background-color:var(--blue);
       border-radius:2px;
     }
     .msu-logo {
@@ -184,7 +185,7 @@
       color:var(--text);
       padding:8px 12px;
       border-radius:6px;
-      width:110px;
+      width:100px;
       font-weight:700;
       font-size:1rem;
       text-align:center;
@@ -201,6 +202,31 @@
       transition:background .2s;
     }
     .calc-btn:hover { background:#7d2033; }
+    
+    /* Sort Controls Styling */
+    .sort-control-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+    }
+    .sort-btn {
+      background: #0b0c10;
+      border: 1px solid var(--card-border);
+      color: var(--subtext);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: .8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .sort-btn.active {
+      background: var(--accent-maroon);
+      color: #fff;
+      border-color: #7d2033;
+    }
+
     .zip-status {
       font-size:.8rem;
       color:var(--subtext);
@@ -237,7 +263,7 @@
     .distance-badge {
       font-size:.8rem;
       background:rgba(132,204,22,.15);
-      color:#84cc16;
+      color:var(--gold);
       border:1px solid rgba(132,204,22,.3);
       padding:3px 8px;
       border-radius:6px;
@@ -281,9 +307,17 @@
   </header>
 
   <div class="zip-control-card">
-    <label style="font-weight:700; font-size:0.85rem;">Enter Your Zip Code:</label>
+    <label style="font-weight:700; font-size:0.85rem;">Zip Code:</label>
     <input type="text" id="zipInput" value="33813" maxlength="5" class="zip-input" />
-    <button onclick="calculateDistances()" class="calc-btn">Sort Away Games</button>
+    <button onclick="calculateDistances()" class="calc-btn">Update Location</button>
+
+    <!-- Sort Control Buttons -->
+    <div class="sort-control-group">
+      <span style="font-size:0.8rem; font-weight:700; color:var(--subtext);">Sort:</span>
+      <button id="sortByDistBtn" class="sort-btn active" onclick="setSortMode('distance')">Distance</button>
+      <button id="sortByDateBtn" class="sort-btn" onclick="setSortMode('date')">Date</button>
+    </div>
+
     <div id="zipStatus" class="zip-status">Loading schedules...</div>
   </div>
 
@@ -292,6 +326,10 @@
   <script src="data.js"></script>
 
   <script>
+    let currentProcessedGames = [];
+    let currentSortMode = 'distance';
+    let currentPlaceName = '33813';
+
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
       if (!btn) return;
@@ -498,7 +536,7 @@
             });
           }
         } catch (err) {
-          // Skip this endpoint quietly if it fails.
+          // Skip endpoint quietly
         }
       }
 
@@ -541,7 +579,6 @@
     async function calculateDistances() {
       const zipInput = document.getElementById('zipInput');
       const statusEl = document.getElementById('zipStatus');
-      const container = document.getElementById('away-games-container');
 
       const zip = (zipInput?.value || '').trim();
       if (!/^\d{5}$/.test(zip)) {
@@ -556,70 +593,93 @@
         try {
           zipRes = await fetch(`https://api.zippopotam.us/us/${zip}`);
         } catch (e) {
-          // Ignore zip lookup failure and use fallback coordinates.
+          // Fall back quietly
         }
 
         const awayEvents = await fetchAllEvents();
 
         let uLat = 28.0395;
         let uLon = -81.9498;
-        let placeName = zip;
+        currentPlaceName = zip;
 
         if (zipRes && zipRes.ok) {
           const zipData = await zipRes.json();
           if (zipData.places?.[0]) {
             uLat = parseFloat(zipData.places[0].latitude);
             uLon = parseFloat(zipData.places[0].longitude);
-            placeName = `${zipData.places[0]['place name']}, ${zipData.places[0]['state abbreviation']}`;
+            currentPlaceName = `${zipData.places[0]['place name']}, ${zipData.places[0]['state abbreviation']}`;
           }
         }
 
-        const games = awayEvents
-          .map(game => ({
-            ...game,
-            distance: (Number.isFinite(game.lat) && Number.isFinite(game.lon)) ? getDist(uLat, uLon, game.lat, game.lon) : 9999
-          }))
-          .sort((a, b) => a.distance - b.distance);
+        currentProcessedGames = awayEvents.map(game => ({
+          ...game,
+          distance: (Number.isFinite(game.lat) && Number.isFinite(game.lon)) ? getDist(uLat, uLon, game.lat, game.lon) : 9999
+        }));
 
-        statusEl.innerText = `Showing ${games.length} away/neutral games sorted by distance from ${placeName} (${zip}).`;
-        container.innerHTML = '';
-
-        games.forEach(game => {
-          const card = document.createElement('div');
-          card.className = 'game-card';
-
-          const date = new Date(game.date);
-          const formattedDate = date && !Number.isNaN(date.getTime())
-            ? date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
-            : 'Date unavailable';
-
-          const distanceText = game.distance !== 9999 ? `📍 ~${game.distance} mi` : '📍 N/A';
-          const venueText = game.venueName || 'Away venue';
-          const locationText = game.location || venueText;
-
-          card.innerHTML = `
-            <div class="card-header">
-              <span>
-                <span class="sport-badge">${game.sport}</span> • ${formattedDate}
-              </span>
-              <span class="distance-badge">${distanceText}</span>
-            </div>
-            <div class="team-row"><strong>${game.opponent}</strong></div>
-            <div class="team-row"><span>${locationText}</span></div>
-            <div class="game-meta">
-              <span>Venue: ${venueText}</span>
-              <span>${game.distance !== 9999 ? `${game.distance} miles away` : 'Location unavailable'}</span>
-            </div>
-          `;
-
-          container.appendChild(card);
-        });
+        
+        renderGames();
       } catch (err) {
-        statusEl.innerText = 'Error fetching schedules or zip code location. Please check your connection.';
+        statusEl.innerText = 'Error fetching away game information.';
       }
     }
 
-    window.calculateDistances = calculateDistances;
+    function setSortMode(mode) {
+      if (currentSortMode === mode) return;
+      currentSortMode = mode;
+
+      document.getElementById('sortByDistBtn').classList.toggle('active', mode === 'distance');
+      document.getElementById('sortByDateBtn').classList.toggle('active', mode === 'date');
+
+      renderGames();
+    }
+
+    function renderGames() {
+      const statusEl = document.getElementById('zipStatus');
+      const container = document.getElementById('away-games-container');
+
+      if (!currentProcessedGames.length) return;
+
+      const sorted = [...currentProcessedGames].sort((a, b) => {
+        if (currentSortMode === 'distance') {
+          return a.distance - b.distance;
+        } else {
+          return new Date(a.date) - new Date(b.date);
+        }
+      });
+
+      const zip = document.getElementById('zipInput')?.value.trim();
+      statusEl.innerText = `Showing ${sorted.length} away/neutral games sorted by ${currentSortMode} relative to ${currentPlaceName} (${zip}).`;
+      container.innerHTML = '';
+
+      sorted.forEach(game => {
+        const card = document.createElement('div');
+        card.className = 'game-card';
+
+        const date = new Date(game.date);
+        const formattedDate = date && !Number.isNaN(date.getTime())
+          ? date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+          : 'Date unavailable';
+
+        const distanceText = game.distance !== 9999 ? `📍 ~${game.distance} mi` : '📍 N/A';
+        const venueText = game.venueName || 'Away venue';
+        const locationText = game.location || venueText;
+
+        card.innerHTML = `
+          <div class="card-header">
+            <span><span class="sport-badge">${game.sport}</span> @ ${game.opponent}</span>
+            <span class="distance-badge">${distanceText}</span>
+          </div>
+          <div class="team-row">
+            <span>Mississippi State vs. ${game.opponent}</span>
+          </div>
+          <div class="game-meta">
+            <span>📅 ${formattedDate}</span>
+            <span>🏟️ ${locationText}</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
   </script>
 </body>
 </html>
