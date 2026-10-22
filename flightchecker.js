@@ -1,80 +1,4 @@
-// flightChecker.js - Reliable Multi-Airport & Passenger Deep-Link Generator
-
-/**
- * Encodes an integer into a Protocol Buffer Varint byte array.
- */
-function encodeVarint(val) {
-  const bytes = [];
-  while (val > 127) {
-    bytes.push((val & 0x7f) | 0x80);
-    val >>>= 7;
-  }
-  bytes.push(val & 0x7f);
-  return bytes;
-}
-
-/**
- * Encodes a key/value length-delimited string field (Wire Type 2).
- */
-function encodeStringField(fieldNum, str) {
-  const encoder = new TextEncoder();
-  const strBytes = Array.from(encoder.encode(str));
-  const tag = (fieldNum << 3) | 2;
-  return [...encodeVarint(tag), ...encodeVarint(strBytes.length), ...strBytes];
-}
-
-/**
- * Encodes a length-delimited sub-message field (Wire Type 2).
- */
-function encodeMessageField(fieldNum, subMsgBytes) {
-  const tag = (fieldNum << 3) | 2;
-  return [...encodeVarint(tag), ...encodeVarint(subMsgBytes.length), ...subMsgBytes];
-}
-
-/**
- * Builds a direct Google Flights deep-link preserving multi-airport pools 
- * and exact passenger payloads using Google's native Protobuf (`tfs=`) schema.
- */
-function buildGoogleFlightsUrl(originList, destList, departDate, returnDate) {
-  const baseUrl = "https://www.google.com/travel/flights";
-
-  // Parse arrays of IATA airport codes
-  const origins = originList.split(',').map(s => s.trim().toUpperCase());
-  const dests = destList.split(',').map(s => s.trim().toUpperCase());
-
-  // 1. Build Outbound Flight Leg (Leg 1)
-  let leg1 = [
-    ...encodeStringField(2, departDate) // Departure Date (YYYY-MM-DD)
-  ];
-  origins.forEach(orig => { leg1 = leg1.concat(encodeStringField(3, orig)); });
-  dests.forEach(dest => { leg1 = leg1.concat(encodeStringField(4, dest)); });
-
-  // 2. Build Inbound Flight Leg (Leg 2)
-  let leg2 = [
-    ...encodeStringField(2, returnDate) // Return Date (YYYY-MM-DD)
-  ];
-  dests.forEach(dest => { leg2 = leg2.concat(encodeStringField(3, dest)); });
-  origins.forEach(orig => { leg2 = leg2.concat(encodeStringField(4, orig)); });
-
-  // 3. Construct Root Protobuf Payload
-  let rootBytes = [
-    0x08, 0x1c, 0x10, 0x02, // Header configuration: Round-Trip flight mode
-    ...encodeMessageField(2, leg1),
-    ...encodeMessageField(2, leg2),
-    0x28, 0x01, // Economy class selection
-    0x38, 0x02, // Adults count = 2
-    0x40, 0x02  // Children count = 2
-  ];
-
-  // 4. Convert Bytes to URL-Safe Base64 String
-  const binaryString = String.fromCharCode.apply(null, rootBytes);
-  const base64Url = btoa(binaryString)
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  return `${baseUrl}?tfs=${base64Url}&tfu=EgYIAhAAGAA`;
-}
+// flightChecker.js - Kayak Multi-Airport & Family Payload Deep-Link Generator
 
 /**
  * Calculates Friday departure and Sunday return dates from a Saturday game date.
@@ -95,6 +19,24 @@ function getGameWeekendDates(saturdayDateStr) {
 }
 
 /**
+ * Builds a 100% reliable Kayak deep-link.
+ * Supports comma-separated multi-airports and exact passenger counts.
+ * 
+ * Target URL Structure:
+ * https://www.kayak.com/flights/TPA,MCO,PIE,LAL,SRQ-GTR,BHM,JAN,MEM/2026-10-23/2026-10-25/2adults/2children
+ */
+function buildKayakUrl(originList, destList, departDate, returnDate) {
+  // Strip whitespace from airport lists to keep URL parameters clean
+  const origins = originList.replace(/\s+/g, '').toUpperCase();
+  const dests = destList.replace(/\s+/g, '').toUpperCase();
+
+  // Family payload parameters: 2 adults and 2 children
+  const passengerPath = "2adults/2children";
+
+  return `https://www.kayak.com/flights/${origins}-${dests}/${departDate}/${returnDate}/${passengerPath}`;
+}
+
+/**
  * Generates compact HTML for travel action buttons on game cards.
  */
 function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
@@ -106,12 +48,12 @@ function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
   // 1. HOME GAMES (Starkville & Surrounding Hubs)
   if (!isAway) {
     const homeDestinations = "GTR,BHM,JAN,MEM";
-    const flightUrl = buildGoogleFlightsUrl(origins, homeDestinations, dates.departDate, dates.returnDate);
+    const flightUrl = buildKayakUrl(origins, homeDestinations, dates.departDate, dates.returnDate);
 
     return `
       <div class="card-travel-action">
         <a href="${flightUrl}" target="_blank" rel="noopener" class="card-flight-btn">
-          ✈️ Fly to Starkville
+          ✈️ Fly to Starkville (Kayak)
         </a>
       </div>
     `;
@@ -129,9 +71,9 @@ function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
     `;
   }
 
-  // Away flight destinations
-  const destAirport = travelInfo ? travelInfo.primaryAirport : opponentAbbrev;
-  const flightUrl = buildGoogleFlightsUrl(origins, destAirport, dates.departDate, dates.returnDate);
+  // Away flight destinations (supports single airport or comma-separated lists)
+  const destAirport = travelInfo ? (travelInfo.airports || travelInfo.primaryAirport) : opponentAbbrev;
+  const flightUrl = buildKayakUrl(origins, destAirport, dates.departDate, dates.returnDate);
 
   return `
     <div class="card-travel-action">
