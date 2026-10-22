@@ -1,9 +1,7 @@
-// flightChecker.js - Multi-Airport Travel Link Generator with 2 Adults + 2 Kids Family Defaults
+// flightChecker.js - Multi-Airport Travel Link Generator (Comma-separated for Google Flights)
 
 /**
  * Calculates Friday departure and Sunday return dates from a Saturday game date.
- * @param {string} saturdayDateStr - Date in 'YYYY-MM-DD' format
- * @returns {object} { departDate, returnDate }
  */
 function getGameWeekendDates(saturdayDateStr) {
   const saturday = new Date(saturdayDateStr + 'T12:00:00');
@@ -21,12 +19,8 @@ function getGameWeekendDates(saturdayDateStr) {
 }
 
 /**
- * Builds a direct Google Flights deep-link URL with multi-airport parameters and family passenger defaults.
- * @param {string} originAirports - Encoded origin airport string (e.g. 'TPA%20or%20MCO...')
- * @param {string} destAirports - Encoded destination airport string
- * @param {string} departDate - YYYY-MM-DD
- * @param {string} returnDate - YYYY-MM-DD
- * @returns {string} Google Flights search URL
+ * Builds a direct Google Flights URL using comma-separated airport codes.
+ * Pre-set for 2 Adults and 2 Children.
  */
 function buildGoogleFlightsUrl(originAirports, destAirports, departDate, returnDate) {
   return `https://www.google.com/travel/flights?q=Flights%20to%20${destAirports}%20from%20${originAirports}%20on%20${departDate}%20through%20${returnDate}%20for%202%20adults%202%20children`;
@@ -34,22 +28,16 @@ function buildGoogleFlightsUrl(originAirports, destAirports, departDate, returnD
 
 /**
  * Generates compact HTML for travel action buttons on game cards.
- * @param {string} opponentAbbrev - SEC team code (e.g., 'TEX', 'LSU', 'FLA')
- * @param {string} saturdayDateStr - Game date in 'YYYY-MM-DD'
- * @param {boolean} isAway - True if Away game, False if Home game (Starkville)
- * @returns {string} HTML string to embed on schedule card
  */
 function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
   const dates = getGameWeekendDates(saturdayDateStr);
 
-  // Central/West Florida Origin Airports (Tampa, Orlando, St. Pete-Clearwater, Lakeland, Sarasota)
-  const origins = "TPA%20or%20MCO%20or%20PIE%20or%20LAL%20or%20SRQ";
+  // Comma-separated origin airports for Google Flights multi-origin search
+  const origins = "TPA%2CMCO%2CPIE%2CLAL%2CSRQ";
 
-  // -----------------------------------------------------------------
   // 1. HOME GAMES (Starkville Regional Hubs: GTR, BHM, JAN, MEM)
-  // -----------------------------------------------------------------
   if (!isAway) {
-    const homeDestinations = "GTR%20or%20BHM%20or%20JAN%20or%20MEM";
+    const homeDestinations = "GTR%2CBHM%2CJAN%2CMEM";
     const flightUrl = buildGoogleFlightsUrl(origins, homeDestinations, dates.departDate, dates.returnDate);
 
     return `
@@ -61,12 +49,10 @@ function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
     `;
   }
 
-  // -----------------------------------------------------------------
   // 2. AWAY GAMES
-  // -----------------------------------------------------------------
   const travelInfo = typeof SEC_TRAVEL_MAP !== 'undefined' ? SEC_TRAVEL_MAP[opponentAbbrev] : null;
 
-  // Handle Drive-Only Destinations (e.g., Florida / Gainesville)
+  // Drive-only destinations
   if (travelInfo && travelInfo.driveOnly) {
     return `
       <div class="card-travel-action">
@@ -75,7 +61,7 @@ function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
     `;
   }
 
-  // Away Flight Destinations (e.g., AUS for Texas, MSY for LSU)
+  // Away flight destinations
   const destAirport = travelInfo ? travelInfo.primaryAirport : opponentAbbrev;
   const flightUrl = buildGoogleFlightsUrl(origins, destAirport, dates.departDate, dates.returnDate);
 
