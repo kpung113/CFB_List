@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mississippi State Schedule Tracker</title>
+  
+  <!-- Travel Data & Flight Utility Dependencies -->
   <script src="sec_airports.js"></script>
-  <script src="flightChecker.js"></script>
+  <script src="flightchecker.js"></script>
   <script src="nav.js"></script>
+  
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -139,6 +142,30 @@
 
     const FUTURE_CUTOFF = '2026-10-19';
 
+    // Opponent abbreviation normalizer to ensure SEC_TRAVEL_MAP lookup matches
+    function getOpponentAbbrev(game) {
+      if (game.abbrev) return game.abbrev;
+      if (game.opponentAbbrev) return game.opponentAbbrev;
+      
+      const name = (game.opponent || '').toLowerCase();
+      if (name.includes('alabama')) return 'ALA';
+      if (name.includes('arkansas')) return 'ARK';
+      if (name.includes('auburn')) return 'AUB';
+      if (name.includes('florida')) return 'FLA';
+      if (name.includes('georgia')) return 'UGA';
+      if (name.includes('kentucky')) return 'UK';
+      if (name.includes('lsu')) return 'LSU';
+      if (name.includes('ole miss') || name.includes('mississippi')) return 'OM';
+      if (name.includes('missouri')) return 'MIZZ';
+      if (name.includes('oklahoma')) return 'OU';
+      if (name.includes('south carolina')) return 'SC';
+      if (name.includes('tennessee')) return 'TENN';
+      if (name.includes('texas a&m')) return 'TAMU';
+      if (name.includes('texas')) return 'TEX';
+      if (name.includes('vanderbilt')) return 'VANDY';
+      return 'MSST';
+    }
+
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
       if (!btn) return;
@@ -235,8 +262,9 @@
         const networkBadge = broadcast ? `<span class="network-badge">${broadcast}</span>` : '';
 
         // Generate travel button HTML for football games
+        const abbrev = getOpponentAbbrev(game);
         const travelActionHtml = (game.sportKey === 'football' && typeof getTravelButtonHtml === 'function') 
-          ? getTravelButtonHtml(game.abbrev || game.opponentAbbrev, game.isoDate, !game.isHome) 
+          ? getTravelButtonHtml(abbrev, game.isoDate, !game.isHome) 
           : '';
 
         card.innerHTML = `
