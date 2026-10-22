@@ -1,9 +1,7 @@
-// flightChecker.js - Keyless Dynamic SEC Away Travel & Google Flights Link Generator
+// flightChecker.js - Handles both Home (Starkville) and Away Travel Links
 
 /**
- * Calculates Friday (day before) and Sunday (day after) travel dates from a Saturday game date.
- * @param {string} saturdayDateStr - Date in 'YYYY-MM-DD' format
- * @returns {object} { departDate, returnDate, departStr, returnStr }
+ * Calculates Friday departure and Sunday return dates from a Saturday game date.
  */
 function getGameWeekendDates(saturdayDateStr) {
   const saturday = new Date(saturdayDateStr + 'T12:00:00');
@@ -14,60 +12,67 @@ function getGameWeekendDates(saturdayDateStr) {
   const sunday = new Date(saturday);
   sunday.setDate(saturday.getDate() + 1);
 
-  const formatShort = (dateObj) => dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
   return {
     departDate: friday.toISOString().split('T')[0],
-    returnDate: sunday.toISOString().split('T')[0],
-    departStr: `${formatShort(friday)} (Fri)`,
-    returnStr: `${formatShort(sunday)} (Sun)`
+    returnDate: sunday.toISOString().split('T')[0]
   };
 }
 
 /**
- * Builds a direct, pre-populated Google Flights search URL.
+ * Builds a direct Google Flights deep-link URL.
  */
 function buildGoogleFlightsUrl(origin, destination, departDate, returnDate) {
-  // Encodes route and dates straight into Google Flights query format
   return `https://www.google.com/travel/flights?q=Flights%20to%20${destination}%20from%20${origin}%20on%20${departDate}%20through%20${returnDate}`;
 }
 
 /**
- * Generates travel cards for away games.
- * @param {Array} awayGamesList - List of away games with Saturday dates
+ * Generates the HTML for travel actions on any schedule game card (Home or Away).
+ * @param {string} opponentAbbrev - Team code (e.g., 'TEX', 'LSU', 'FLA')
+ * @param {string} saturdayDateStr - Game date in 'YYYY-MM-DD'
+ * @param {boolean} isAway - True if Away, False if Home (Starkville)
  */
-function generateAwayTravelCards(awayGamesList) {
-  return awayGamesList.map(game => {
-    const travelInfo = SEC_TRAVEL_MAP[game.abbrev];
-    const dates = getGameWeekendDates(game.saturdayDate);
+function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
+  const dates = getGameWeekendDates(saturdayDateStr);
 
-    // Handle Drive-Only Destinations (e.g. Florida / Gainesville)
-    if (!travelInfo || travelInfo.driveOnly) {
-      return {
-        opponent: game.opponent,
-        saturdayDate: game.saturdayDate,
-        mode: "DRIVE",
-        title: `@ ${game.opponent}`,
-        driveNotes: travelInfo?.driveTimeFromTampa || "Drive destination via I-75",
-        badge: "🚗 Drive Trip"
-      };
-    }
+  // -----------------------------------------------------------------
+  // 1. HOME GAMES (Starkville / GTR Flight)
+  // -----------------------------------------------------------------
+  if (!isAway) {
+    const homeAirport = "GTR"; // Golden Triangle Regional (Starkville)
+    const flightUrl = buildGoogleFlightsUrl("TPA", homeAirport, dates.departDate, dates.returnDate);
 
-    const origin = "TPA";
-    const dest = travelInfo.primaryAirport;
-    const flightUrl = buildGoogleFlightsUrl(origin, dest, dates.departDate, dates.returnDate);
+    return `
+      <div class="card-travel-action">
+        <a href="${flightUrl}" target="_blank" rel="noopener" class="card-flight-btn home-btn">
+          🔔 Fly to Starkville (${homeAirport})
+        </a>
+      </div>
+    `;
+  }
 
-    return {
-      opponent: game.opponent,
-      saturdayDate: game.saturdayDate,
-      mode: "FLY",
-      title: `@ ${game.opponent}`,
-      route: `${origin} → ${dest}`,
-      airportName: travelInfo.airportName,
-      driveTimeFromAirport: travelInfo.driveTimeFromAirport,
-      travelWindow: `${dates.departStr} – ${dates.returnStr}`,
-      flightUrl: flightUrl,
-      badge: "✈️ Flight Required"
-    };
-  });
+  // -----------------------------------------------------------------
+  // 2. AWAY GAMES
+  // -----------------------------------------------------------------
+  const travelInfo = typeof SEC_TRAVEL_MAP !== 'undefined' ? SEC_TRAVEL_MAP[opponentAbbrev] : null;
+
+  // Drive-Only Destinations (e.g. Florida / Gainesville via I-75)
+  if (travelInfo && travelInfo.driveOnly) {
+    return `
+      <div class="card-travel-action">
+        <span class="drive-badge">🚗 ${travelInfo.driveTimeFromTampa || 'Drive Destination'}</span>
+      </div>
+    `;
+  }
+
+  // Away Flight Destinations
+  const destAirport = travelInfo ? travelInfo.primaryAirport : opponentAbbrev;
+  const flightUrl = buildGoogleFlightsUrl("TPA", destAirport, dates.departDate, dates.returnDate);
+
+  return `
+    <div class="card-travel-action">
+      <a href="${flightUrl}" target="_blank" rel="noopener" class="card-flight-btn away-btn">
+        ✈️ Check Flights (${destAirport})
+      </a>
+    </div>
+  `;
 }
