@@ -1,7 +1,9 @@
-// flightChecker.js - Compact Travel Button Generator with 2 Adults + 2 Kids Defaults
+// flightChecker.js - Multi-Airport Travel Link Generator with 2 Adults + 2 Kids Family Defaults
 
 /**
  * Calculates Friday departure and Sunday return dates from a Saturday game date.
+ * @param {string} saturdayDateStr - Date in 'YYYY-MM-DD' format
+ * @returns {object} { departDate, returnDate }
  */
 function getGameWeekendDates(saturdayDateStr) {
   const saturday = new Date(saturdayDateStr + 'T12:00:00');
@@ -19,36 +21,52 @@ function getGameWeekendDates(saturdayDateStr) {
 }
 
 /**
- * Builds a direct Google Flights deep-link URL pre-set for 2 Adults and 2 Children.
+ * Builds a direct Google Flights deep-link URL with multi-airport parameters and family passenger defaults.
+ * @param {string} originAirports - Encoded origin airport string (e.g. 'TPA%20or%20MCO...')
+ * @param {string} destAirports - Encoded destination airport string
+ * @param {string} departDate - YYYY-MM-DD
+ * @param {string} returnDate - YYYY-MM-DD
+ * @returns {string} Google Flights search URL
  */
-function buildGoogleFlightsUrl(origin, destination, departDate, returnDate) {
-  return `https://www.google.com/travel/flights?q=Flights%20to%20${destination}%20from%20${origin}%20on%20${departDate}%20through%20${returnDate}%20for%202%20adults%202%20children`;
+function buildGoogleFlightsUrl(originAirports, destAirports, departDate, returnDate) {
+  return `https://www.google.com/travel/flights?q=Flights%20to%20${destAirports}%20from%20${originAirports}%20on%20${departDate}%20through%20${returnDate}%20for%202%20adults%202%20children`;
 }
 
 /**
  * Generates compact HTML for travel action buttons on game cards.
+ * @param {string} opponentAbbrev - SEC team code (e.g., 'TEX', 'LSU', 'FLA')
+ * @param {string} saturdayDateStr - Game date in 'YYYY-MM-DD'
+ * @param {boolean} isAway - True if Away game, False if Home game (Starkville)
+ * @returns {string} HTML string to embed on schedule card
  */
 function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
   const dates = getGameWeekendDates(saturdayDateStr);
 
-  // 1. HOME GAMES (Starkville / GTR)
+  // Central/West Florida Origin Airports (Tampa, Orlando, St. Pete-Clearwater, Lakeland, Sarasota)
+  const origins = "TPA%20or%20MCO%20or%20PIE%20or%20LAL%20or%20SRQ";
+
+  // -----------------------------------------------------------------
+  // 1. HOME GAMES (Starkville Regional Hubs: GTR, BHM, JAN, MEM)
+  // -----------------------------------------------------------------
   if (!isAway) {
-    const homeAirport = "GTR";
-    const flightUrl = buildGoogleFlightsUrl("TPA", homeAirport, dates.departDate, dates.returnDate);
+    const homeDestinations = "GTR%20or%20BHM%20or%20JAN%20or%20MEM";
+    const flightUrl = buildGoogleFlightsUrl(origins, homeDestinations, dates.departDate, dates.returnDate);
 
     return `
       <div class="card-travel-action">
         <a href="${flightUrl}" target="_blank" rel="noopener" class="card-flight-btn">
-          ✈️ Fly to Starkville (${homeAirport})
+          ✈️ Fly to Starkville (GTR/BHM/JAN/MEM)
         </a>
       </div>
     `;
   }
 
+  // -----------------------------------------------------------------
   // 2. AWAY GAMES
+  // -----------------------------------------------------------------
   const travelInfo = typeof SEC_TRAVEL_MAP !== 'undefined' ? SEC_TRAVEL_MAP[opponentAbbrev] : null;
 
-  // Drive-only destinations
+  // Handle Drive-Only Destinations (e.g., Florida / Gainesville)
   if (travelInfo && travelInfo.driveOnly) {
     return `
       <div class="card-travel-action">
@@ -57,9 +75,9 @@ function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
     `;
   }
 
-  // Away flight destinations
+  // Away Flight Destinations (e.g., AUS for Texas, MSY for LSU)
   const destAirport = travelInfo ? travelInfo.primaryAirport : opponentAbbrev;
-  const flightUrl = buildGoogleFlightsUrl("TPA", destAirport, dates.departDate, dates.returnDate);
+  const flightUrl = buildGoogleFlightsUrl(origins, destAirport, dates.departDate, dates.returnDate);
 
   return `
     <div class="card-travel-action">
