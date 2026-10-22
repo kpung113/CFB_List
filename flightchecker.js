@@ -1,4 +1,4 @@
-// flightChecker.js - Direct Google Flights Link Generator with Family Passenger Defaults (2 Adults, 2 Kids)
+// flightChecker.js - Compact Travel Button Generator with 2 Adults + 2 Kids Defaults
 
 /**
  * Calculates Friday departure and Sunday return dates from a Saturday game date.
@@ -26,20 +26,20 @@ function buildGoogleFlightsUrl(origin, destination, departDate, returnDate) {
 }
 
 /**
- * Generates travel action HTML for schedule cards (Home or Away).
+ * Generates compact HTML for travel action buttons on game cards.
  */
 function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
   const dates = getGameWeekendDates(saturdayDateStr);
 
-  // 1. HOME GAMES (Fly 2 Adults + 2 Kids into Starkville / GTR)
+  // 1. HOME GAMES (Starkville / GTR)
   if (!isAway) {
     const homeAirport = "GTR";
     const flightUrl = buildGoogleFlightsUrl("TPA", homeAirport, dates.departDate, dates.returnDate);
 
     return `
       <div class="card-travel-action">
-        <a href="${flightUrl}" target="_blank" rel="noopener" class="card-flight-btn home-btn">
-          🔔 Fly to Starkville (${homeAirport})
+        <a href="${flightUrl}" target="_blank" rel="noopener" class="card-flight-btn">
+          ✈️ Fly to Starkville (${homeAirport})
         </a>
       </div>
     `;
@@ -63,7 +63,7 @@ function getTravelButtonHtml(opponentAbbrev, saturdayDateStr, isAway) {
 
   return `
     <div class="card-travel-action">
-      <a href="${flightUrl}" target="_blank" rel="noopener" class="card-flight-btn away-btn">
+      <a href="${flightUrl}" target="_blank" rel="noopener" class="card-flight-btn">
         ✈️ Check Flights (${destAirport})
       </a>
     </div>
