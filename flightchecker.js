@@ -23,7 +23,8 @@ function getGameWeekendDates(saturdayDateStr) {
  * Pre-set for 2 Adults and 2 Children.
  */
 function buildGoogleFlightsUrl(origin, destination, departDate, returnDate) {
-  const searchQuery = `flights from ${origin} to ${destination} on ${departDate} returning ${departDate}`;
+  // FIXED: Using returnDate instead of departDate for the return trip
+  const searchQuery = `flights from ${origin} to ${destination} on ${departDate} returning ${returnDate}`;
   const encodedQuery = encodeURIComponent(searchQuery);
   return `https://www.google.com/travel/flights?q=${encodedQuery}&px=2,2,0,0`;
 }
