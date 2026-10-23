@@ -112,6 +112,25 @@
       border: 1px solid var(--border);
       white-space: nowrap;
     }
+
+    /* Game Notes Button Styles */
+    .card-notes-btn {
+      display: inline-block;
+      background-color: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.65rem;
+      font-weight: 700;
+      margin-top: 2px;
+      white-space: nowrap;
+      transition: opacity 0.2s ease;
+    }
+    .card-notes-btn:hover {
+      opacity: 0.85;
+    }
   </style>
 </head>
 <body>
@@ -177,6 +196,44 @@
       if (name.includes('texas')) return 'TEX';
       if (name.includes('vanderbilt')) return 'VANDY';
       return 'MSST';
+    }
+
+    /**
+     * Dynamically predicts the Hail State Football Game Notes PDF URL.
+     * Pattern: https://hailstate.com/documents/YYYY/MM/DD/YYFB_MMDD_OPP_Notes.pdf
+     */
+    function getPredictedNotesUrl(game) {
+      if ((game.sportKey || '').toLowerCase() !== 'football') return null;
+
+      const dateObj = new Date(`${game.isoDate}T00:00:00`);
+      const yyyy = dateObj.getFullYear();
+      const yy = yyyy.toString().slice(-2);
+      const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const dd = String(dateObj.getDate()).padStart(2, '0');
+      const abbrev = getOpponentAbbrev(game);
+
+      return `https://hailstate.com/documents/${yyyy}/${mm}/${dd}/${yy}FB_${mm}${dd}_${abbrev}_Notes.pdf`;
+    }
+
+    /**
+     * Verifies PDF availability asynchronously. Suppresses/hides button if unavailable.
+     */
+    function renderNotesButton(containerElement, notesUrl) {
+      if (!notesUrl || !containerElement) return;
+
+      fetch(notesUrl, { method: 'HEAD', mode: 'no-cors' })
+        .then(() => {
+          const link = document.createElement('a');
+          link.href = notesUrl;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          link.className = 'card-notes-btn';
+          link.innerHTML = '📄 Notes';
+          containerElement.appendChild(link);
+        })
+        .catch(() => {
+          // Silently suppress the button on fetch errors or missing notes
+        });
     }
 
     function getLocalTodayStr() {
@@ -295,6 +352,10 @@
           travelActionHtml = getTravelButtonHtml(abbrev, game.isoDate, !game.isHome);
         }
 
+        // Generate target container for Game Notes
+        const abbrev = getOpponentAbbrev(game);
+        const rightColId = `right-actions-${game.isoDate}-${abbrev}`;
+
         card.innerHTML = `
           <div class="game-left">
             <span class="sport-tag">${sportLabels[game.sportKey] || game.sportKey}</span>
@@ -304,7 +365,7 @@
               ${game.opponent}
             </div>
           </div>
-          <div class="game-right">
+          <div class="game-right" id="${rightColId}">
             ${badge}
             ${networkBadge}
             <span class="location-text">${game.location || 'Location TBD'}</span>
@@ -313,6 +374,13 @@
         `;
 
         container.appendChild(card);
+
+        // Asynchronously check and render game notes if PDF exists
+        const predictedNotesUrl = getPredictedNotesUrl(game);
+        if (predictedNotesUrl) {
+          const rightCol = card.querySelector(`#${rightColId}`);
+          renderNotesButton(rightCol, predictedNotesUrl);
+        }
       });
     }
 
