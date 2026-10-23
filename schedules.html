@@ -143,8 +143,6 @@
   <div id="summary-bar" class="summary-bar">Loading schedules...</div>
   <div id="schedule-container"></div>
 
-  <div id="debug-box" style="background:#221010; border:1px solid #ef4444; border-radius:8px; padding:12px; margin-top:20px; font-family:monospace; font-size:0.75rem; color:#fca5a5; white-space:pre-wrap; word-break:break-all;">Debug logs will appear here...</div>
-
   <!-- Modular script pipeline -->
   <script src="data.js"></script>
   <script src="fetcher.js"></script>
@@ -158,9 +156,6 @@
       softball: 'Softball'
     };
 
-    const FUTURE_CUTOFF = '2026-10-19';
-
-    // Opponent abbreviation normalizer to ensure SEC_TRAVEL_MAP lookup matches
     function getOpponentAbbrev(game) {
       if (game.abbrev) return game.abbrev;
       if (game.opponentAbbrev) return game.opponentAbbrev;
@@ -256,7 +251,7 @@
 
       container.innerHTML = '';
 
-      const now = new Date();
+      const todayStr = new Date().toISOString().split('T')[0];
 
       games.forEach(game => {
         const broadcast = game.network || '';
@@ -281,14 +276,14 @@
 
         const networkBadge = broadcast ? `<span class="network-badge">${broadcast}</span>` : '';
 
-        // Determine if game is completed or in the past
+        // Target football games only
+        const isFootball = (game.sportKey || '').toLowerCase().includes('football');
+        const isFutureGame = game.isoDate >= todayStr;
         const isGameComplete = Boolean(game.result);
-        const gameEndCutoff = new Date(`${game.isoDate}T23:59:59`);
-        const isPastGame = gameEndCutoff < now;
 
-        // Generate travel button ONLY if football, incomplete, and in the future
+        // Generate travel button strictly for upcoming, incomplete football games
         const abbrev = getOpponentAbbrev(game);
-        const travelActionHtml = (game.sportKey === 'football' && !isGameComplete && !isPastGame && typeof getTravelButtonHtml === 'function') 
+        const travelActionHtml = (isFootball && isFutureGame && !isGameComplete && typeof getTravelButtonHtml === 'function') 
           ? getTravelButtonHtml(abbrev, game.isoDate, !game.isHome) 
           : '';
 
