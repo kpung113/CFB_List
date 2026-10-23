@@ -179,6 +179,14 @@
       return 'MSST';
     }
 
+    function getLocalTodayStr() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
       if (!btn) return;
@@ -200,8 +208,7 @@
       if (!Array.isArray(masterDataset)) return [];
 
       const selectedSport = document.getElementById('sportFilter')?.value || 'all';
-      
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalTodayStr();
       const today = new Date(`${todayStr}T00:00:00`);
 
       return masterDataset
@@ -251,7 +258,7 @@
 
       container.innerHTML = '';
 
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalTodayStr();
 
       games.forEach(game => {
         const broadcast = game.network || '';
@@ -276,16 +283,17 @@
 
         const networkBadge = broadcast ? `<span class="network-badge">${broadcast}</span>` : '';
 
-        // Target football games only
+        // Mobile-safe eligibility guards
         const isFootball = (game.sportKey || '').toLowerCase().includes('football');
-        const isFutureGame = game.isoDate >= todayStr;
-        const isGameComplete = Boolean(game.result);
+        const isFutureOrToday = game.isoDate >= todayStr;
+        const isUnfinished = !game.result;
 
         // Generate travel button strictly for upcoming, incomplete football games
-        const abbrev = getOpponentAbbrev(game);
-        const travelActionHtml = (isFootball && isFutureGame && !isGameComplete && typeof getTravelButtonHtml === 'function') 
-          ? getTravelButtonHtml(abbrev, game.isoDate, !game.isHome) 
-          : '';
+        let travelActionHtml = '';
+        if (isFootball && isFutureOrToday && isUnfinished && typeof getTravelButtonHtml === 'function') {
+          const abbrev = getOpponentAbbrev(game);
+          travelActionHtml = getTravelButtonHtml(abbrev, game.isoDate, !game.isHome);
+        }
 
         card.innerHTML = `
           <div class="game-left">
