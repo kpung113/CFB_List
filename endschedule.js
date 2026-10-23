@@ -1,64 +1,49 @@
-// endschedule.js - Robust Fail-Safe & Deduplicating Merger
+// endschedule.js - Merges baseline data.js with live fetcher.js scores, networks, and records
 
-function normalizeTeamName(name) {
-  return (name || '')
-    .toLowerCase()
-    .replace(/golden eagles|demons|tigers|lions|bulldogs|volunteers|commodores|wildcats|razorbacks|gators|crimson tide|gamecocks|aggies|longhorns|rebels/g, '')
-    .trim();
-}
+let cachedUnifiedDataset = null;
+let cachedSportRecords = {};
 
 async function getUnifiedSchedule() {
-  let staticData = [];
-  let apiData = [];
+  if (cachedUnifiedDataset) return cachedUnifiedDataset;
 
-  // 1. Safely load static baseline data
-  if (typeof BASELINE_SCHEDULE !== 'undefined' && Array.isArray(BASELINE_SCHEDULE)) {
-    staticData = BASELINE_SCHEDULE;
-  }
+  let dataset = typeof masterDataset !== 'undefined' ? JSON.parse(JSON.stringify(masterDataset)) : [];
+  let liveMap = new Map();
 
-  // 2. Safely attempt to fetch live API data
-  if (typeof fetchLiveSchedules === 'function') {
-    try {
-      const res = await fetchLiveSchedules();
-      if (Array.isArray(res)) {
-        apiData = res;
-      }
-    } catch (err) {
-      console.warn("Live API fetch failed, falling back to static baseline:", err);
+  try {
+    if (typeof fetchLiveSchedules === 'function') {
+      const fetched = await fetchLiveSchedules();
+      liveMap = fetched.liveEventsMap;
+      cachedSportRecords = fetched.sportRecordsMap;
     }
+  } catch (err) {
+    console.warn('Live schedule fetch failed, falling back purely to baseline data:', err);
   }
 
-  // If live API returns no items, return static baseline immediately
-  if (!apiData.length) {
-    return staticData;
-  }
+  liveMap.forEach((liveGame, lookupKey) => {
+    const [sportKey, isoDate] = lookupKey.split('|');
+    const existingIndex = dataset.findIndex(d => d.sportKey === sportKey && d.isoDate === isoDate);
 
-  const seenGames = new Set();
-  const unified = [];
-
-  // 3. Process Live API Data (Highest Priority)
-  apiData.forEach(game => {
-    if (!game) return;
-    const dateKey = game.isoDate || game.date || 'tbd';
-    const key = `${game.sportKey || 'sport'}_${dateKey}_${normalizeTeamName(game.opponent)}`;
-    seenGames.add(key);
-    unified.push(game);
-  });
-
-  // 4. Merge Static Baseline Games ONLY if not already provided by API
-  staticData.forEach(game => {
-    if (!game) return;
-    const dateKey = game.isoDate || game.date || 'tbd';
-    const key = `${game.sportKey || 'sport'}_${dateKey}_${normalizeTeamName(game.opponent)}`;
-    
-    // Also check if a game against this team exists on an adjacent baseline date
-    const teamOnlyKey = `${game.sportKey || 'sport'}_${normalizeTeamName(game.opponent)}`;
-    const hasApiMatchForTeam = Array.from(seenGames).some(k => k.startsWith(teamOnlyKey));
-
-    if (!seenGames.has(key) && !hasApiMatchForTeam) {
-      unified.push(game);
+    if (existingIndex !== -1) {
+      if (liveGame.result) dataset[existingIndex].result = liveGame.result;
+      if (liveGame.network) dataset[existingIndex].network = liveGame.network;
+      if (liveGame.timeStr && liveGame.timeStr !== 'TBD') dataset[existingIndex].timeStr = liveGame.timeStr;
+      if (liveGame.location) dataset[existingIndex].location = liveGame.location;
+    } else {
+      dataset.push(liveGame);
     }
   });
 
-  return unified;
+  dataset.sort((a, b) => {
+    const aDate = new Date(`${a.isoDate}T00:00:00`).getTime();
+    const bDate = new Date(`${b.isoDate}T00:00:00`).getTime();
+    if (aDate !== bDate) return aDate - bDate;
+    return (a.timeStr || '').localeCompare(b.timeStr || '');
+  });
+
+  cachedUnifiedDataset = dataset;
+  return cachedUnifiedDataset;
+}
+
+function getSportRecords() {
+  return cachedSportRecords;
 }
