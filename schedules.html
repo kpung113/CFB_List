@@ -82,9 +82,15 @@
     .network-badge { display:inline-flex; align-items:center; justify-content:center; background: rgba(59,130,246,0.12); color:#93c5fd; border:1px solid rgba(96,165,250,0.4); border-radius:999px; padding:1px 6px; font-size:0.62rem; font-weight:800; letter-spacing:0.04em; }
     .empty-state { background: var(--card); border:1px solid var(--border); border-radius:10px; padding:20px; color:var(--sub); font-size:0.9rem; text-align:center; }
     
-    /* Inline Compact Flight Button Styles */
-    .card-travel-action {
+    /* Side-by-Side Action Buttons Container */
+    .action-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
       margin-top: 2px;
+    }
+    .card-travel-action {
+      display: inline-block;
     }
     .card-flight-btn {
       display: inline-block;
@@ -113,18 +119,17 @@
       white-space: nowrap;
     }
 
-    /* Game Notes Button Styles */
+    /* Compact Game Notes Button Styles */
     .card-notes-btn {
       display: inline-block;
       background-color: rgba(56, 189, 248, 0.12);
       color: #38bdf8;
       border: 1px solid rgba(56, 189, 248, 0.3);
-      padding: 2px 6px;
+      padding: 3px 7px;
       border-radius: 4px;
       text-decoration: none;
-      font-size: 0.65rem;
+      font-size: 0.68rem;
       font-weight: 700;
-      margin-top: 2px;
       white-space: nowrap;
       transition: opacity 0.2s ease;
     }
@@ -198,24 +203,50 @@
       return 'MSST';
     }
 
+    function getLocalTodayStr() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
     /**
-     * Dynamically predicts the correct Hail State Football Game Notes PDF URL 
-     * based on the static custompages CDN path structure.
-     * Pattern: https://static.hailstate.com/custompages/pdf/fb/2026/26FB_1024_OU_Notes.pdf
+     * Predicts the Hail State Football Game Notes PDF URL.
+     * Enforces:
+     * 1. Football games only.
+     * 2. Unfinished/Future games only (suppressed once result exists or game has passed).
+     * 3. Wednesday game-week rule: Only populates starting Wednesday of game week.
      */
     function getPredictedNotesUrl(game) {
       if ((game.sportKey || '').toLowerCase() !== 'football') return null;
+      if (game.result) return null; // Suppress completed games
 
-      const dateObj = new Date(`${game.isoDate}T00:00:00`);
-      const yyyy = dateObj.getFullYear();
-      const yy = yyyy.toString().slice(-2);
-      const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const dd = String(dateObj.getDate()).padStart(2, '0');
+      const todayStr = getLocalTodayStr();
+      if (game.isoDate < todayStr) return null; // Suppress past games
+
+      const dateParts = (game.isoDate || '').split('-');
+      if (dateParts.length !== 3) return null;
+
+      const yyyy = dateParts[0];
+      const yy = yyyy.slice(-2);
+      const mm = dateParts[1];
+      const dd = dateParts[2];
+
+      // Calculate Wednesday of game week (3 days prior to Saturday)
+      const gameDate = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
+      const wednesdayGameWeek = new Date(gameDate);
+      wednesdayGameWeek.setDate(gameDate.getDate() - 3);
+
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      // Block notes if current date is before Wednesday of game week
+      if (today < wednesdayGameWeek) return null;
+
       const abbrev = getOpponentAbbrev(game);
-
       return `https://static.hailstate.com/custompages/pdf/fb/${yyyy}/${yy}FB_${mm}${dd}_${abbrev}_Notes.pdf`;
     }
-
 
     /**
      * Verifies PDF availability asynchronously. Suppresses/hides button if unavailable.
@@ -234,16 +265,8 @@
           containerElement.appendChild(link);
         })
         .catch(() => {
-          // Silently suppress the button on fetch errors or missing notes
+          // Silently suppress button on missing notes or fetch errors
         });
-    }
-
-    function getLocalTodayStr() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
     }
 
     function updateToggleButtonState() {
@@ -268,20 +291,16 @@
 
       const selectedSport = document.getElementById('sportFilter')?.value || 'all';
       const todayStr = getLocalTodayStr();
-      const today = new Date(`${todayStr}T00:00:00`);
 
       return masterDataset
         .filter(game => {
-          const gameDate = new Date(`${game.isoDate}T00:00:00`);
           const matchesSport = selectedSport === 'all' || game.sportKey === selectedSport;
-          const isEligibleByDate = selectedSport === 'all' ? gameDate >= today : true;
+          const isEligibleByDate = selectedSport === 'all' ? (game.isoDate >= todayStr) : true;
 
           return matchesSport && isEligibleByDate;
         })
         .sort((a, b) => {
-          const aDate = new Date(`${a.isoDate}T00:00:00`).getTime();
-          const bDate = new Date(`${b.isoDate}T00:00:00`).getTime();
-          if (aDate !== bDate) return aDate - bDate;
+          if (a.isoDate !== b.isoDate) return (a.isoDate || '').localeCompare(b.isoDate || '');
           return (a.timeStr || '').localeCompare(b.timeStr || '');
         });
     }
@@ -325,12 +344,16 @@
         const card = document.createElement('div');
         card.className = 'schedule-card';
 
-        const dateObj = new Date(`${game.isoDate}T00:00:00`);
-        const dateStr = dateObj.toLocaleDateString('en-US', {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric'
-        });
+        const dateParts = (game.isoDate || '').split('-');
+        let dateStr = game.isoDate;
+        if (dateParts.length === 3) {
+          const dateObj = new Date(dateParts[0], parseInt(dateParts[1]) - 1, dateParts[2]);
+          dateStr = dateObj.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric'
+          });
+        }
 
         const badge = game.result
           ? (game.result.startsWith('W')
@@ -342,21 +365,19 @@
 
         const networkBadge = broadcast ? `<span class="network-badge">${broadcast}</span>` : '';
 
-        // Mobile-safe eligibility guards
+        // Eligibility check
         const isFootball = (game.sportKey || '').toLowerCase().includes('football');
         const isFutureOrToday = game.isoDate >= todayStr;
         const isUnfinished = !game.result;
 
-        // Generate travel button strictly for upcoming, incomplete football games
         let travelActionHtml = '';
         if (isFootball && isFutureOrToday && isUnfinished && typeof getTravelButtonHtml === 'function') {
           const abbrev = getOpponentAbbrev(game);
           travelActionHtml = getTravelButtonHtml(abbrev, game.isoDate, !game.isHome);
         }
 
-        // Generate target container for Game Notes
         const abbrev = getOpponentAbbrev(game);
-        const rightColId = `right-actions-${game.isoDate}-${abbrev}`;
+        const actionRowId = `action-row-${game.isoDate}-${abbrev}`;
 
         card.innerHTML = `
           <div class="game-left">
@@ -367,21 +388,23 @@
               ${game.opponent}
             </div>
           </div>
-          <div class="game-right" id="${rightColId}">
+          <div class="game-right">
             ${badge}
             ${networkBadge}
             <span class="location-text">${game.location || 'Location TBD'}</span>
-            ${travelActionHtml}
+            <div class="action-row" id="${actionRowId}">
+              ${travelActionHtml}
+            </div>
           </div>
         `;
 
         container.appendChild(card);
 
-        // Asynchronously check and render game notes if PDF exists
+        // Asynchronously check and append notes button side-by-side with travel action
         const predictedNotesUrl = getPredictedNotesUrl(game);
         if (predictedNotesUrl) {
-          const rightCol = card.querySelector(`#${rightColId}`);
-          renderNotesButton(rightCol, predictedNotesUrl);
+          const actionRow = card.querySelector(`#${actionRowId}`);
+          renderNotesButton(actionRow, predictedNotesUrl);
         }
       });
     }
