@@ -1,4 +1,4 @@
-// endschedule.js - Fixed Date-Aware Deduplicating Merger
+// endschedule.js - Robust Fail-Safe & Deduplicating Merger
 
 function normalizeTeamName(name) {
   return (name || '')
@@ -8,26 +8,54 @@ function normalizeTeamName(name) {
 }
 
 async function getUnifiedSchedule() {
-  const staticData = typeof BASELINE_SCHEDULE !== 'undefined' ? BASELINE_SCHEDULE : [];
-  const apiData = typeof fetchLiveSchedules === 'function' ? await fetchLiveSchedules() : [];
+  let staticData = [];
+  let apiData = [];
 
-  if (!apiData.length) return staticData;
+  // 1. Safely load static baseline data
+  if (typeof BASELINE_SCHEDULE !== 'undefined' && Array.isArray(BASELINE_SCHEDULE)) {
+    staticData = BASELINE_SCHEDULE;
+  }
+
+  // 2. Safely attempt to fetch live API data
+  if (typeof fetchLiveSchedules === 'function') {
+    try {
+      const res = await fetchLiveSchedules();
+      if (Array.isArray(res)) {
+        apiData = res;
+      }
+    } catch (err) {
+      console.warn("Live API fetch failed, falling back to static baseline:", err);
+    }
+  }
+
+  // If live API returns no items, return static baseline immediately
+  if (!apiData.length) {
+    return staticData;
+  }
 
   const seenGames = new Set();
   const unified = [];
 
-  // 1. Process Live API Data First (Highest Priority)
+  // 3. Process Live API Data (Highest Priority)
   apiData.forEach(game => {
-    // Key includes isoDate so repeat opponents on different dates are NOT dropped
-    const key = `${game.sportKey}_${game.isoDate}_${normalizeTeamName(game.opponent)}`;
+    if (!game) return;
+    const dateKey = game.isoDate || game.date || 'tbd';
+    const key = `${game.sportKey || 'sport'}_${dateKey}_${normalizeTeamName(game.opponent)}`;
     seenGames.add(key);
     unified.push(game);
   });
 
-  // 2. Add Static Baseline Games ONLY if not already provided by Live API
+  // 4. Merge Static Baseline Games ONLY if not already provided by API
   staticData.forEach(game => {
-    const key = `${game.sportKey}_${game.isoDate}_${normalizeTeamName(game.opponent)}`;
-    if (!seenGames.has(key)) {
+    if (!game) return;
+    const dateKey = game.isoDate || game.date || 'tbd';
+    const key = `${game.sportKey || 'sport'}_${dateKey}_${normalizeTeamName(game.opponent)}`;
+    
+    // Also check if a game against this team exists on an adjacent baseline date
+    const teamOnlyKey = `${game.sportKey || 'sport'}_${normalizeTeamName(game.opponent)}`;
+    const hasApiMatchForTeam = Array.from(seenGames).some(k => k.startsWith(teamOnlyKey));
+
+    if (!seenGames.has(key) && !hasApiMatchForTeam) {
       unified.push(game);
     }
   });
