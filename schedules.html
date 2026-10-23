@@ -199,8 +199,9 @@
     }
 
     /**
-     * Dynamically predicts the Hail State Football Game Notes PDF URL.
-     * Pattern: https://hailstate.com/documents/YYYY/MM/DD/YYFB_MMDD_OPP_Notes.pdf
+     * Dynamically predicts the correct Hail State Football Game Notes PDF URL 
+     * based on the static custompages CDN path structure.
+     * Pattern: https://static.hailstate.com/custompages/pdf/fb/2026/26FB_1024_OU_Notes.pdf
      */
     function getPredictedNotesUrl(game) {
       if ((game.sportKey || '').toLowerCase() !== 'football') return null;
@@ -212,8 +213,9 @@
       const dd = String(dateObj.getDate()).padStart(2, '0');
       const abbrev = getOpponentAbbrev(game);
 
-      return `https://hailstate.com/documents/${yyyy}/${mm}/${dd}/${yy}FB_${mm}${dd}_${abbrev}_Notes.pdf`;
+      return `https://static.hailstate.com/custompages/pdf/fb/${yyyy}/${yy}FB_${mm}${dd}_${abbrev}_Notes.pdf`;
     }
+
 
     /**
      * Verifies PDF availability asynchronously. Suppresses/hides button if unavailable.
