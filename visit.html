@@ -202,16 +202,21 @@
       align-items: center;
       gap: 8px;
     }
-    input[type="number"] {
+    input[type="number"], select {
       background: #12131a;
       color: #fff;
       border: 1px solid var(--card-border);
       border-radius: 6px;
       padding: 4px 8px;
-      width: 50px;
       font-weight: bold;
-      text-align: center;
       font-size: 0.85rem;
+    }
+    input[type="number"] {
+      width: 50px;
+      text-align: center;
+    }
+    select {
+      padding: 6px 10px;
     }
     .sports-toggles {
       display: flex;
@@ -325,6 +330,14 @@
     </div>
 
     <div class="filter-row">
+      <span class="filter-label">Sort By:</span>
+      <select id="sort-order" onchange="handleSortChange()">
+        <option value="date">Earliest Date</option>
+        <option value="games">Greatest Number of Home Games</option>
+      </select>
+    </div>
+
+    <div class="filter-row">
       <span class="filter-label">Sports Toggles:</span>
       <div class="sports-toggles">
         <label><input type="checkbox" value="football" checked> <span>🏈 Football</span></label>
@@ -344,6 +357,9 @@
   <script src="data.js"></script>
 
   <script>
+    // Global variable to store current computed windows for sorting
+    let lastComputedWindows = [];
+
     function updateToggleButtonState() {
       const btn = document.getElementById('fontToggleBtn');
       if (!btn) return;
@@ -444,7 +460,33 @@
         }
       });
 
-      renderCandidates(uniqueCandidates, selectedDays);
+      lastComputedWindows = uniqueCandidates;
+      sortAndRenderResults(selectedDays);
+    }
+
+    function handleSortChange() {
+      const tripDays = parseInt(document.getElementById("trip-days").value) || 2;
+      sortAndRenderResults(tripDays);
+    }
+
+    function sortAndRenderResults(tripDays) {
+      const sortOrder = document.getElementById("sort-order").value;
+
+      // Sort the global array based on selection
+      lastComputedWindows.sort((a, b) => {
+        if (sortOrder === 'games') {
+          // Descending order: highest number of games first, tie-broken by earliest start date
+          if (b.games.length !== a.games.length) {
+            return b.games.length - a.games.length;
+          }
+          return a.startDate - b.startDate;
+        } else {
+          // Default: Earliest date first
+          return a.startDate - b.startDate;
+        }
+      });
+
+      renderCandidates(lastComputedWindows, tripDays);
     }
 
     function renderCandidates(windows, tripDays) {
