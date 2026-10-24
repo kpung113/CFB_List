@@ -131,7 +131,7 @@
       return games.sort((a, b) => (isSEC(b) - isSEC(a)) || (isRanked(b) - isRanked(a)) || (getGameConfTier(a) - getGameConfTier(b)) || (a.gDate - b.gDate));
     }
 
-    function calculateLivePriorityScore(g) {
+         function calculateLivePriorityScore(g) {
       const comp = g.rawEvent?.competitions?.[0];
       const home = comp?.competitors?.find(c => c.homeAway === 'home');
       const away = comp?.competitors?.find(c => c.homeAway === 'away');
@@ -148,16 +148,32 @@
       const awayScore = parseInt(g.awayScore || 0);
       const margin = Math.abs(homeScore - awayScore);
 
-      // --- UPSET ALERT CHECK (Ranked team losing by > 10 points) ---
+      // --- SIMPLIFIED UPSET ALERT CHECK ---
       let upsetBonus = 0;
       let isUpsetAlert = false;
 
-      if (hRnk <= 25 && (awayScore - homeScore) > 10) {
+      // Check if Home team is ranked and trailing by > 0 (or > 10 for major boost)
+      if (hRnk <= 25 && awayScore > homeScore) {
+        const deficit = awayScore - homeScore;
         isUpsetAlert = true;
-        upsetBonus = hRnk <= 10 ? 800 : 450;
-      } else if (aRnk <= 25 && (homeScore - awayScore) > 10) {
+        // Big flat boost if 10+ deficit, moderate flat boost if tight (>0)
+        const isTop10 = hRnk <= 10;
+        if (deficit >= 10) {
+          upsetBonus = isTop10 ? 900 : 500;
+        } else {
+          upsetBonus = isTop10 ? 500 : 300;
+        }
+      } 
+      // Check if Away team is ranked and trailing by > 0
+      else if (aRnk <= 25 && homeScore > awayScore) {
+        const deficit = homeScore - awayScore;
         isUpsetAlert = true;
-        upsetBonus = aRnk <= 10 ? 800 : 450;
+        const isTop10 = aRnk <= 10;
+        if (deficit >= 10) {
+          upsetBonus = isTop10 ? 900 : 500;
+        } else {
+          upsetBonus = isTop10 ? 500 : 300;
+        }
       }
 
       // 1. Base Matchup Tiers
@@ -186,15 +202,13 @@
       const rawScore = base + marginBonus + timeScore;
 
       // 4. Handle Blowouts vs. Upset Alerts
-      if (margin > 16) {
-        if (isUpsetAlert) {
-          return Math.min(rawScore + upsetBonus, 1200); 
-        }
+      if (margin > 16 && !isUpsetAlert) {
         return Math.round((rawScore / 1700) * 50);
       }
 
       return rawScore + upsetBonus;
-    }
+         }
+    
 
     function renderIntensityMeter(rawScore) {
       const displayScore = Math.min(Math.max(Math.round((rawScore / 1600) * 10), 0), 10);
