@@ -131,7 +131,7 @@
       return games.sort((a, b) => (isSEC(b) - isSEC(a)) || (isRanked(b) - isRanked(a)) || (getGameConfTier(a) - getGameConfTier(b)) || (a.gDate - b.gDate));
     }
 
-           function calculateLivePriorityScore(g) {
+    function calculateLivePriorityScore(g) {
       const comp = g.rawEvent?.competitions?.[0];
       const home = comp?.competitors?.find(c => c.homeAway === 'home');
       const away = comp?.competitors?.find(c => c.homeAway === 'away');
@@ -176,41 +176,31 @@
 
       // 4. Blowout Scaling (> 16-point margin): Map raw scores down to a 0 - 50 range
       if (margin > 16) {
-        // Max possible raw score is roughly 1700, so we scale it down to cap at 50 pts
         return Math.round((rawScore / 1700) * 50);
       }
 
       return rawScore;
-           }
-    
-        
-      return base + marginBonus + timeScore;
-        }
-    
+    }
 
-        function renderIntensityMeter(score) {
+    function renderIntensityMeter(score) {
       let label = 'Snoozefest', color = '#ef4444', angle = -40;
 
       if (score >= 800) {
         label = 'TURN TV ON NOW!';
-        color = '#84cc16'; // Bright Gold/Lime
-        // Scale 800 to 1600 pts across +45 deg to +60 deg
+        color = '#84cc16';
         const progress = Math.min((score - 800) / 800, 1);
         angle = 45 + (progress * 15);
       } else if (score >= 500) {
         label = 'Great Game';
-        color = '#22c55e'; // Green
-        // Scale 500 to 799 pts across +20 deg to +45 deg (In the Green Arc)
+        color = '#22c55e';
         const progress = (score - 500) / 300;
         angle = 20 + (progress * 25);
       } else if (score >= 100) {
         label = 'Watchable';
-        color = '#eab308'; // Yellow
-        // Scale 100 to 499 pts across -20 deg to +20 deg (In the Yellow Arc)
+        color = '#eab308';
         const progress = (score - 100) / 400;
         angle = -20 + (progress * 40);
       } else {
-        // Scale 0 to 99 pts across -60 deg to -20 deg (In the Red Arc)
         const progress = Math.max(score, 0) / 100;
         angle = -60 + (progress * 40);
       }
@@ -231,8 +221,7 @@
             <span class="intensity-score">Intensity Score: ${score} pts</span>
           </div>
         </div>`;
-        }
-    
+    }
 
     async function fetchScores() {
       const statusEl = document.getElementById("update-status");
