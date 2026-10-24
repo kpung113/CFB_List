@@ -159,6 +159,86 @@
       });
     }
 
+    /**
+     * Calculates a composite priority score for live games based on:
+     * 1. Matchup Tier (SEC vs SEC/Ranked > Ranked vs Ranked > Any Ranked > Others)
+     * 2. 16-Point Blowout Filter (>16 pts drops priority)
+     * 3. 3rd/4th Quarter Time Urgency
+     */
+    function calculateLivePriorityScore(g) {
+      const comp = g.rawEvent?.competitions?.[0];
+      const homeComp = comp?.competitors?.find(c => c.homeAway === 'home');
+      const awayComp = comp?.competitors?.find(c => c.homeAway === 'away');
+
+      const homeConf = String(homeComp?.team?.conferenceId || homeComp?.team?.conference?.id || '');
+      const awayConf = String(awayComp?.team?.conferenceId || awayComp?.team?.conference?.id || '');
+      
+      const homeIsSec = homeConf === '8';
+      const awayIsSec = awayConf === '8';
+      const isSecVsSec = homeIsSec && awayIsSec;
+
+      const homeRank = homeComp?.curatedRank?.current;
+      const awayRank = awayComp?.curatedRank?.current;
+      const homeIsRanked = homeRank && homeRank <= 25;
+      const awayIsRanked = awayRank && awayRank <= 25;
+
+      const isSecVsRanked = (homeIsSec && awayIsRanked) || (awayIsSec && homeIsRanked);
+      const isRankedVsRanked = homeIsRanked && awayIsRanked;
+      const hasAnyRanked = homeIsRanked || awayIsRanked;
+
+      // Calculate score margin
+      const homeScore = parseInt(g.homeScore || 0);
+      const awayScore = parseInt(g.awayScore || 0);
+      const margin = Math.abs(homeScore - awayScore);
+      const isCompetitive = margin <= 16;
+
+      let baseTierScore = 0;
+
+      // 1. Determine Matchup Base Tier (Only if <= 16 point margin)
+      if (isCompetitive) {
+        if (isSecVsSec || isSecVsRanked) {
+          baseTierScore = 1000;
+        } else if (isRankedVsRanked) {
+          baseTierScore = 750;
+        } else if (hasAnyRanked) {
+          baseTierScore = 500;
+        } else {
+          baseTierScore = 200; // All other matchups
+        }
+      } else {
+        // Blowout (> 16 points): Demoted to baseline floor
+        baseTierScore = 50;
+      }
+
+      // 2. Time Factor (Applies starting in 3rd Quarter if game is competitive)
+      let timeScore = 0;
+      const period = g.period || 0;
+
+      if (isCompetitive && period >= 3) {
+        // Extract clock seconds if available (e.g., "09:48" -> 588 seconds)
+        let secondsRemaining = 900; // Default to full quarter (15:00)
+        if (g.statusDetail) {
+          const clockMatch = g.statusDetail.match(/(\d+):(\d+)/);
+          if (clockMatch) {
+            secondsRemaining = (parseInt(clockMatch[1]) * 60) + parseInt(clockMatch[2]);
+          }
+        }
+
+        if (period === 3) {
+          // 3rd Quarter: +100 to +200 points as quarter progresses
+          timeScore = 100 + Math.round(((900 - secondsRemaining) / 900) * 100);
+        } else if (period === 4) {
+          // 4th Quarter: +300 to +500 points as clock approaches 00:00
+          timeScore = 300 + Math.round(((900 - secondsRemaining) / 900) * 200);
+        } else if (period > 4) {
+          // Overtime: Maximum urgency (+600)
+          timeScore = 600;
+        }
+      }
+
+      return baseTierScore + timeScore;
+    }
+
     async function fetchScores() {
       const statusEl = document.getElementById("update-status");
       statusEl.innerText = "Refreshing...";
@@ -226,13 +306,16 @@
           else if (state === 'post' && now <= monEnd) finals.push(gameObj);
         });
 
-        // SORT LIVE GAMES
+        // SORT LIVE GAMES USING POINT SYSTEM
         live.sort((a, b) => {
-          if (a.isSec && !b.isSec) return -1;
-          if (!a.isSec && b.isSec) return 1;
-          if (a.hasRanked && !b.hasRanked) return -1;
-          if (!a.hasRanked && b.hasRanked) return 1;
-          if (a.bestRank !== b.bestRank) return a.bestRank - b.bestRank;
+          const scoreA = calculateLivePriorityScore(a);
+          const scoreB = calculateLivePriorityScore(b);
+
+          if (scoreA !== scoreB) {
+            return scoreB - scoreA; // Descending priority
+          }
+
+          // Fallback tie-breaker: Start time
           return a.gDate - b.gDate;
         });
 
@@ -310,7 +393,7 @@
       }
     }
 
-    function createCard(g, isCompleted = false) {
+function createCard(g, isCompleted = false) {
       const card = document.createElement("div");
       card.className = "game-card" + 
         (isCompleted ? " completed-card" : "") +
