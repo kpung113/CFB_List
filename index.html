@@ -54,6 +54,30 @@
     .intensity-text-group{display:flex;flex-direction:column;}
     .intensity-label{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
     .intensity-score{font-size:.65rem;color:var(--sub);font-weight:600;}
+        .card-footer-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid var(--border);
+    }
+    .card-footer-flex .intensity-container {
+      margin-top: 0;
+      flex-grow: 1;
+    }
+    .win-prob-badge {
+      font-size: .75rem;
+      color: var(--sub);
+      background: #111319;
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
+      text-align: center;
+    }
+    
   </style>
 </head>
 <body>
@@ -399,7 +423,6 @@
         finals.forEach(g => container.appendChild(createCard(g, true)));
       }
     }
-
     function createCard(g, isCompleted = false) {
       const card = document.createElement("div");
       card.className = "game-card" + (isCompleted ? " completed-card" : "") + (g.state === 'in' ? (g.period >= 4 ? " live-4q" : " live") : "");
@@ -413,6 +436,43 @@
         else if (g.homeWinner) { homeClass = ' winner'; awayClass = ' loser'; }
       }
 
+      // Check if we have live intensity or metadata to display at the bottom
+      const hasIntensity = g.state === 'in' && typeof g.priorityScore === 'number';
+      const hasMeta = g.spread || g.winProb;
+
+      let footerHtml = '';
+      if (hasIntensity || hasMeta) {
+        footerHtml = `<div class="card-footer-flex">`;
+        
+        // Left side: Win Prob / Spread metadata if available
+        if (hasMeta) {
+          footerHtml += `<div class="win-prob-badge">${g.winProb ? `<span>${g.winProb}</span>` : (g.spread ? `<span>${g.spread}</span>` : '')}</div>`;
+        }
+        
+        // Right side: Intensity meter
+        if (hasIntensity) {
+          footerHtml += renderIntensityMeter(g.priorityScore);
+        }
+        
+        footerHtml += `</div>`;
+      }
+
+      card.innerHTML = `
+        <div class="card-header">
+          <span>${g.statusDetail}</span>
+          <span class="card-header-right">
+            <span class="broadcast">${isCompleted ? `<span class="sort-tag">${getGameSortTag(g)}</span>` : ''}<strong style="color:#84cc16;">📺 ${g.tv}</strong></span>
+            <a href="https://www.espn.com/college-football/game/_/gameId/${g.id}" target="_blank" rel="noopener noreferrer" class="watch-btn">Gamecast</a>
+          </span>
+        </div>
+        <div class="team-row${awayClass}"><span>${isAwayPos ? '🏈 ' : ''}${g.awayRank}${g.awayTeam}</span><span class="score">${g.state === 'pre' ? '' : g.awayScore}</span></div>
+        <div class="team-row${homeClass}"><span>${isHomePos ? '🏈 ' : ''}${g.homeRank}${g.homeTeam}</span><span class="score">${g.state === 'pre' ? '' : g.homeScore}</span></div>
+        ${g.driveText ? `<div class="drive-banner">Drive: ${g.driveText}</div>` : ''}
+        ${footerHtml}
+      `;
+      return card;
+    }
+    
       card.innerHTML = `
         <div class="card-header">
           <span>${g.statusDetail}</span>
