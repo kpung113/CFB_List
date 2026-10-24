@@ -202,26 +202,29 @@
         }
     
 
-    function renderIntensityMeter(score) {
+        function renderIntensityMeter(rawScore) {
+      // Map the internal score (0 to ~1600) to a display integer from 0 to 10
+      const displayScore = Math.min(Math.max(Math.round(rawScore / 160), 0), 10);
+
       let label = 'Snoozefest', color = '#ef4444', angle = -40;
 
-      if (score >= 800) {
+      if (rawScore >= 800) {
         label = 'TURN TV ON NOW!';
         color = '#84cc16';
-        const progress = Math.min((score - 800) / 800, 1);
+        const progress = Math.min((rawScore - 800) / 800, 1);
         angle = 45 + (progress * 15);
-      } else if (score >= 500) {
+      } else if (rawScore >= 500) {
         label = 'Great Game';
         color = '#22c55e';
-        const progress = (score - 500) / 300;
+        const progress = (rawScore - 500) / 300;
         angle = 20 + (progress * 25);
-      } else if (score >= 100) {
+      } else if (rawScore >= 100) {
         label = 'Watchable';
         color = '#eab308';
-        const progress = (score - 100) / 400;
+        const progress = (rawScore - 100) / 400;
         angle = -20 + (progress * 40);
       } else {
-        const progress = Math.max(score, 0) / 100;
+        const progress = Math.max(rawScore, 0) / 100;
         angle = -60 + (progress * 40);
       }
 
@@ -238,10 +241,11 @@
           </div>
           <div class="intensity-text-group">
             <span class="intensity-label" style="color:${color};">${label}</span>
-            <span class="intensity-score">Intensity Score: ${score} pts</span>
+            <span class="intensity-score">Intensity Score: ${displayScore} / 10</span>
           </div>
         </div>`;
-    }
+        }
+    
 
     async function fetchScores() {
       const statusEl = document.getElementById("update-status");
