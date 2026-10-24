@@ -46,15 +46,14 @@
     .score{font-size:1.25rem;font-weight:bold;}
     .sort-tag{background:#334155;color:#38bdf8;font-size:.6rem;padding:2px 5px;border-radius:3px;font-weight:700;margin-right:6px;}
     .drive-banner{font-size:.75rem;color:#38bdf8;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);padding:4px 8px;border-radius:6px;margin:8px 0;font-weight:600;}
-    .game-meta{font-size:.75rem;color:var(--sub);margin-top:8px;padding-top:6px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
     .watch-btn{color:#fff;text-decoration:none;font-weight:bold;font-size:.75rem;background:var(--maroon);border:1px solid #7d2033;padding:3px 8px;border-radius:4px;}
-    .intensity-container{display:flex;align-items:center;gap:10px;background:#111319;border:1px solid var(--border);border-radius:8px;padding:6px 12px;margin-top:10px;}
+    .intensity-container{display:flex;align-items:center;gap:10px;background:#111319;border:1px solid var(--border);border-radius:8px;padding:6px 12px;}
     .gauge-wrapper{position:relative;width:54px;height:30px;flex-shrink:0;}
     .gauge-svg{width:100%;height:100%;overflow:visible;}
     .intensity-text-group{display:flex;flex-direction:column;}
     .intensity-label{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
     .intensity-score{font-size:.65rem;color:var(--sub);font-weight:600;}
-        .card-footer-flex {
+    .card-footer-flex {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -77,7 +76,6 @@
       white-space: nowrap;
       text-align: center;
     }
-    
   </style>
 </head>
 <body>
@@ -177,12 +175,10 @@
       let upsetBonus = 0;
       let isUpsetAlert = false;
 
-      // Check if Home team is ranked and trailing or in a tight spot
       if (hRnk <= 25) {
-        const deficit = awayScore - homeScore; // >0 means trailing
-        const lead = homeScore - awayScore;   // positive if leading
+        const deficit = awayScore - homeScore; 
+        const lead = homeScore - awayScore;   
         
-        // 1. Trailing by 10+ or any deficit (existing logic)
         if (deficit >= 10) {
           isUpsetAlert = true;
           upsetBonus = hRnk <= 10 ? 900 : 500;
@@ -191,14 +187,11 @@
           upsetBonus = hRnk <= 10 ? 500 : 300;
         }
         
-        // 2. NEW: Top 10 team in 3rd/4th quarter not ahead by more than 7 points (Lead <= 7 or Trailing)
         if (hRnk <= 10 && p >= 3 && lead <= 7) {
           isUpsetAlert = true;
-          // Guaranteed boost to clear 500+ raw points (putting it cleanly in 'Great Game' / 6+ range)
           upsetBonus = Math.max(upsetBonus, 650);
         }
       } 
-      // Check if Away team is ranked and trailing or in a tight spot
       else if (aRnk <= 25) {
         const deficit = homeScore - awayScore; 
         const lead = awayScore - homeScore;   
@@ -217,16 +210,13 @@
         }
       }
 
-      // 1. Base Matchup Tiers
       let base = 200;
       if ((homeIsSec && awayIsSec) || (homeIsSec && aRnk <= 25) || (awayIsSec && hRnk <= 25)) base = 1000;
       else if (hRnk <= 25 && aRnk <= 25) base = 750;
       else if (hRnk <= 25 || aRnk <= 25) base = 500;
 
-      // 2. Tighter Margin Bonus
       const marginBonus = margin <= 16 ? Math.round((16 - margin) * 6.25) : 0;
 
-      // 3. Time / Clock Progression Factor
       let timeScore = 0;
       let rem = 900;
       const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
@@ -241,15 +231,12 @@
 
       const rawScore = base + marginBonus + timeScore;
 
-      // 4. Handle Blowouts vs. Upset Alerts
       if (margin > 16 && !isUpsetAlert) {
         return Math.round((rawScore / 1700) * 50);
       }
 
       return rawScore + upsetBonus;
     }
-    
-    
 
     function renderIntensityMeter(rawScore) {
       const displayScore = Math.min(Math.max(Math.round((rawScore / 1600) * 10), 0), 10);
@@ -423,6 +410,7 @@
         finals.forEach(g => container.appendChild(createCard(g, true)));
       }
     }
+
     function createCard(g, isCompleted = false) {
       const card = document.createElement("div");
       card.className = "game-card" + (isCompleted ? " completed-card" : "") + (g.state === 'in' ? (g.period >= 4 ? " live-4q" : " live") : "");
@@ -436,24 +424,18 @@
         else if (g.homeWinner) { homeClass = ' winner'; awayClass = ' loser'; }
       }
 
-      // Check if we have live intensity or metadata to display at the bottom
       const hasIntensity = g.state === 'in' && typeof g.priorityScore === 'number';
       const hasMeta = g.spread || g.winProb;
 
       let footerHtml = '';
       if (hasIntensity || hasMeta) {
         footerHtml = `<div class="card-footer-flex">`;
-        
-        // Left side: Win Prob / Spread metadata if available
         if (hasMeta) {
           footerHtml += `<div class="win-prob-badge">${g.winProb ? `<span>${g.winProb}</span>` : (g.spread ? `<span>${g.spread}</span>` : '')}</div>`;
         }
-        
-        // Right side: Intensity meter
         if (hasIntensity) {
           footerHtml += renderIntensityMeter(g.priorityScore);
         }
-        
         footerHtml += `</div>`;
       }
 
@@ -469,23 +451,6 @@
         <div class="team-row${homeClass}"><span>${isHomePos ? '🏈 ' : ''}${g.homeRank}${g.homeTeam}</span><span class="score">${g.state === 'pre' ? '' : g.homeScore}</span></div>
         ${g.driveText ? `<div class="drive-banner">Drive: ${g.driveText}</div>` : ''}
         ${footerHtml}
-      `;
-      return card;
-    }
-    
-      card.innerHTML = `
-        <div class="card-header">
-          <span>${g.statusDetail}</span>
-          <span class="card-header-right">
-            <span class="broadcast">${isCompleted ? `<span class="sort-tag">${getGameSortTag(g)}</span>` : ''}<strong style="color:#84cc16;">📺 ${g.tv}</strong></span>
-            <a href="https://www.espn.com/college-football/game/_/gameId/${g.id}" target="_blank" rel="noopener noreferrer" class="watch-btn">Gamecast</a>
-          </span>
-        </div>
-        <div class="team-row${awayClass}"><span>${isAwayPos ? '🏈 ' : ''}${g.awayRank}${g.awayTeam}</span><span class="score">${g.state === 'pre' ? '' : g.awayScore}</span></div>
-        <div class="team-row${homeClass}"><span>${isHomePos ? '🏈 ' : ''}${g.homeRank}${g.homeTeam}</span><span class="score">${g.state === 'pre' ? '' : g.homeScore}</span></div>
-        ${g.driveText ? `<div class="drive-banner">Drive: ${g.driveText}</div>` : ''}
-        ${(g.spread || g.winProb) ? `<div class="game-meta"><span>${g.spread ? `<strong>Line:</strong> ${g.spread}` : ''}</span><span>${g.winProb ? `<strong>Win Prob:</strong> ${g.winProb}` : ''}</span></div>` : ''}
-        ${(g.state === 'in' && typeof g.priorityScore === 'number') ? renderIntensityMeter(g.priorityScore) : ''}
       `;
       return card;
     }
