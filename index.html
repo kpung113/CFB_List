@@ -131,7 +131,7 @@
       return games.sort((a, b) => (isSEC(b) - isSEC(a)) || (isRanked(b) - isRanked(a)) || (getGameConfTier(a) - getGameConfTier(b)) || (a.gDate - b.gDate));
     }
 
-        function calculateLivePriorityScore(g) {
+           function calculateLivePriorityScore(g) {
       const comp = g.rawEvent?.competitions?.[0];
       const home = comp?.competitors?.find(c => c.homeAway === 'home');
       const away = comp?.competitors?.find(c => c.homeAway === 'away');
@@ -142,7 +142,6 @@
       const hRnk = hRank && hRank <= 25, aRnk = aRank && aRank <= 25;
 
       const margin = Math.abs(parseInt(g.homeScore || 0) - parseInt(g.awayScore || 0));
-      if (margin > 16) return 50; // Blowout demotion floor
 
       // 1. Base Matchup Tiers
       let base = 200;
@@ -150,29 +149,41 @@
       else if (hRnk && aRnk) base = 750;
       else if (hRnk || aRnk) base = 500;
 
-      // 2. Universal Tighter Margin Bonus (0 margin = +100pts down to 16 margin = 0pts)
-      const marginBonus = Math.round((16 - margin) * 6.25);
+      // 2. Tighter Margin Bonus (Only applies if competitive: margin <= 16)
+      const marginBonus = margin <= 16 ? Math.round((16 - margin) * 6.25) : 0;
 
-      // 3. Universal Quarter & Clock Progression Factor
+      // 3. Time / Clock Progression Factor
       let timeScore = 0;
       const p = g.period || 1;
       let rem = 900;
       const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
       if (m) rem = parseInt(m[1]) * 60 + parseInt(m[2]);
-      const quarterElapsed = 900 - rem; // seconds elapsed in current quarter (0 to 900)
+      const quarterElapsed = 900 - rem;
 
       if (p === 1) {
-        timeScore = Math.round((quarterElapsed / 900) * 25); // 0 to 25 pts
+        timeScore = Math.round((quarterElapsed / 900) * 25);
       } else if (p === 2) {
-        timeScore = 25 + Math.round((quarterElapsed / 900) * 50); // 25 to 75 pts
+        timeScore = 25 + Math.round((quarterElapsed / 900) * 50);
       } else if (p === 3) {
-        timeScore = 100 + Math.round((quarterElapsed / 900) * 100); // 100 to 200 pts
+        timeScore = 100 + Math.round((quarterElapsed / 900) * 100);
       } else if (p === 4) {
-        timeScore = 300 + Math.round((quarterElapsed / 900) * 300); // 300 to 600 pts
+        timeScore = 300 + Math.round((quarterElapsed / 900) * 300);
       } else if (p > 4) {
-        timeScore = 700; // Overtime
+        timeScore = 700;
       }
 
+      const rawScore = base + marginBonus + timeScore;
+
+      // 4. Blowout Scaling (> 16-point margin): Map raw scores down to a 0 - 50 range
+      if (margin > 16) {
+        // Max possible raw score is roughly 1700, so we scale it down to cap at 50 pts
+        return Math.round((rawScore / 1700) * 50);
+      }
+
+      return rawScore;
+           }
+    
+        
       return base + marginBonus + timeScore;
         }
     
