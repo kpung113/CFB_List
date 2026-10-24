@@ -48,8 +48,46 @@
     .score { font-size: 1.25rem; font-weight: bold; }
     .sort-tag { background: #334155; color: #38bdf8; font-size: 0.6rem; padding: 2px 5px; border-radius: 3px; font-weight: 700; margin-right: 6px; }
     .drive-banner { font-size: 0.75rem; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); padding: 4px 8px; border-radius: 6px; margin: 8px 0; font-weight: 600; }
-    .game-meta { font-size: 0.75rem; color: var(--subtext); margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--card-border); display: flex; justify-content: space-between; }
+    .game-meta { font-size: 0.75rem; color: var(--subtext); margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; }
     .watch-btn { color: #fff; text-decoration: none; font-weight: bold; font-size: 0.75rem; background: var(--accent-maroon); border: 1px solid #7d2033; padding: 3px 8px; border-radius: 4px; }
+
+    /* Intensity Meter Card Component */
+    .intensity-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #111319;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      margin-top: 10px;
+    }
+    .gauge-wrapper {
+      position: relative;
+      width: 54px;
+      height: 30px;
+      flex-shrink: 0;
+    }
+    .gauge-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    .intensity-text-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .intensity-label {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .intensity-score {
+      font-size: 0.65rem;
+      color: var(--subtext);
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -215,7 +253,6 @@
       const period = g.period || 0;
 
       if (isCompetitive && period >= 3) {
-        // Extract clock seconds if available (e.g., "09:48" -> 588 seconds)
         let secondsRemaining = 900; // Default to full quarter (15:00)
         if (g.statusDetail) {
           const clockMatch = g.statusDetail.match(/(\d+):(\d+)/);
@@ -225,18 +262,62 @@
         }
 
         if (period === 3) {
-          // 3rd Quarter: +100 to +200 points as quarter progresses
           timeScore = 100 + Math.round(((900 - secondsRemaining) / 900) * 100);
         } else if (period === 4) {
-          // 4th Quarter: +300 to +500 points as clock approaches 00:00
           timeScore = 300 + Math.round(((900 - secondsRemaining) / 900) * 200);
         } else if (period > 4) {
-          // Overtime: Maximum urgency (+600)
-          timeScore = 600;
+          timeScore = 600; // Overtime
         }
       }
 
       return baseTierScore + timeScore;
+    }
+
+    /**
+     * Generates HTML for the Intensity Gauge Meter based on the game's priority score.
+     */
+    function renderIntensityMeter(score) {
+      let label = 'Snoozefest';
+      let color = '#ef4444'; // Red
+      let angle = -60; // Left angle (Red)
+
+      if (score >= 800) {
+        label = 'TURN TV ON NOW!';
+        color = '#84cc16'; // Bright Gold/Green
+        angle = 60; // Right angle
+      } else if (score >= 500) {
+        label = 'Great Game';
+        color = '#22c55e'; // Green
+        angle = 20; // Mid-Right angle
+      } else if (score >= 100) {
+        label = 'Watchable';
+        color = '#eab308'; // Amber/Yellow
+        angle = -20; // Mid-Left angle
+      }
+
+      return `
+        <div class="intensity-container">
+          <div class="gauge-wrapper">
+            <svg class="gauge-svg" viewBox="0 0 100 55">
+              <!-- Red Arc -->
+              <path d="M 10 50 A 40 40 0 0 1 33.4 18.2" fill="none" stroke="#ef4444" stroke-width="12" />
+              <!-- Yellow Arc -->
+              <path d="M 33.4 18.2 A 40 40 0 0 1 66.6 18.2" fill="none" stroke="#eab308" stroke-width="12" />
+              <!-- Green Arc -->
+              <path d="M 66.6 18.2 A 40 40 0 0 1 90 50" fill="none" stroke="#22c55e" stroke-width="12" />
+              <!-- Needle Center & Pivot -->
+              <circle cx="50" cy="50" r="5" fill="#f8fafc" />
+              <g transform="rotate(${angle}, 50, 50)">
+                <polygon points="47,50 53,50 50,14" fill="#f8fafc" />
+              </g>
+            </svg>
+          </div>
+          <div class="intensity-text-group">
+            <span class="intensity-label" style="color: ${color};">${label}</span>
+            <span class="intensity-score">Intensity Score: ${score} pts</span>
+          </div>
+        </div>
+      `;
     }
 
     async function fetchScores() {
@@ -301,21 +382,22 @@
             posId: String(situation?.possession || ''), driveText, gDate, rawEvent: e
           };
 
-          if (state === 'pre') upcoming.push(gameObj);
-          else if (state === 'in') live.push(gameObj);
-          else if (state === 'post' && now <= monEnd) finals.push(gameObj);
+          // Attach priority score to live games
+          if (state === 'in') {
+            gameObj.priorityScore = calculateLivePriorityScore(gameObj);
+            live.push(gameObj);
+          } else if (state === 'pre') {
+            upcoming.push(gameObj);
+          } else if (state === 'post' && now <= monEnd) {
+            finals.push(gameObj);
+          }
         });
 
-        // SORT LIVE GAMES USING POINT SYSTEM
+        // SORT LIVE GAMES BY PRIORITY SCORE
         live.sort((a, b) => {
-          const scoreA = calculateLivePriorityScore(a);
-          const scoreB = calculateLivePriorityScore(b);
-
-          if (scoreA !== scoreB) {
-            return scoreB - scoreA; // Descending priority
+          if (a.priorityScore !== b.priorityScore) {
+            return b.priorityScore - a.priorityScore; // Descending priority
           }
-
-          // Fallback tie-breaker: Start time
           return a.gDate - b.gDate;
         });
 
@@ -328,17 +410,10 @@
           return a.gDate - b.gDate || a.bestRank - b.bestRank;
         });
 
-        // SORT COMPLETED GAMES MATCHING grid.html HIERARCHY
+        // SORT COMPLETED GAMES
         sortCompletedGames(finals);
 
-        renderGames(live, upcoming, finals);
-        statusEl.innerText = "Live • 30s";
-      } catch (err) {
-        statusEl.innerText = "Error Loading";
-      }
-    }
-
-    function renderGames(live, upcoming, finals) {
+        function renderGames(live, upcoming, finals) {
       const container = document.getElementById("games-container");
       container.innerHTML = "";
       if (!live.length && !upcoming.length && !finals.length) {
@@ -393,7 +468,7 @@
       }
     }
 
-function createCard(g, isCompleted = false) {
+    function createCard(g, isCompleted = false) {
       const card = document.createElement("div");
       card.className = "game-card" + 
         (isCompleted ? " completed-card" : "") +
@@ -409,6 +484,9 @@ function createCard(g, isCompleted = false) {
       }
 
       const sortTagHtml = isCompleted ? `<span class="sort-tag">${getGameSortTag(g)}</span>` : '';
+      const intensityHtml = (g.state === 'in' && typeof g.priorityScore === 'number') 
+        ? renderIntensityMeter(g.priorityScore) 
+        : '';
 
       card.innerHTML = `
         <div class="card-header">
@@ -422,6 +500,7 @@ function createCard(g, isCompleted = false) {
         <div class="team-row${homeClass}"><span>${isHomePos ? '🏈 ' : ''}${g.homeRank}${g.homeTeam}</span><span class="score">${g.state === 'pre' ? '' : g.homeScore}</span></div>
         ${g.driveText ? `<div class="drive-banner">Drive: ${g.driveText}</div>` : ''}
         ${(g.spread || g.winProb) ? `<div class="game-meta"><span>${g.spread ? `<strong>Line:</strong> ${g.spread}` : ''}</span><span>${g.winProb ? `<strong>Win Prob:</strong> ${g.winProb}` : ''}</span></div>` : ''}
+        ${intensityHtml}
       `;
       return card;
     }
