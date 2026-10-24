@@ -202,31 +202,48 @@
         }
     
 
-        function renderIntensityMeter(rawScore) {
-      // Map the internal score (0 to ~1600) to a display integer from 0 to 10
-      const displayScore = Math.min(Math.max(Math.round(rawScore / 160), 0), 10);
+            function renderIntensityMeter(rawScore) {
+      // Map internal score (0 to ~1600) to an integer from 0 to 10
+      const displayScore = Math.min(Math.max(Math.round((rawScore / 1600) * 10), 0), 10);
 
       let label = 'Snoozefest', color = '#ef4444', angle = -40;
 
-      if (rawScore >= 800) {
+      if (displayScore >= 9) {
         label = 'TURN TV ON NOW!';
-        color = '#84cc16';
-        const progress = Math.min((rawScore - 800) / 800, 1);
-        angle = 45 + (progress * 15);
-      } else if (rawScore >= 500) {
+        color = '#84cc16'; // Bright Gold/Lime
+        angle = 55;
+      } else if (displayScore >= 6) {
         label = 'Great Game';
-        color = '#22c55e';
-        const progress = (rawScore - 500) / 300;
-        angle = 20 + (progress * 25);
-      } else if (rawScore >= 100) {
+        color = '#22c55e'; // Green
+        angle = 25;
+      } else if (displayScore >= 3) {
         label = 'Watchable';
-        color = '#eab308';
-        const progress = (rawScore - 100) / 400;
-        angle = -20 + (progress * 40);
+        color = '#eab308'; // Yellow
+        angle = 0;
       } else {
-        const progress = Math.max(rawScore, 0) / 100;
-        angle = -60 + (progress * 40);
+        label = 'Snoozefest';
+        color = '#ef4444'; // Red
+        angle = -40;
       }
+
+      return `
+        <div class="intensity-container">
+          <div class="gauge-wrapper">
+            <svg class="gauge-svg" viewBox="0 0 100 55">
+              <path d="M 10 50 A 40 40 0 0 1 33.4 18.2" fill="none" stroke="#ef4444" stroke-width="12"/>
+              <path d="M 33.4 18.2 A 40 40 0 0 1 66.6 18.2" fill="none" stroke="#eab308" stroke-width="12"/>
+              <path d="M 66.6 18.2 A 40 40 0 0 1 90 50" fill="none" stroke="#22c55e" stroke-width="12"/>
+              <circle cx="50" cy="50" r="5" fill="#f8fafc"/>
+              <g transform="rotate(${angle}, 50, 50)"><polygon points="47,50 53,50 50,14" fill="#f8fafc"/></g>
+            </svg>
+          </div>
+          <div class="intensity-text-group">
+            <span class="intensity-label" style="color:${color};">${label}</span>
+            <span class="intensity-score">Intensity Score: ${displayScore}</span>
+          </div>
+        </div>`;
+            }
+    
 
       return `
         <div class="intensity-container">
