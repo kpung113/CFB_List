@@ -131,23 +131,43 @@
       return games.sort((a, b) => (isSEC(b) - isSEC(a)) || (isRanked(b) - isRanked(a)) || (getGameConfTier(a) - getGameConfTier(b)) || (a.gDate - b.gDate));
     }
 
-    function calculateLivePriorityScore(g) {
+        function calculateLivePriorityScore(g) {
       const comp = g.rawEvent?.competitions?.[0];
       const home = comp?.competitors?.find(c => c.homeAway === 'home');
       const away = comp?.competitors?.find(c => c.homeAway === 'away');
       
       const homeIsSec = String(home?.team?.conferenceId || home?.team?.conference?.id || '') === '8';
       const awayIsSec = String(away?.team?.conferenceId || away?.team?.conference?.id || '') === '8';
-      const hRank = home?.curatedRank?.current, aRank = away?.curatedRank?.current;
-      const hRnk = hRank && hRank <= 25, aRnk = aRank && aRank <= 25;
+      
+      const hRank = home?.curatedRank?.current;
+      const aRank = away?.curatedRank?.current;
+      const hRnk = hRank && hRank <= 25 ? hRank : 99;
+      const aRnk = aRank && aRank <= 25 ? aRank : 99;
 
-      const margin = Math.abs(parseInt(g.homeScore || 0) - parseInt(g.awayScore || 0));
+      const homeScore = parseInt(g.homeScore || 0);
+      const awayScore = parseInt(g.awayScore || 0);
+      const margin = Math.abs(homeScore - awayScore);
+
+      // --- UPSET ALERT CHECK (Ranked team losing by > 10 points) ---
+      let upsetBonus = 0;
+      let isUpsetAlert = false;
+
+      // Check if Home team is ranked and losing by > 10
+      if (hRnk <= 25 && (awayScore - homeScore) > 10) {
+        isUpsetAlert = true;
+        upsetBonus = hRnk <= 10 ? 800 : 450; // Massive boost for Top 10, moderate for Top 25
+      } 
+      // Check if Away team is ranked and losing by > 10
+      else if (aRnk <= 25 && (homeScore - awayScore) > 10) {
+        isUpsetAlert = true;
+        upsetBonus = aRnk <= 10 ? 800 : 450;
+      }
 
       // 1. Base Matchup Tiers
       let base = 200;
-      if ((homeIsSec && awayIsSec) || (homeIsSec && aRnk) || (awayIsSec && hRnk)) base = 1000;
-      else if (hRnk && aRnk) base = 750;
-      else if (hRnk || aRnk) base = 500;
+      if ((homeIsSec && awayIsSec) || (homeIsSec && aRnk <= 25) || (awayIsSec && hRnk <= 25)) base = 1000;
+      else if (hRnk <= 25 && aRnk <= 25) base = 750;
+      else if (hRnk <= 25 || aRnk <= 25) base = 500;
 
       // 2. Tighter Margin Bonus (Only applies if competitive: margin <= 16)
       const marginBonus = margin <= 16 ? Math.round((16 - margin) * 6.25) : 0;
@@ -160,27 +180,27 @@
       if (m) rem = parseInt(m[1]) * 60 + parseInt(m[2]);
       const quarterElapsed = 900 - rem;
 
-      if (p === 1) {
-        timeScore = Math.round((quarterElapsed / 900) * 25);
-      } else if (p === 2) {
-        timeScore = 25 + Math.round((quarterElapsed / 900) * 50);
-      } else if (p === 3) {
-        timeScore = 100 + Math.round((quarterElapsed / 900) * 100);
-      } else if (p === 4) {
-        timeScore = 300 + Math.round((quarterElapsed / 900) * 300);
-      } else if (p > 4) {
-        timeScore = 700;
-      }
+      if (p === 1) timeScore = Math.round((quarterElapsed / 900) * 25);
+      else if (p === 2) timeScore = 25 + Math.round((quarterElapsed / 900) * 50);
+      else if (p === 3) timeScore = 100 + Math.round((quarterElapsed / 900) * 100);
+      else if (p === 4) timeScore = 300 + Math.round((quarterElapsed / 900) * 300);
+      else if (p > 4) timeScore = 700;
 
       const rawScore = base + marginBonus + timeScore;
 
-      // 4. Blowout Scaling (> 16-point margin): Map raw scores down to a 0 - 50 range
+      // 4. Handle Blowouts vs. Upset Alerts
       if (margin > 16) {
+        if (isUpsetAlert) {
+          // Upset alerts override blowouts and get a high-priority score based on the upset bonus + time
+          return Math.min(rawScore + upsetBonus, 1200); 
+        }
+        // Standard blowout scaling (0 - 50 range)
         return Math.round((rawScore / 1700) * 50);
       }
 
-      return rawScore;
-    }
+      return rawScore + upsetBonus;
+        }
+    
 
     function renderIntensityMeter(score) {
       let label = 'Snoozefest', color = '#ef4444', angle = -40;
