@@ -163,10 +163,14 @@
     }
 
     function renderIntensityMeter(score) {
-      let label = 'Snoozefest', color = '#ef4444', angle = -60;
-      if (score >= 800) { label = 'TURN TV ON NOW!'; color = '#84cc16'; angle = 60; }
-      else if (score >= 500) { label = 'Great Game'; color = '#22c55e'; angle = 20; }
-      else if (score >= 100) { label = 'Watchable'; color = '#eab308'; angle = -20; }
+      let label = 'Snoozefest', color = '#ef4444';
+      if (score >= 800) { label = 'TURN TV ON NOW!'; color = '#84cc16'; }
+      else if (score >= 500) { label = 'Great Game'; color = '#22c55e'; }
+      else if (score >= 100) { label = 'Watchable'; color = '#eab308'; }
+
+      // Dynamically calculate continuous needle angle (-60 deg to +60 deg based on score 0 to 1600)
+      const clampedScore = Math.min(Math.max(score, 0), 1600);
+      const angle = -60 + (clampedScore / 1600) * 120;
 
       return `
         <div class="intensity-container">
@@ -176,7 +180,7 @@
               <path d="M 33.4 18.2 A 40 40 0 0 1 66.6 18.2" fill="none" stroke="#eab308" stroke-width="12"/>
               <path d="M 66.6 18.2 A 40 40 0 0 1 90 50" fill="none" stroke="#22c55e" stroke-width="12"/>
               <circle cx="50" cy="50" r="5" fill="#f8fafc"/>
-              <g transform="rotate(${angle}, 50, 50)"><polygon points="47,50 53,50 50,14" fill="#f8fafc"/></g>
+              <g transform="rotate(${angle.toFixed(1)}, 50, 50)"><polygon points="47,50 53,50 50,14" fill="#f8fafc"/></g>
             </svg>
           </div>
           <div class="intensity-text-group">
