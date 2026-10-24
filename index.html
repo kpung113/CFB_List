@@ -131,7 +131,7 @@
       return games.sort((a, b) => (isSEC(b) - isSEC(a)) || (isRanked(b) - isRanked(a)) || (getGameConfTier(a) - getGameConfTier(b)) || (a.gDate - b.gDate));
     }
 
-         function calculateLivePriorityScore(g) {
+    function calculateLivePriorityScore(g) {
       const comp = g.rawEvent?.competitions?.[0];
       const home = comp?.competitors?.find(c => c.homeAway === 'home');
       const away = comp?.competitors?.find(c => c.homeAway === 'away');
@@ -147,32 +147,49 @@
       const homeScore = parseInt(g.homeScore || 0);
       const awayScore = parseInt(g.awayScore || 0);
       const margin = Math.abs(homeScore - awayScore);
+      const p = g.period || 1;
 
-      // --- SIMPLIFIED UPSET ALERT CHECK ---
+      // --- UPSET & LATE-GAME THRILLER CHECK ---
       let upsetBonus = 0;
       let isUpsetAlert = false;
 
-      // Check if Home team is ranked and trailing by > 0 (or > 10 for major boost)
-      if (hRnk <= 25 && awayScore > homeScore) {
-        const deficit = awayScore - homeScore;
-        isUpsetAlert = true;
-        // Big flat boost if 10+ deficit, moderate flat boost if tight (>0)
-        const isTop10 = hRnk <= 10;
+      // Check if Home team is ranked and trailing or in a tight spot
+      if (hRnk <= 25) {
+        const deficit = awayScore - homeScore; // >0 means trailing
+        const lead = homeScore - awayScore;   // positive if leading
+        
+        // 1. Trailing by 10+ or any deficit (existing logic)
         if (deficit >= 10) {
-          upsetBonus = isTop10 ? 900 : 500;
-        } else {
-          upsetBonus = isTop10 ? 500 : 300;
+          isUpsetAlert = true;
+          upsetBonus = hRnk <= 10 ? 900 : 500;
+        } else if (deficit > 0) {
+          isUpsetAlert = true;
+          upsetBonus = hRnk <= 10 ? 500 : 300;
+        }
+        
+        // 2. NEW: Top 10 team in 3rd/4th quarter not ahead by more than 7 points (Lead <= 7 or Trailing)
+        if (hRnk <= 10 && p >= 3 && lead <= 7) {
+          isUpsetAlert = true;
+          // Guaranteed boost to clear 500+ raw points (putting it cleanly in 'Great Game' / 6+ range)
+          upsetBonus = Math.max(upsetBonus, 650);
         }
       } 
-      // Check if Away team is ranked and trailing by > 0
-      else if (aRnk <= 25 && homeScore > awayScore) {
-        const deficit = homeScore - awayScore;
-        isUpsetAlert = true;
-        const isTop10 = aRnk <= 10;
+      // Check if Away team is ranked and trailing or in a tight spot
+      else if (aRnk <= 25) {
+        const deficit = homeScore - awayScore; 
+        const lead = awayScore - homeScore;   
+
         if (deficit >= 10) {
-          upsetBonus = isTop10 ? 900 : 500;
-        } else {
-          upsetBonus = isTop10 ? 500 : 300;
+          isUpsetAlert = true;
+          upsetBonus = aRnk <= 10 ? 900 : 500;
+        } else if (deficit > 0) {
+          isUpsetAlert = true;
+          upsetBonus = aRnk <= 10 ? 500 : 300;
+        }
+
+        if (aRnk <= 10 && p >= 3 && lead <= 7) {
+          isUpsetAlert = true;
+          upsetBonus = Math.max(upsetBonus, 650);
         }
       }
 
@@ -187,7 +204,6 @@
 
       // 3. Time / Clock Progression Factor
       let timeScore = 0;
-      const p = g.period || 1;
       let rem = 900;
       const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
       if (m) rem = parseInt(m[1]) * 60 + parseInt(m[2]);
@@ -207,7 +223,8 @@
       }
 
       return rawScore + upsetBonus;
-         }
+    }
+    
     
 
     function renderIntensityMeter(rawScore) {
