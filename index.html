@@ -1,97 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bully's CFB Board</title>
   <script src="nav.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date()); gtag('config', 'G-8695308WQ8');
-    if (localStorage.getItem('dyslexiaMode') === 'enabled') document.documentElement.classList.add('dyslexia-font');
+    window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+    gtag('js',new Date());gtag('config','G-8695308WQ8');
+    if(localStorage.getItem('dyslexiaMode')==='enabled')document.documentElement.classList.add('dyslexia-font');
   </script>
   <style>
-    :root { --bg:#0b0c10; --card-bg:#181920; --card-border:#272935; --text:#f8fafc; --accent-maroon:#5d1725; --accent-red:#ef4444; --subtext:#94a3b8; --gold:#84cc16; }
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 16px; }
-    body.dyslexia-font, body.dyslexia-font * { font-family: "Comic Sans MS", "Verdana", sans-serif !important; letter-spacing: 0.05em !important; word-spacing: 0.1em !important; }
-    .dyslexia-toggle { background: #181920; border: 1px solid var(--card-border); color: #38bdf8; font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
-    header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--accent-maroon); }
-    .header-left, .header-right, .header-title, .card-header-right { display: flex; align-items: center; gap: 8px; }
-    .header-left { gap: 12px; }
-    .menu-btn { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; width: 22px; height: 18px; padding: 0; z-index: 101; }
-    .menu-btn span { display: block; width: 100%; height: 2px; background-color: #38bdf8; border-radius: 2px; }
-    .nav-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99; opacity:0; visibility:hidden; pointer-events:none; transition:0.2s; }
-    .nav-overlay.open { opacity:1; visibility:visible; pointer-events:auto; }
-    .nav-drawer { position: fixed; top:0; left:-260px; width:260px; height:100vh; background:#181920; border-right:1px solid var(--card-border); z-index:100; display:flex; flex-direction:column; transition:0.3s; box-shadow:4px 0 15px rgba(0,0,0,0.5); }
-    .nav-drawer.open { left:0; }
-    .drawer-header { padding: 14px 16px; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; color: #38bdf8; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; }
-    .drawer-close { background: none; border: none; color: var(--subtext); font-size: 1.3rem; cursor: pointer; }
-    .drawer-links { list-style: none; padding: 8px 0; margin: 0; display: flex; flex-direction: column; }
-    .drawer-links a { padding: 12px 18px; color: var(--text); text-decoration: none; font-size: 0.85rem; font-weight: 700; display: block; border-left: 3px solid transparent; }
-    .drawer-links a:hover, .drawer-links a.active { background-color: #222530; border-left-color: #38bdf8; color: #38bdf8; }
-    .msu-logo { height: 38px; width: auto; object-fit: contain; filter: drop-shadow(0 0 2px #fff); }
-    h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
-    .status-badge { font-size: 0.75rem; padding: 4px 10px; background: #222530; border: 1px solid var(--card-border); border-radius: 12px; color: var(--subtext); }
-    .day-header { font-size: 1.05rem; font-weight: 800; color: var(--text); background: #12131a; border-left: 4px solid var(--accent-maroon); padding: 8px 12px; margin: 24px 0 10px 0; border-radius: 4px; }
-    .tier-header { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold); margin: 14px 0 8px 4px; padding-bottom: 4px; border-bottom: 1px solid #222530; }
-    .game-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 5px solid var(--card-border); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
-    .game-card.live-4q { border-left-color: var(--accent-red); background: linear-gradient(135deg, #181920 0%, #221518 100%); }
-    .game-card.live { border-left-color: var(--accent-maroon); background: linear-gradient(135deg, #181920 0%, #1f1418 100%); }
-    .game-card.completed-card { opacity: 0.85; background-color: #172033; }
-    .card-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--subtext); margin-bottom: 8px; }
-    .team-row { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; font-size: 1.1rem; font-weight: 600; }
-    .team-row.winner { font-weight: 800; color: #ffffff; }
-    .team-row.loser { color: #64748b; }
-    .score { font-size: 1.25rem; font-weight: bold; }
-    .sort-tag { background: #334155; color: #38bdf8; font-size: 0.6rem; padding: 2px 5px; border-radius: 3px; font-weight: 700; margin-right: 6px; }
-    .drive-banner { font-size: 0.75rem; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); padding: 4px 8px; border-radius: 6px; margin: 8px 0; font-weight: 600; }
-    .game-meta { font-size: 0.75rem; color: var(--subtext); margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; }
-    .watch-btn { color: #fff; text-decoration: none; font-weight: bold; font-size: 0.75rem; background: var(--accent-maroon); border: 1px solid #7d2033; padding: 3px 8px; border-radius: 4px; }
-
-    /* Intensity Meter Card Component */
-    .intensity-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #111319;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 6px 12px;
-      margin-top: 10px;
-    }
-    .gauge-wrapper {
-      position: relative;
-      width: 54px;
-      height: 30px;
-      flex-shrink: 0;
-    }
-    .gauge-svg {
-      width: 100%;
-      height: 100%;
-      overflow: visible;
-    }
-    .intensity-text-group {
-      display: flex;
-      flex-direction: column;
-    }
-    .intensity-label {
-      font-size: 0.75rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .intensity-score {
-      font-size: 0.65rem;
-      color: var(--subtext);
-      font-weight: 600;
-    }
+    :root{--bg:#0b0c10;--card:#181920;--border:#272935;--text:#f8fafc;--maroon:#5d1725;--red:#ef4444;--sub:#94a3b8;--gold:#84cc16;}
+    *{box-sizing:border-box;}
+    body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:16px;}
+    body.dyslexia-font,body.dyslexia-font *{font-family:"Comic Sans MS",Verdana,sans-serif!important;letter-spacing:.05em!important;word-spacing:.1em!important;}
+    .dyslexia-toggle{background:#181920;border:1px solid var(--border);color:#38bdf8;font-size:.75rem;font-weight:700;padding:5px 10px;border-radius:6px;cursor:pointer;}
+    header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--maroon);}
+    .header-left,.header-right,.header-title,.card-header-right{display:flex;align-items:center;gap:8px;}
+    .header-left{gap:12px;}
+    .menu-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;width:22px;height:18px;padding:0;z-index:101;}
+    .menu-btn span{display:block;width:100%;height:2px;background:#38bdf8;border-radius:2px;}
+    .nav-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);z-index:99;opacity:0;visibility:hidden;pointer-events:none;transition:0.2s;}
+    .nav-overlay.open{opacity:1;visibility:visible;pointer-events:auto;}
+    .nav-drawer{position:fixed;top:0;left:-260px;width:260px;height:100vh;background:#181920;border-right:1px solid var(--border);z-index:100;display:flex;flex-direction:column;transition:0.3s;box-shadow:4px 0 15px rgba(0,0,0,0.5);}
+    .nav-drawer.open{left:0;}
+    .drawer-header{padding:14px 16px;font-weight:800;font-size:.9rem;text-transform:uppercase;color:#38bdf8;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+    .drawer-close{background:none;border:none;color:var(--sub);font-size:1.3rem;cursor:pointer;}
+    .drawer-links{list-style:none;padding:8px 0;margin:0;display:flex;flex-direction:column;}
+    .drawer-links a{padding:12px 18px;color:var(--text);text-decoration:none;font-size:.85rem;font-weight:700;display:block;border-left:3px solid transparent;}
+    .drawer-links a:hover,.drawer-links a.active{background:#222530;border-left-color:#38bdf8;color:#38bdf8;}
+    .msu-logo{height:38px;width:auto;object-fit:contain;filter:drop-shadow(0 0 2px #fff);}
+    h1{margin:0;font-size:1.25rem;font-weight:800;}
+    .status-badge{font-size:.75rem;padding:4px 10px;background:#222530;border:1px solid var(--border);border-radius:12px;color:var(--sub);}
+    .day-header{font-size:1.05rem;font-weight:800;background:#12131a;border-left:4px solid var(--maroon);padding:8px 12px;margin:24px 0 10px;border-radius:4px;}
+    .tier-header{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gold);margin:14px 0 8px 4px;padding-bottom:4px;border-bottom:1px solid #222530;}
+    .game-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;border-left:5px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.4);}
+    .game-card.live-4q{border-left-color:var(--red);background:linear-gradient(135deg,#181920 0%,#221518 100%);}
+    .game-card.live{border-left-color:var(--maroon);background:linear-gradient(135deg,#181920 0%,#1f1418 100%);}
+    .game-card.completed-card{opacity:.85;background:#172033;}
+    .card-header{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--sub);margin-bottom:8px;}
+    .team-row{display:flex;justify-content:space-between;align-items:center;margin:6px 0;font-size:1.1rem;font-weight:600;}
+    .team-row.winner{font-weight:800;color:#fff;}
+    .team-row.loser{color:#64748b;}
+    .score{font-size:1.25rem;font-weight:bold;}
+    .sort-tag{background:#334155;color:#38bdf8;font-size:.6rem;padding:2px 5px;border-radius:3px;font-weight:700;margin-right:6px;}
+    .drive-banner{font-size:.75rem;color:#38bdf8;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);padding:4px 8px;border-radius:6px;margin:8px 0;font-weight:600;}
+    .game-meta{font-size:.75rem;color:var(--sub);margin-top:8px;padding-top:6px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+    .watch-btn{color:#fff;text-decoration:none;font-weight:bold;font-size:.75rem;background:var(--maroon);border:1px solid #7d2033;padding:3px 8px;border-radius:4px;}
+    .intensity-container{display:flex;align-items:center;gap:10px;background:#111319;border:1px solid var(--border);border-radius:8px;padding:6px 12px;margin-top:10px;}
+    .gauge-wrapper{position:relative;width:54px;height:30px;flex-shrink:0;}
+    .gauge-svg{width:100%;height:100%;overflow:visible;}
+    .intensity-text-group{display:flex;flex-direction:column;}
+    .intensity-label{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
+    .intensity-score{font-size:.65rem;color:var(--sub);font-weight:600;}
   </style>
 </head>
 <body>
-
   <header>
     <div class="header-left">
       <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
@@ -130,32 +95,23 @@
       if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
     });
 
-    function isSEC(game) {
-      return game.rawEvent.competitions[0].competitors.some(c => 
-        String(c.team?.conferenceId || c.team?.conference?.id) === '8'
-      );
-    }
+    const isSEC = g => g.rawEvent.competitions[0].competitors.some(c => String(c.team?.conferenceId || c.team?.conference?.id) === '8');
+    const isRanked = g => g.hasRanked;
 
-    function isRanked(game) {
-      return game.hasRanked;
-    }
-
-    function getConfKey(team) {
-      if (!team) return 'other';
-      const confId = String(team.conferenceId || team.conference?.id || '');
-      const confName = String(team.conference?.name || team.conference?.abbreviation || team.conference || '').toLowerCase();
-      
-      if (confId === '8' || confName.includes('sec') || confName.includes('southeastern')) return 'sec';
-      if (confId === '5' || confName.includes('big ten') || confName.includes('b1g')) return 'bigten';
-      if (confId === '151' || confName.includes('big 12') || confName.includes('b12')) return 'big12';
-      if (confId === '1' || confName === 'acc' || confName.includes('atlantic coast')) return 'acc';
-      if (confId === '15' || confName.includes('american athletic') || confName === 'aac') return 'aac';
+    function getConfKey(t) {
+      if (!t) return 'other';
+      const id = String(t.conferenceId || t.conference?.id || '');
+      const name = String(t.conference?.name || t.conference?.abbreviation || t.conference || '').toLowerCase();
+      if (id === '8' || name.includes('sec')) return 'sec';
+      if (id === '5' || name.includes('big ten') || name.includes('b1g')) return 'bigten';
+      if (id === '151' || name.includes('big 12')) return 'big12';
+      if (id === '1' || name.includes('acc')) return 'acc';
+      if (id === '15' || name.includes('american')) return 'aac';
       return 'other';
     }
 
-    function getGameConfTier(game) {
-      const comps = game.rawEvent.competitions[0].competitors;
-      const confs = comps.map(c => getConfKey(c.team));
+    function getGameConfTier(g) {
+      const confs = g.rawEvent.competitions[0].competitors.map(c => getConfKey(c.team));
       if (confs.includes('sec')) return 1;
       if (confs.includes('bigten')) return 2;
       if (confs.includes('big12')) return 3;
@@ -164,160 +120,70 @@
       return 6;
     }
 
-    function getGameSortTag(game) {
-      if (isSEC(game)) return 'SEC';
-      if (isRanked(game)) return 'RNK';
-      const tier = getGameConfTier(game);
-      if (tier === 2) return 'BTN';
-      if (tier === 3) return 'B12';
-      if (tier === 4) return 'ACC';
-      if (tier === 5) return 'AAC';
-      return 'OTHR';
+    function getGameSortTag(g) {
+      if (isSEC(g)) return 'SEC';
+      if (isRanked(g)) return 'RNK';
+      const t = getGameConfTier(g);
+      return t === 2 ? 'BTN' : t === 3 ? 'B12' : t === 4 ? 'ACC' : t === 5 ? 'AAC' : 'OTHR';
     }
 
     function sortCompletedGames(games) {
-      return games.sort((a, b) => {
-        const aSEC = isSEC(a);
-        const bSEC = isSEC(b);
-        if (aSEC && !bSEC) return -1;
-        if (!aSEC && bSEC) return 1;
-
-        const aRanked = isRanked(a);
-        const bRanked = isRanked(b);
-        if (aRanked && !bRanked) return -1;
-        if (!aRanked && bRanked) return 1;
-
-        const aTier = getGameConfTier(a);
-        const bTier = getGameConfTier(b);
-        if (aTier !== bTier) {
-          return aTier - bTier;
-        }
-
-        return a.gDate - b.gDate;
-      });
+      return games.sort((a, b) => (isSEC(b) - isSEC(a)) || (isRanked(b) - isRanked(a)) || (getGameConfTier(a) - getGameConfTier(b)) || (a.gDate - b.gDate));
     }
 
-    /**
-     * Calculates a composite priority score for live games based on:
-     * 1. Matchup Tier (SEC vs SEC/Ranked > Ranked vs Ranked > Any Ranked > Others)
-     * 2. 16-Point Blowout Filter (>16 pts drops priority)
-     * 3. 3rd/4th Quarter Time Urgency
-     */
     function calculateLivePriorityScore(g) {
       const comp = g.rawEvent?.competitions?.[0];
-      const homeComp = comp?.competitors?.find(c => c.homeAway === 'home');
-      const awayComp = comp?.competitors?.find(c => c.homeAway === 'away');
-
-      const homeConf = String(homeComp?.team?.conferenceId || homeComp?.team?.conference?.id || '');
-      const awayConf = String(awayComp?.team?.conferenceId || awayComp?.team?.conference?.id || '');
+      const home = comp?.competitors?.find(c => c.homeAway === 'home');
+      const away = comp?.competitors?.find(c => c.homeAway === 'away');
       
-      const homeIsSec = homeConf === '8';
-      const awayIsSec = awayConf === '8';
-      const isSecVsSec = homeIsSec && awayIsSec;
+      const homeIsSec = String(home?.team?.conferenceId || home?.team?.conference?.id || '') === '8';
+      const awayIsSec = String(away?.team?.conferenceId || away?.team?.conference?.id || '') === '8';
+      const hRank = home?.curatedRank?.current, aRank = away?.curatedRank?.current;
+      const hRnk = hRank && hRank <= 25, aRnk = aRank && aRank <= 25;
 
-      const homeRank = homeComp?.curatedRank?.current;
-      const awayRank = awayComp?.curatedRank?.current;
-      const homeIsRanked = homeRank && homeRank <= 25;
-      const awayIsRanked = awayRank && awayRank <= 25;
+      const margin = Math.abs(parseInt(g.homeScore || 0) - parseInt(g.awayScore || 0));
+      if (margin > 16) return 50;
 
-      const isSecVsRanked = (homeIsSec && awayIsRanked) || (awayIsSec && homeIsRanked);
-      const isRankedVsRanked = homeIsRanked && awayIsRanked;
-      const hasAnyRanked = homeIsRanked || awayIsRanked;
+      let base = 200;
+      if ((homeIsSec && awayIsSec) || (homeIsSec && aRnk) || (awayIsSec && hRnk)) base = 1000;
+      else if (hRnk && aRnk) base = 750;
+      else if (hRnk || aRnk) base = 500;
 
-      // Calculate score margin
-      const homeScore = parseInt(g.homeScore || 0);
-      const awayScore = parseInt(g.awayScore || 0);
-      const margin = Math.abs(homeScore - awayScore);
-      const isCompetitive = margin <= 16;
-
-      let baseTierScore = 0;
-
-      // 1. Determine Matchup Base Tier (Only if <= 16 point margin)
-      if (isCompetitive) {
-        if (isSecVsSec || isSecVsRanked) {
-          baseTierScore = 1000;
-        } else if (isRankedVsRanked) {
-          baseTierScore = 750;
-        } else if (hasAnyRanked) {
-          baseTierScore = 500;
-        } else {
-          baseTierScore = 200; // All other matchups
-        }
-      } else {
-        // Blowout (> 16 points): Demoted to baseline floor
-        baseTierScore = 50;
+      let time = 0;
+      const p = g.period || 0;
+      if (p >= 3) {
+        let rem = 900;
+        const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
+        if (m) rem = parseInt(m[1]) * 60 + parseInt(m[2]);
+        if (p === 3) time = 100 + Math.round(((900 - rem) / 900) * 100);
+        else if (p === 4) time = 300 + Math.round(((900 - rem) / 900) * 200);
+        else time = 600;
       }
-
-      // 2. Time Factor (Applies starting in 3rd Quarter if game is competitive)
-      let timeScore = 0;
-      const period = g.period || 0;
-
-      if (isCompetitive && period >= 3) {
-        let secondsRemaining = 900; // Default to full quarter (15:00)
-        if (g.statusDetail) {
-          const clockMatch = g.statusDetail.match(/(\d+):(\d+)/);
-          if (clockMatch) {
-            secondsRemaining = (parseInt(clockMatch[1]) * 60) + parseInt(clockMatch[2]);
-          }
-        }
-
-        if (period === 3) {
-          timeScore = 100 + Math.round(((900 - secondsRemaining) / 900) * 100);
-        } else if (period === 4) {
-          timeScore = 300 + Math.round(((900 - secondsRemaining) / 900) * 200);
-        } else if (period > 4) {
-          timeScore = 600; // Overtime
-        }
-      }
-
-      return baseTierScore + timeScore;
+      return base + time;
     }
 
-    /**
-     * Generates HTML for the Intensity Gauge Meter based on the game's priority score.
-     */
     function renderIntensityMeter(score) {
-      let label = 'Snoozefest';
-      let color = '#ef4444'; // Red
-      let angle = -60; // Left angle (Red)
-
-      if (score >= 800) {
-        label = 'TURN TV ON NOW!';
-        color = '#84cc16'; // Bright Gold/Green
-        angle = 60; // Right angle
-      } else if (score >= 500) {
-        label = 'Great Game';
-        color = '#22c55e'; // Green
-        angle = 20; // Mid-Right angle
-      } else if (score >= 100) {
-        label = 'Watchable';
-        color = '#eab308'; // Amber/Yellow
-        angle = -20; // Mid-Left angle
-      }
+      let label = 'Snoozefest', color = '#ef4444', angle = -60;
+      if (score >= 800) { label = 'TURN TV ON NOW!'; color = '#84cc16'; angle = 60; }
+      else if (score >= 500) { label = 'Great Game'; color = '#22c55e'; angle = 20; }
+      else if (score >= 100) { label = 'Watchable'; color = '#eab308'; angle = -20; }
 
       return `
         <div class="intensity-container">
           <div class="gauge-wrapper">
             <svg class="gauge-svg" viewBox="0 0 100 55">
-              <!-- Red Arc -->
-              <path d="M 10 50 A 40 40 0 0 1 33.4 18.2" fill="none" stroke="#ef4444" stroke-width="12" />
-              <!-- Yellow Arc -->
-              <path d="M 33.4 18.2 A 40 40 0 0 1 66.6 18.2" fill="none" stroke="#eab308" stroke-width="12" />
-              <!-- Green Arc -->
-              <path d="M 66.6 18.2 A 40 40 0 0 1 90 50" fill="none" stroke="#22c55e" stroke-width="12" />
-              <!-- Needle Center & Pivot -->
-              <circle cx="50" cy="50" r="5" fill="#f8fafc" />
-              <g transform="rotate(${angle}, 50, 50)">
-                <polygon points="47,50 53,50 50,14" fill="#f8fafc" />
-              </g>
+              <path d="M 10 50 A 40 40 0 0 1 33.4 18.2" fill="none" stroke="#ef4444" stroke-width="12"/>
+              <path d="M 33.4 18.2 A 40 40 0 0 1 66.6 18.2" fill="none" stroke="#eab308" stroke-width="12"/>
+              <path d="M 66.6 18.2 A 40 40 0 0 1 90 50" fill="none" stroke="#22c55e" stroke-width="12"/>
+              <circle cx="50" cy="50" r="5" fill="#f8fafc"/>
+              <g transform="rotate(${angle}, 50, 50)"><polygon points="47,50 53,50 50,14" fill="#f8fafc"/></g>
             </svg>
           </div>
           <div class="intensity-text-group">
-            <span class="intensity-label" style="color: ${color};">${label}</span>
+            <span class="intensity-label" style="color:${color};">${label}</span>
             <span class="intensity-score">Intensity Score: ${score} pts</span>
           </div>
-        </div>
-      `;
+        </div>`;
     }
 
     async function fetchScores() {
@@ -335,32 +201,26 @@
           if (!home || !away) return;
 
           const state = e.status?.type?.state;
-          const isSec = comp.competitors.some(c => {
-            const cid = c.team?.conferenceId || c.team?.conference?.id;
-            return String(cid) === "8";
-          });
-
+          const isSec = comp.competitors.some(c => String(c.team?.conferenceId || c.team?.conference?.id) === "8");
           const hRank = home.curatedRank?.current, aRank = away.curatedRank?.current;
           const hasRanked = (hRank && hRank <= 25) || (aRank && aRank <= 25);
-          let bestRank = 99;
-          if (hRank && hRank <= 25) bestRank = Math.min(bestRank, hRank);
-          if (aRank && aRank <= 25) bestRank = Math.min(bestRank, aRank);
+          let bestRank = Math.min(hRank <= 25 ? hRank : 99, aRank <= 25 ? aRank : 99);
 
           const tv = comp.broadcasts?.[0]?.names?.[0] || "TV TBD";
           let spread = comp.odds?.[0]?.details || comp.odds?.[0]?.summary || '';
           if (spread === 'null' || spread === 'EVEN') spread = '';
 
-          const situation = comp.situation;
+          const sit = comp.situation;
           let driveText = '';
-          if (state === 'in' && situation) {
-            const down = situation.down, distance = situation.distance, pos = situation.possessionText || '';
-            let downTxt = situation.downText && !situation.downText.includes('-1') ? situation.downText : (down > 0 && distance > 0 ? `${down} & ${distance}` : '');
-            if (downTxt || (pos && !pos.includes('-1'))) driveText = `${downTxt}${downTxt && pos ? ' at ' : ''}${pos}`;
+          if (state === 'in' && sit) {
+            const down = sit.down, dist = sit.distance, pos = sit.possessionText || '';
+            let dt = sit.downText && !sit.downText.includes('-1') ? sit.downText : (down > 0 && dist > 0 ? `${down} & ${dist}` : '');
+            if (dt || (pos && !pos.includes('-1'))) driveText = `${dt}${dt && pos ? ' at ' : ''}${pos}`;
           }
 
           let winProb = '';
-          if (situation?.lastPlay?.probability) {
-            const wp = Math.round((situation.lastPlay.probability.homeWinPercentage || 0) * 100);
+          if (sit?.lastPlay?.probability) {
+            const wp = Math.round((sit.lastPlay.probability.homeWinPercentage || 0) * 100);
             winProb = wp >= 50 ? `${home.team?.abbreviation || 'HOME'} ${wp}%` : `${away.team?.abbreviation || 'AWAY'} ${100 - wp}%`;
           }
 
@@ -373,16 +233,15 @@
             id: e.id, homeId: home.id, awayId: away.id,
             homeTeam: home.team?.shortDisplayName || home.team?.name || 'Home',
             awayTeam: away.team?.shortDisplayName || away.team?.name || 'Away',
-            homeRank: (hRank && hRank <= 25) ? `<span style="color:#84cc16;font-weight:bold;">#${hRank}</span> ` : '',
-            awayRank: (aRank && aRank <= 25) ? `<span style="color:#84cc16;font-weight:bold;">#${aRank}</span> ` : '',
+            homeRank: hRank && hRank <= 25 ? `<span style="color:#84cc16;font-weight:bold;">#${hRank}</span> ` : '',
+            awayRank: aRank && aRank <= 25 ? `<span style="color:#84cc16;font-weight:bold;">#${aRank}</span> ` : '',
             homeScore: home.score || "0", awayScore: away.score || "0",
             homeWinner: home.winner, awayWinner: away.winner,
             state, statusDetail: e.status?.type?.shortDetail || '', period: e.status?.period || 0,
             isSec, hasRanked, bestRank, tv, spread, winProb,
-            posId: String(situation?.possession || ''), driveText, gDate, rawEvent: e
+            posId: String(sit?.possession || ''), driveText, gDate, rawEvent: e
           };
 
-          // Attach priority score to live games
           if (state === 'in') {
             gameObj.priorityScore = calculateLivePriorityScore(gameObj);
             live.push(gameObj);
@@ -393,27 +252,18 @@
           }
         });
 
-        // SORT LIVE GAMES BY PRIORITY SCORE
-        live.sort((a, b) => {
-          if (a.priorityScore !== b.priorityScore) {
-            return b.priorityScore - a.priorityScore; // Descending priority
-          }
-          return a.gDate - b.gDate;
-        });
-
-        // SORT UPCOMING GAMES
-        upcoming.sort((a, b) => {
-          if (a.gDate.toDateString() !== b.gDate.toDateString()) return a.gDate - b.gDate;
-          const tierA = a.isSec ? 1 : (a.hasRanked ? 2 : 3);
-          const tierB = b.isSec ? 1 : (b.hasRanked ? 2 : 3);
-          if (tierA !== tierB) return tierA - tierB;
-          return a.gDate - b.gDate || a.bestRank - b.bestRank;
-        });
-
-        // SORT COMPLETED GAMES
+        live.sort((a, b) => b.priorityScore - a.priorityScore || a.gDate - b.gDate);
+        upcoming.sort((a, b) => a.gDate - b.gDate || (a.isSec ? 1 : 2) - (b.isSec ? 1 : 2));
         sortCompletedGames(finals);
 
-        function renderGames(live, upcoming, finals) {
+        renderGames(live, upcoming, finals);
+        statusEl.innerText = "Live • 30s";
+      } catch (err) {
+        statusEl.innerText = "Error Loading";
+      }
+    }
+
+    function renderGames(live, upcoming, finals) {
       const container = document.getElementById("games-container");
       container.innerHTML = "";
       if (!live.length && !upcoming.length && !finals.length) {
@@ -470,9 +320,7 @@
 
     function createCard(g, isCompleted = false) {
       const card = document.createElement("div");
-      card.className = "game-card" + 
-        (isCompleted ? " completed-card" : "") +
-        (g.state === 'in' ? (g.period >= 4 ? " live-4q" : " live") : "");
+      card.className = "game-card" + (isCompleted ? " completed-card" : "") + (g.state === 'in' ? (g.period >= 4 ? " live-4q" : " live") : "");
 
       const isAwayPos = g.posId && g.posId === String(g.awayId);
       const isHomePos = g.posId && g.posId === String(g.homeId);
@@ -483,16 +331,11 @@
         else if (g.homeWinner) { homeClass = ' winner'; awayClass = ' loser'; }
       }
 
-      const sortTagHtml = isCompleted ? `<span class="sort-tag">${getGameSortTag(g)}</span>` : '';
-      const intensityHtml = (g.state === 'in' && typeof g.priorityScore === 'number') 
-        ? renderIntensityMeter(g.priorityScore) 
-        : '';
-
       card.innerHTML = `
         <div class="card-header">
           <span>${g.statusDetail}</span>
           <span class="card-header-right">
-            <span class="broadcast">${sortTagHtml}<strong style="color:#84cc16;">📺 ${g.tv}</strong></span>
+            <span class="broadcast">${isCompleted ? `<span class="sort-tag">${getGameSortTag(g)}</span>` : ''}<strong style="color:#84cc16;">📺 ${g.tv}</strong></span>
             <a href="https://www.espn.com/college-football/game/_/gameId/${g.id}" target="_blank" rel="noopener noreferrer" class="watch-btn">Gamecast</a>
           </span>
         </div>
@@ -500,7 +343,7 @@
         <div class="team-row${homeClass}"><span>${isHomePos ? '🏈 ' : ''}${g.homeRank}${g.homeTeam}</span><span class="score">${g.state === 'pre' ? '' : g.homeScore}</span></div>
         ${g.driveText ? `<div class="drive-banner">Drive: ${g.driveText}</div>` : ''}
         ${(g.spread || g.winProb) ? `<div class="game-meta"><span>${g.spread ? `<strong>Line:</strong> ${g.spread}` : ''}</span><span>${g.winProb ? `<strong>Win Prob:</strong> ${g.winProb}` : ''}</span></div>` : ''}
-        ${intensityHtml}
+        ${(g.state === 'in' && typeof g.priorityScore === 'number') ? renderIntensityMeter(g.priorityScore) : ''}
       `;
       return card;
     }
