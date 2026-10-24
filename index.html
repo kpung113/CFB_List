@@ -411,7 +411,7 @@
       }
     }
 
-    function createCard(g, isCompleted = false) {
+        function createCard(g, isCompleted = false) {
       const card = document.createElement("div");
       card.className = "game-card" + (isCompleted ? " completed-card" : "") + (g.state === 'in' ? (g.period >= 4 ? " live-4q" : " live") : "");
 
@@ -430,12 +430,17 @@
       let footerHtml = '';
       if (hasIntensity || hasMeta) {
         footerHtml = `<div class="card-footer-flex">`;
-        if (hasMeta) {
-          footerHtml += `<div class="win-prob-badge">${g.winProb ? `<span>${g.winProb}</span>` : (g.spread ? `<span>${g.spread}</span>` : '')}</div>`;
-        }
+        
+        // 1. Intensity meter first (left-aligned)
         if (hasIntensity) {
           footerHtml += renderIntensityMeter(g.priorityScore);
         }
+        
+        // 2. Win probability / metadata second (right-aligned if available)
+        if (hasMeta) {
+          footerHtml += `<div class="win-prob-badge">${g.winProb ? `<span>${g.winProb}</span>` : (g.spread ? `<span>${g.spread}</span>` : '')}</div>`;
+        }
+        
         footerHtml += `</div>`;
       }
 
@@ -453,8 +458,8 @@
         ${footerHtml}
       `;
       return card;
-    }
-
+        }
+    
     fetchScores();
     setInterval(fetchScores, 30000);
   </script>
