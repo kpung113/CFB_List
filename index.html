@@ -153,7 +153,7 @@
       return games.sort((a, b) => (isSEC(b) - isSEC(a)) || (isRanked(b) - isRanked(a)) || (getGameConfTier(a) - getGameConfTier(b)) || (a.gDate - b.gDate));
     }
 
-    function calculateLivePriorityScore(g) {
+        function calculateLivePriorityScore(g) {
       const comp = g.rawEvent?.competitions?.[0];
       const home = comp?.competitors?.find(c => c.homeAway === 'home');
       const away = comp?.competitors?.find(c => c.homeAway === 'away');
@@ -170,11 +170,6 @@
       const awayScore = parseInt(g.awayScore || 0);
       const margin = Math.abs(homeScore - awayScore);
       const p = g.period || 1;
-
-      // --- PARSE CLOCK TIME REMAINING ---
-      let rem = 900; // default 15 mins for safety
-      const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
-      if (m) rem = parseInt(m[1]) * 60 + parseInt(m[2]);
 
       // --- UPSET & LATE-GAME THRILLER CHECK ---
       let upsetBonus = 0;
@@ -215,15 +210,29 @@
         }
       }
 
+      // 1. Base Matchup Tiers
       let base = 200;
       if ((homeIsSec && awayIsSec) || (homeIsSec && aRnk <= 25) || (awayIsSec && hRnk <= 25)) base = 1000;
       else if (hRnk <= 25 && aRnk <= 25) base = 750;
       else if (hRnk <= 25 || aRnk <= 25) base = 500;
 
+      // 2. Tighter Margin Bonus
       const marginBonus = margin <= 16 ? Math.round((16 - margin) * 6.25) : 0;
 
+      // 3. Time / Clock Progression Factor (Only applied if competitive or a true upset watch)
       let timeScore = 0;
+      let rem = 900;
+      const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
+      if (m) rem = parseInt(m[1]) * 60 + parseInt(m[2]);
       const quarterElapsed = 900 - rem;
+
+      // --- BLOWOUT CHECK ---
+      // If the margin is > 16 and it's NOT an upset alert, zero out the time score 
+      // so the clock running out doesn't artificially inflate a blowout.
+      if (margin > 16 && !isUpsetAlert) {
+        const blowoutScore = Math.round((base * 0.1)); // Keep it minimal (~20-100 pts)
+        return blowoutScore;
+      }
 
       if (p === 1) timeScore = Math.round((quarterElapsed / 900) * 25);
       else if (p === 2) timeScore = 25 + Math.round((quarterElapsed / 900) * 50);
@@ -233,19 +242,9 @@
 
       const rawScore = base + marginBonus + timeScore;
 
-      // --- BLOWOUT / LATE-GAME CEILING CHECK ---
-      // If margin > 16 and we are in the 4th quarter with under 5 minutes left (rem <= 300),
-      // drop the score so it maps to an intensity of 7 or less (e.g. max raw score ~1100 points)
-      if (p === 4 && rem <= 300 && margin > 16) {
-        return Math.min(rawScore, 1100);
-      }
-
-      if (margin > 16 && !isUpsetAlert) {
-        return Math.round((rawScore / 1700) * 50);
-      }
-
       return rawScore + upsetBonus;
-    }
+        }
+    
     
     function renderIntensityMeter(rawScore) {
       const displayScore = Math.min(Math.max(Math.round((rawScore / 1600) * 10), 0), 10);
