@@ -122,10 +122,10 @@
       if (id === '1')   return 'acc';
       if (id === '151') return 'aac';
       if (id === '12')  return 'cusa';
+      if (id === '15')  return 'mac';
       if (id === '17')  return 'mwc';
       if (id === '9')   return 'pac12';
       if (id === '37')  return 'sbc';
-      if (id === '15')  return 'mac';
       if (id === '18')  return 'indep';
       
       return 'other';
@@ -141,9 +141,9 @@
         return 2 + rank; // Results in priority values from 3 (for #1 rank) up to 27 (for #25 rank)
       }
 
-      // 3. Non-ranked conferences in sequence: BTN (5), B12 (4), ACC (1), AAC (151), MAC (15), CUSA (12), MWC (17), PAC12 (9), SBC (37)
+      // 3. Non-ranked conferences in sequence: BTN (5), B12 (4), ACC (1), AAC (151), CUSA (12), MAC (15), MWC (17), PAC12 (9), SBC (37)
       const keys = g.competitions[0].competitors.map(c => getConfKey(c.team));
-      const tiers = ['btn', 'b12', 'acc', 'aac', 'mac', 'cusa', 'mwc', 'pac12', 'sbc'];
+      const tiers = ['btn', 'b12', 'acc', 'aac', 'cusa', 'mac', 'mwc', 'pac12', 'sbc'];
       
       for (let i = 0; i < tiers.length; i++) {
         if (keys.includes(tiers[i])) return 30 + i;
@@ -158,8 +158,8 @@
       if (rank <= 25) return `RNK`;
       
       const keys = g.competitions[0].competitors.map(c => getConfKey(c.team));
-      const tiers = ['btn', 'b12', 'acc', 'aac', 'mac', 'cusa', 'mwc', 'pac12', 'sbc'];
-      const tags  = ['BTN', 'B12', 'ACC', 'AAC', 'MAC', 'CUSA', 'MWC', 'PAC12', 'SBC'];
+      const tiers = ['btn', 'b12', 'acc', 'aac', 'cusa', 'mac', 'mwc', 'pac12', 'sbc'];
+      const tags  = ['BTN', 'B12', 'ACC', 'AAC', 'CUSA', 'MAC', 'MWC', 'PAC12', 'SBC'];
       for (let i = 0; i < tiers.length; i++) {
         if (keys.includes(tiers[i])) return tags[i];
       }
