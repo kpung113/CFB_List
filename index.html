@@ -322,11 +322,17 @@
           let spread = comp.odds?.[0]?.details || comp.odds?.[0]?.summary || '';
           if (spread === 'null' || spread === 'EVEN') spread = '';
 
-          // Capture conference text/labels for display check
-          const hConfName = home.team?.conference?.abbreviation || home.team?.conference?.name || getConfKey(home.team);
-          const aConfName = away.team?.conference?.abbreviation || away.team?.conference?.name || getConfKey(away.team);
-          const confDisplayTag = hConfName === aConfName ? hConfName : `${aConfName} / ${hConfName}`;
-
+                    // Capture raw conference data for debugging
+          const hTeam = home.team;
+          const aTeam = away.team;
+          const hConfId = hTeam?.conferenceId || hTeam?.conference?.id || 'none';
+          const aConfId = aTeam?.conferenceId || aTeam?.conference?.id || 'none';
+          const hConfName = hTeam?.conference?.abbreviation || hTeam?.conference?.name || 'Unknown';
+          const aConfName = aTeam?.conference?.abbreviation || aTeam?.conference?.name || 'Unknown';
+          
+          // Display both teams' conference IDs and names in the header tag
+          const confDisplayTag = `AWAY [ID:${aConfId} ${aConfName}] vs HOME [ID:${hConfId} ${hConfName}]`;
+          
           const sit = comp.situation;
           let driveText = '';
           if (state === 'in' && sit) {
