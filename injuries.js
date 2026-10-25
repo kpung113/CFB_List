@@ -44,7 +44,7 @@ const ALL_FBS_TEAMS = [
   { id: '2567', name: 'SMU',               conf: 'ACC' }
 ];
 
-// Fallback dataset in case the live API is blank
+// Fallback dataset in case the live API is blank or blocked
 const MOCK_INJURIES = {
   "Mississippi State": {
     players: [
@@ -55,6 +55,11 @@ const MOCK_INJURIES = {
   "Georgia": {
     players: [
       { player: "Roderick Robinson II", position: "RB", status: "Out", type: "Toe", details: "Toe" }
+    ]
+  },
+  "Texas": {
+    players: [
+      { player: "Quinn Ewers", position: "QB", status: "Questionable", type: "Abdomen", details: "Abdomen" }
     ]
   }
 };
@@ -85,71 +90,63 @@ async function fetchAllCFBInjuries() {
   let totalLivePlayersFound = 0;
   let liveTeamsFound = 0;
 
-  const teamPromises = ALL_FBS_TEAMS.map(async (team) => {
-    // ESPN Site API team injuries endpoint
-    const url = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/${team.id}/injuries`;
-    
-    try {
-      const res = await fetch(url);
+  try {
+    const teamPromises = ALL_FBS_TEAMS.map(async (team) => {
+      const url = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/${team.id}/injuries`;
       
-      if (!res.ok) {
-        console.warn(`[API] ${team.name} (${team.id}) returned status: ${res.status}`);
-        return;
-      }
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return;
 
-      const data = await res.json();
-      
-      // ESPN returns lists under data.injuries or data.items
-      const injuriesList = data.injuries || data.items || [];
-      
-      if (injuriesList.length > 0) {
-        console.log(`[LIVE MATCH] ${team.name} returned ${injuriesList.length} player injury report(s)!`);
-      }
-
-      const validPlayers = injuriesList.map((item) => {
-        const athlete = item.athlete || {};
-        const athleteName = athlete.displayName || athlete.fullName || "Player";
-        const pos = athlete.position?.abbreviation || "";
+        const data = await res.json();
+        const injuriesList = data.injuries || data.items || [];
         
-        const rawStatus = typeof item.status === 'object' 
-          ? (item.status?.displayName || item.status?.name || item.status?.type) 
-          : (item.status || "Unknown");
+        if (!Array.isArray(injuriesList) || injuriesList.length === 0) return;
 
-        const injuryTypeStr = item.type || item.details?.type || "Injury";
-        const detailsStr = item.details?.description || item.details?.detail || injuryTypeStr;
+        const validPlayers = injuriesList.map((item) => {
+          const athlete = item.athlete || {};
+          const athleteName = athlete.displayName || athlete.fullName || "Player";
+          const pos = athlete.position?.abbreviation || "";
+          
+          const rawStatus = typeof item.status === 'object' 
+            ? (item.status?.displayName || item.status?.name || item.status?.type) 
+            : (item.status || "Unknown");
 
-        return {
-          player: athleteName,
-          position: pos,
-          status: rawStatus,
-          type: injuryTypeStr,
-          details: detailsStr
-        };
-      }).filter(Boolean);
+          const injuryTypeStr = item.type || item.details?.type || "Injury";
+          const detailsStr = item.details?.description || item.details?.detail || injuryTypeStr;
 
-      if (validPlayers.length > 0) {
-        totalLivePlayersFound += validPlayers.length;
-        liveTeamsFound++;
-        allInjuries[team.name] = { 
-          conference: team.conf, 
-          players: validPlayers 
-        };
+          return {
+            player: athleteName,
+            position: pos,
+            status: rawStatus,
+            type: injuryTypeStr,
+            details: detailsStr
+          };
+        }).filter(Boolean);
+
+        if (validPlayers.length > 0) {
+          totalLivePlayersFound += validPlayers.length;
+          liveTeamsFound++;
+          allInjuries[team.name] = { 
+            conference: team.conf, 
+            players: validPlayers 
+          };
+        }
+      } catch (err) {
+        // Individual team fetch failed silently
       }
-    } catch (err) {
-      console.error(`[ERROR] Failed fetching for ${team.name}:`, err);
-    }
-  });
+    });
 
-  await Promise.all(teamPromises);
+    await Promise.all(teamPromises);
+  } catch (err) {
+    console.warn("Global fetch encountered an issue. Using fallback dataset.", err);
+  }
 
-  console.log(`Fetch finished! Total live players found across all teams: ${totalLivePlayersFound}`);
-
-  // Display status on-screen for mobile devices
+  // Always show debug banner
   showMobileDebugBanner(liveTeamsFound, totalLivePlayersFound);
 
-  // If live API returns empty across ALL teams, default to fallback
+  // If live API returns empty or was blocked across all teams, return fallback dataset
   if (Object.keys(allInjuries).length === 0) {
-    console.warn("No active live injuries found across any FBS team. Loading fallback dataset.");
     return MOCK_INJURIES;
   }
 
