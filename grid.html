@@ -39,6 +39,7 @@
     #grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; width: 100%; }
     .game-card { background: #1e293b; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; display: flex; flex-direction: column; overflow: hidden; }
     .game-card.sec-game { border-left: 3px solid #f59e0b; }
+    .game-card.ranked-game { border-left: 3px solid #ef4444; }
     .game-card.completed-card { opacity: 0.85; background: #172033; }
     .card-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.6rem; color: #94a3b8; font-weight: 600; border-bottom: 1px solid #334155; padding-bottom: 2px; margin-bottom: 3px; }
     .broadcast { color: #84cc16; font-size: 0.55rem; display: flex; align-items: center; gap: 4px; }
@@ -204,6 +205,8 @@
       broadcast = broadcast.replace(/ACC Network/gi, 'ACCN').replace(/SEC Network/gi, 'SECN');
 
       const sec = isSEC(game);
+      const ranked = getHighestRank(game) <= 25;
+      
       const aClass = isCompleted ? (away.winner ? 'winner' : 'loser') : '';
       const hClass = isCompleted ? (home.winner ? 'winner' : 'loser') : '';
       const sortTagHtml = isCompleted ? `<span class="sort-tag">${getGameSortTag(game)}</span>` : '';
@@ -212,7 +215,7 @@
       const homeRecord = getTeamRecord(home);
 
       const card = document.createElement('div');
-      card.className = `game-card ${sec ? 'sec-game' : ''} ${isCompleted ? 'completed-card' : ''}`;
+      card.className = `game-card ${sec ? 'sec-game' : (ranked ? 'ranked-game' : '')} ${isCompleted ? 'completed-card' : ''}`;
       card.innerHTML = `
         <div class="card-header">
           <span class="clock-status ${isCompleted ? 'completed-status' : ''}">${formatShortStatus(game.status.type.detail, game.status.type.state)}</span>
@@ -258,6 +261,7 @@
 
       if (completedGames.length) {
         const compHeader = document.createElement('div');
+        compHeader.className.completed-title = true;
         compHeader.className = 'section-divider completed-title';
         compHeader.innerHTML = `<span>Completed Games</span><span>(${completedGames.length})</span>`;
         container.appendChild(compHeader);
