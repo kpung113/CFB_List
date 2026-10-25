@@ -205,7 +205,7 @@
       broadcast = broadcast.replace(/ACC Network/gi, 'ACCN').replace(/SEC Network/gi, 'SECN');
 
       const sec = isSEC(game);
-      const ranked = getHighestRank(game) <= 25;
+      const ranked = !sec && (getHighestRank(game) <= 25);
       
       const aClass = isCompleted ? (away.winner ? 'winner' : 'loser') : '';
       const hClass = isCompleted ? (home.winner ? 'winner' : 'loser') : '';
@@ -215,7 +215,7 @@
       const homeRecord = getTeamRecord(home);
 
       const card = document.createElement('div');
-      card.className = `game-card ${sec ? 'sec-game' : ''} ${ranked ? 'ranked-game' : ''} ${isCompleted ? 'completed-card' : ''}`;
+      card.className = `game-card ${sec ? 'sec-game' : (ranked ? 'ranked-game' : '')} ${isCompleted ? 'completed-card' : ''}`;
       card.innerHTML = `
         <div class="card-header">
           <span class="clock-status ${isCompleted ? 'completed-status' : ''}">${formatShortStatus(game.status.type.detail, game.status.type.state)}</span>
