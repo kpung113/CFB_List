@@ -153,7 +153,7 @@
       return games.sort((a, b) => (isSEC(b) - isSEC(a)) || (isRanked(b) - isRanked(a)) || (getGameConfTier(a) - getGameConfTier(b)) || (a.gDate - b.gDate));
     }
 
-            function calculateLivePriorityScore(g) {
+    function calculateLivePriorityScore(g) {
       const comp = g.rawEvent?.competitions?.[0];
       const home = comp?.competitors?.find(c => c.homeAway === 'home');
       const away = comp?.competitors?.find(c => c.homeAway === 'away');
@@ -254,44 +254,7 @@
       const rawScore = base + marginBonus + timeScore;
 
       return rawScore + upsetBonus;
-            }
-    
-
-      // 1. Base Matchup Tiers
-      let base = 200;
-      if ((homeIsSec && awayIsSec) || (homeIsSec && aRnk <= 25) || (awayIsSec && hRnk <= 25)) base = 1000;
-      else if (hRnk <= 25 && aRnk <= 25) base = 750;
-      else if (hRnk <= 25 || aRnk <= 25) base = 500;
-
-      // 2. Tighter Margin Bonus
-      const marginBonus = margin <= 16 ? Math.round((16 - margin) * 6.25) : 0;
-
-      // 3. Time / Clock Progression Factor (Only applied if competitive or a true upset watch)
-      let timeScore = 0;
-      let rem = 900;
-      const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
-      if (m) rem = parseInt(m[1]) * 60 + parseInt(m[2]);
-      const quarterElapsed = 900 - rem;
-
-      // --- BLOWOUT CHECK ---
-      // If the margin is > 16 and it's NOT an upset alert, zero out the time score 
-      // so the clock running out doesn't artificially inflate a blowout.
-      if (margin > 16 && !isUpsetAlert) {
-        const blowoutScore = Math.round((base * 0.1)); // Keep it minimal (~20-100 pts)
-        return blowoutScore;
-      }
-
-      if (p === 1) timeScore = Math.round((quarterElapsed / 900) * 25);
-      else if (p === 2) timeScore = 25 + Math.round((quarterElapsed / 900) * 50);
-      else if (p === 3) timeScore = 100 + Math.round((quarterElapsed / 900) * 100);
-      else if (p === 4) timeScore = 300 + Math.round((quarterElapsed / 900) * 300);
-      else if (p > 4) timeScore = 700;
-
-      const rawScore = base + marginBonus + timeScore;
-
-      return rawScore + upsetBonus;
-        }
-    
+    }
     
     function renderIntensityMeter(rawScore) {
       const displayScore = Math.min(Math.max(Math.round((rawScore / 1600) * 10), 0), 10);
@@ -466,7 +429,7 @@
       }
     }
 
-        function createCard(g, isCompleted = false) {
+    function createCard(g, isCompleted = false) {
       const card = document.createElement("div");
       card.className = "game-card" + (isCompleted ? " completed-card" : "") + (g.state === 'in' ? (g.period >= 4 ? " live-4q" : " live") : "");
 
@@ -485,17 +448,12 @@
       let footerHtml = '';
       if (hasIntensity || hasMeta) {
         footerHtml = `<div class="card-footer-flex">`;
-        
-        // 1. Intensity meter first (left-aligned)
         if (hasIntensity) {
           footerHtml += renderIntensityMeter(g.priorityScore);
         }
-        
-        // 2. Win probability / metadata second (right-aligned if available)
         if (hasMeta) {
           footerHtml += `<div class="win-prob-badge">${g.winProb ? `<span>${g.winProb}</span>` : (g.spread ? `<span>${g.spread}</span>` : '')}</div>`;
         }
-        
         footerHtml += `</div>`;
       }
 
@@ -513,8 +471,8 @@
         ${footerHtml}
       `;
       return card;
-        }
-    
+    }
+
     fetchScores();
     setInterval(fetchScores, 30000);
   </script>
