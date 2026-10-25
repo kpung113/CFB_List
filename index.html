@@ -16,20 +16,20 @@
     body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:16px;}
     body.dyslexia-font,body.dyslexia-font *{font-family:"Comic Sans MS",Verdana,sans-serif!important;letter-spacing:.05em!important;word-spacing:.1em!important;}
     .dyslexia-toggle{background:#181920;border:1px solid var(--border);color:#38bdf8;font-size:.75rem;font-weight:700;padding:5px 10px;border-radius:6px;cursor:pointer;}
+    .nav-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);z-index:99;opacity:0;visibility:hidden;pointer-events:none;transition:0.2s;}
+    .nav-overlay.open{opacity:1;visibility:visible;pointer-events:auto;}
+    .nav-drawer{position:fixed;top:0;left:-260px;width:260px;height:100vh;background:#181920;border-right:1px solid var(--border);z-index:100;display:flex;flex-direction:column;transition:0.3s;box-shadow:4px 0 15px rgba(0,0,0,.4);}
+    .nav-drawer.open{left:0;}
+    .drawer-header{padding:14px 16px;font-weight:800;font-size:.9rem;text-transform:uppercase;color:#38bdf8;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+    .drawer-close{background:none;border:none;color:var(--sub);font-size:1.3rem;cursor:pointer;}
+    .drawer-links{list-style:none;padding:8px 0;margin:0;display:flex;flex-direction:column;}
+    .drawer-links a{padding:12px 18px;color:var(--text);text-decoration:none;font-size:.85rem;font-weight:700;display:block;border-left:3px solid transparent;}
+    .drawer-links a:hover,.drawer-links a.active{background:#222530;border-left-color:#38bdf8;color:#38bdf8;}
     header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--maroon);}
     .header-left,.header-right,.header-title,.card-header-right{display:flex;align-items:center;gap:8px;}
     .header-left{gap:12px;}
     .menu-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;width:22px;height:18px;padding:0;z-index:101;}
     .menu-btn span{display:block;width:100%;height:2px;background:#38bdf8;border-radius:2px;}
-    .nav-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);z-index:99;opacity:0;visibility:hidden;pointer-events:none;transition:0.2s;}
-    .nav-overlay.open{opacity:1;visibility:visible;pointer-events:auto;}
-    .nav-drawer{position:fixed;top:0;left:-260px;width:260px;height:100vh;background:#181920;border-right:1px solid var(--border);z-index:100;display:flex;flex-direction:column;transition:0.3s;box[...]
-    .nav-drawer.open{left:0;}
-    .drawer-header{padding:14px 16px;font-weight:800;font-size:.9rem;text-transform:uppercase;color:#38bdf8;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-i[...]
-    .drawer-close{background:none;border:none;color:var(--sub);font-size:1.3rem;cursor:pointer;}
-    .drawer-links{list-style:none;padding:8px 0;margin:0;display:flex;flex-direction:column;}
-    .drawer-links a{padding:12px 18px;color:var(--text);text-decoration:none;font-size:.85rem;font-weight:700;display:block;border-left:3px solid transparent;}
-    .drawer-links a:hover,.drawer-links a.active{background:#222530;border-left-color:#38bdf8;color:#38bdf8;}
     .msu-logo{height:38px;width:auto;object-fit:contain;filter:drop-shadow(0 0 2px #fff);}
     h1{margin:0;font-size:1.25rem;font-weight:800;}
     .status-badge{font-size:.75rem;padding:4px 10px;background:#222530;border:1px solid var(--border);border-radius:12px;color:var(--sub);}
@@ -54,29 +54,9 @@
     .intensity-text-group{display:flex;flex-direction:column;}
     .intensity-label{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
     .intensity-score{font-size:.65rem;color:var(--sub);font-weight:600;}
-    .card-footer-flex {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-top: 8px;
-      padding-top: 6px;
-      border-top: 1px solid var(--border);
-    }
-    .card-footer-flex .intensity-container {
-      margin-top: 0;
-      flex-grow: 1;
-    }
-    .win-prob-badge {
-      font-size: .75rem;
-      color: var(--sub);
-      background: #111319;
-      border: 1px solid var(--border);
-      padding: 8px 10px;
-      border-radius: 8px;
-      white-space: nowrap;
-      text-align: center;
-    }
+    .card-footer-flex {display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;padding-top:6px;border-top:1px solid var(--border);}
+    .card-footer-flex .intensity-container {margin-top:0;flex-grow:1;}
+    .win-prob-badge {font-size:.75rem;color:var(--sub);background:#111319;border:1px solid var(--border);padding:8px 10px;border-radius:8px;white-space:nowrap;text-align:center;}
   </style>
 </head>
 <body>
@@ -116,6 +96,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       updateToggleButtonState();
       if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
+      if (typeof renderSharedNav === 'function') renderSharedNav();
     });
 
     const isSEC = g => g.rawEvent.competitions[0].competitors.some(c => String(c.team?.conferenceId || c.team?.conference?.id) === '8');
@@ -150,7 +131,7 @@
     }
 
     function sortCompletedGames(games) {
-      return games.sort((a, b) => (isSEC(b) - isSEC(a)) || (isRanked(b) - isRanked(a)) || (getGameConfTier(a) - getGameConfTier(b)) || (a.gDate - b.gDate));
+      return games.sort((a, b) => (Number(isSEC(b)) - Number(isSEC(a))) || (Number(isRanked(b)) - Number(isRanked(a))) || (getGameConfTier(a) - getGameConfTier(b)) || (a.gDate - b.gDate));
     }
 
     function calculateLivePriorityScore(g) {
@@ -174,7 +155,6 @@
       const margin = Math.abs(homeScore - awayScore);
       const p = g.period || 1;
 
-      // --- UPSET & LATE-GAME THRILLER CHECK ---
       let upsetBonus = 0;
       let isUpsetAlert = false;
 
@@ -213,35 +193,29 @@
         }
       }
 
-      // --- MATCHUP BASE SCORE TIERS ---
-      let base = 200; // Default: All others
-      
-      const powerIds = ['8', '5', '4', '11', '151']; // SEC (8), Big Ten (5), Big 12 (4 or 151), ACC (1)
+      let base = 200;
+      const powerIds = ['8', '5', '4', '11', '151'];
       const isPower4Team = id => ['8', '5', '4', '1', '151'].includes(id);
 
       if (homeIsSec && awayIsSec) {
-        base = 1200; // 1. SEC vs SEC
+        base = 1200;
       } else if (hRnk <= 25 && aRnk <= 25) {
-        base = 1000; // 2. Ranked vs Ranked
+        base = 1000;
       } else if (hRnk <= 25 || aRnk <= 25) {
-        base = 800;  // 3. Ranked vs Anyone else
+        base = 800;
       } else if (isPower4Team(homeConfId) && isPower4Team(awayConfId)) {
-        base = 500;  // 4. Power 4 vs Power 4 (IDs 8, 5, 4, 1)
+        base = 500;
       } else {
-        base = 200;  // 5. All others
+        base = 200;
       }
 
-      // 2. Tighter Margin Bonus
       const marginBonus = margin <= 10 ? Math.round((10 - margin) * 6.25) : 0;
-
-      // 3. Time / Clock Progression Factor
       let timeScore = 0;
       let rem = 900;
       const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
       if (m) rem = parseInt(m[1]) * 60 + parseInt(m[2]);
       const quarterElapsed = 900 - rem;
 
-      // --- BLOWOUT CHECK ---
       if (margin > 10 && !isUpsetAlert) {
         const blowoutScore = Math.round((base * 0.1));
         return blowoutScore;
@@ -254,7 +228,6 @@
       else if (p > 4) timeScore = 700;
 
       const rawScore = base + marginBonus + timeScore;
-
       return rawScore + upsetBonus;
     }
     
@@ -275,10 +248,6 @@
         label = 'Watchable';
         color = '#eab308';
         angle = 0;
-      } else {
-        label = 'Snoozefest';
-        color = '#ef4444';
-        angle = -40;
       }
 
       return `
@@ -323,7 +292,6 @@
           let spread = comp.odds?.[0]?.details || comp.odds?.[0]?.summary || '';
           if (spread === 'null' || spread === 'EVEN') spread = '';
 
-          // Keep clean conference ID tag on the card for your reference
           const hId = home.team?.conferenceId || home.team?.conference?.id || '?';
           const aId = away.team?.conferenceId || away.team?.conference?.id || '?';
           const confDisplayTag = hId === aId ? `Conf ID: ${hId}` : `IDs: A:${aId} H:${hId}`;
@@ -387,7 +355,6 @@
       if (!live.length && !upcoming.length && !finals.length) {
         container.innerHTML = "<p>No games found.</p>"; return;
       }
-
       live.forEach(g => container.appendChild(createCard(g, false)));
 
       if (upcoming.length) {
@@ -404,7 +371,7 @@
           dHeader.innerText = dayGames[0].gDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
           container.appendChild(dHeader);
 
- if (dayGames[0].gDate.getDay() === 6) {
+          if (dayGames[0].gDate.getDay() === 6) {
             const sec = dayGames.filter(g => g.isSec);
             const ranked = dayGames.filter(g => !g.isSec && g.hasRanked);
             const other = dayGames.filter(g => !g.isSec && !g.hasRanked);
