@@ -113,26 +113,25 @@
     }
 
     function getConfKey(t) {
+    function getConfKey(t) {
       if (!t) return 'other';
       const id = String(t.conferenceId || t.conference?.id || '');
-      const a = String(t.conference?.abbreviation || '').toUpperCase();
-      const n = String(t.conference?.name || t.conference || '').toLowerCase();
 
-      if (id === '8' || a === 'SEC' || n.includes('sec') || n.includes('southeastern')) return 'sec';
-      if (id === '5' || a === 'B1G' || a === 'BIG TEN' || n.includes('big ten') || n.includes('b1g')) return 'btn';
-      if (id === '4' || a === 'B12' || a === 'BIG 12' || a === 'BIG XII' || n.includes('big 12') || n.includes('big xii') || n.includes('b12')) return 'b12';
-      if (id === '1' || a === 'ACC' || n.includes('acc') || n.includes('atlantic coast')) return 'acc';
-      if (id === '151' || a === 'MAC' || n.includes('mid-american') || n.includes('mac')) return 'mac';
-      if (id === '12' || a === 'CUSA' || a === 'C-USA' || n.includes('conference usa') || n.includes('cusa')) return 'cusa';
-      if (id === '17' || a === 'MWC' || a === 'MW' || n.includes('mountain west')) return 'mwc';
-      if (id === '9' || a === 'PAC' || a === 'PAC-12' || a === 'PAC12' || n.includes('pac-12') || n.includes('pac12')) return 'pac12';
-      if (id === '37' || a === 'SBC' || a === 'SUN BELT' || n.includes('sun belt')) return 'sbc';
-      if (id === '15' || a === 'AAC' || n.includes('american athletic') || n.includes('aac')) return 'aac';
-      if (id === '18' || a === 'IND' || a === 'INDEP' || n.includes('independent')) return 'indep';
+      if (id === '8')   return 'sec';
+      if (id === '5')   return 'btn';
+      if (id === '4')   return 'b12';
+      if (id === '1')   return 'acc';
+      if (id === '151') return 'aac';
+      if (id === '12')  return 'cusa';
+      if (id === '17')  return 'mwc';
+      if (id === '9')   return 'pac12';
+      if (id === '37')  return 'sbc';
+      if (id === '15')  return 'mac';
+      if (id === '18')  return 'indep';
       
       return 'other';
     }
-
+      
     function getGamePriority(g) {
       // 1. SEC games first
       if (isSEC(g)) return 1;
