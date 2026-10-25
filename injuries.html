@@ -1,54 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SEC Availability Report</title>
-  <script src="injuries.js"></script>
-  <style>
-    :root{--bg:#0b0c10;--card:#181920;--border:#272935;--text:#f8fafc;--maroon:#5d1725;--red:#ef4444;--sub:#94a3b8;--gold:#84cc16;--amber:#f59e0b;}
-    *{box-sizing:border-box;}
-    body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:16px;}
-    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--maroon);}
-    h1{margin:0;font-size:1.25rem;font-weight:800;}
-    .team-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 4px 12px rgba(0,0,0,.4);}
-    .team-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #222530;}
-    .team-name{font-size:1.1rem;font-weight:800;}
-    .report-count{font-size:.75rem;color:var(--sub);}
-    .player-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1f212d;}
-    .player-row:last-child{border-bottom:none;}
-    .player-info{display:flex;flex-direction:column;}
-    .player-name{font-weight:700;font-size:.95rem;}
-    .player-detail{font-size:.75rem;color:var(--sub);}
-    .status-tag{font-size:.65rem;font-weight:800;padding:3px 8px;border-radius:4px;text-transform:uppercase;}
-    .status-out{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);}
-    .status-questionable{background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.3);}
-    .status-probable{background:rgba(132,204,22,.15);color:var(--gold);border:1px solid rgba(132,204,22,.3);}
-  </style>
-</head>
-<body>
-  <header>
-    <h1>SEC Availability Report</h1>
-  </header>
-
-  <div id="injuries-container">Loading availability reports...</div>
-
   <script>
     async function loadReports() {
       const container = document.getElementById('injuries-container');
       try {
-        // Safe check for function availability
         const fetchFn = window.fetchAllCFBInjuries || window.fetchAllSECInjuries;
         if (!fetchFn) {
           container.innerHTML = "<p style='color:var(--red);'>injuries.js script failed to load.</p>";
           return;
         }
 
-        const data = await fetchFn();
-        container.innerHTML = "";
+        // 5-second safety timeout so mobile network requests never hang forever
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Fetch timed out")), 5000)
+        );
 
+        const data = await Promise.race([fetchFn(), timeoutPromise]).catch(() => ({}));
+        
+        container.innerHTML = "";
         const teams = Object.keys(data || {});
+        
+        // If no teams have active injuries, display a clean "Clean Bill of Health" card
         if (teams.length === 0) {
-          container.innerHTML = "<p>No injury reports currently active.</p>";
+          container.innerHTML = `
+            <div class="team-card" style="text-align: center; padding: 24px;">
+              <span class="team-name" style="color: #38bdf8;">Clean Bill of Health</span>
+              <p class="player-detail" style="margin-top: 8px;">No reported player injuries or availability restrictions at this time.</p>
+            </div>`;
           return;
         }
 
@@ -95,5 +71,4 @@
 
     document.addEventListener('DOMContentLoaded', loadReports);
   </script>
-</body>
-</html>
+  
