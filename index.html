@@ -125,11 +125,11 @@
       if (!t) return 'other';
       const id = String(t.conferenceId || t.conference?.id || '');
       const name = String(t.conference?.name || t.conference?.abbreviation || t.conference || '').toLowerCase();
+      
       if (id === '8' || name.includes('sec')) return 'sec';
       if (id === '5' || name.includes('big ten') || name.includes('b1g')) return 'bigten';
-      if (id === '151' || name.includes('big 12')) return 'big12';
+      if (id === '4' || id === '151' || name.includes('big 12')) return 'big12';
       if (id === '1' || name.includes('acc')) return 'acc';
-      if (id === '15' || name.includes('american')) return 'aac';
       return 'other';
     }
 
@@ -139,15 +139,14 @@
       if (confs.includes('bigten')) return 2;
       if (confs.includes('big12')) return 3;
       if (confs.includes('acc')) return 4;
-      if (confs.includes('aac')) return 5;
-      return 6;
+      return 5;
     }
 
     function getGameSortTag(g) {
       if (isSEC(g)) return 'SEC';
       if (isRanked(g)) return 'RNK';
       const t = getGameConfTier(g);
-      return t === 2 ? 'BTN' : t === 3 ? 'B12' : t === 4 ? 'ACC' : t === 5 ? 'AAC' : 'OTHR';
+      return t === 2 ? 'BTN' : t === 3 ? 'B12' : t === 4 ? 'ACC' : 'OTHR';
     }
 
     function sortCompletedGames(games) {
@@ -159,8 +158,11 @@
       const home = comp?.competitors?.find(c => c.homeAway === 'home');
       const away = comp?.competitors?.find(c => c.homeAway === 'away');
       
-      const homeIsSec = String(home?.team?.conferenceId || home?.team?.conference?.id || '') === '8';
-      const awayIsSec = String(away?.team?.conferenceId || away?.team?.conference?.id || '') === '8';
+      const homeConfId = String(home?.team?.conferenceId || home?.team?.conference?.id || '');
+      const awayConfId = String(away?.team?.conferenceId || away?.team?.conference?.id || '');
+      
+      const homeIsSec = homeConfId === '8';
+      const awayIsSec = awayConfId === '8';
       
       const hRank = home?.curatedRank?.current;
       const aRank = away?.curatedRank?.current;
@@ -214,9 +216,8 @@
       // --- MATCHUP BASE SCORE TIERS ---
       let base = 200; // Default: All others
       
-      const hConf = getConfKey(home?.team);
-      const aConf = getConfKey(away?.team);
-      const isPower4 = c => ['sec', 'bigten', 'big12', 'acc'].includes(c);
+      const powerIds = ['8', '5', '4', '11', '151']; // SEC (8), Big Ten (5), Big 12 (4 or 151), ACC (1)
+      const isPower4Team = id => ['8', '5', '4', '1', '151'].includes(id);
 
       if (homeIsSec && awayIsSec) {
         base = 1200; // 1. SEC vs SEC
@@ -224,8 +225,8 @@
         base = 1000; // 2. Ranked vs Ranked
       } else if (hRnk <= 25 || aRnk <= 25) {
         base = 800;  // 3. Ranked vs Anyone else
-      } else if (isPower4(hConf) && isPower4(aConf)) {
-        base = 500;  // 4. Power 4 vs Power 4
+      } else if (isPower4Team(homeConfId) && isPower4Team(awayConfId)) {
+        base = 500;  // 4. Power 4 vs Power 4 (IDs 8, 5, 4, 1)
       } else {
         base = 200;  // 5. All others
       }
@@ -322,17 +323,11 @@
           let spread = comp.odds?.[0]?.details || comp.odds?.[0]?.summary || '';
           if (spread === 'null' || spread === 'EVEN') spread = '';
 
-                    // Capture raw conference data for debugging
-          const hTeam = home.team;
-          const aTeam = away.team;
-          const hConfId = hTeam?.conferenceId || hTeam?.conference?.id || 'none';
-          const aConfId = aTeam?.conferenceId || aTeam?.conference?.id || 'none';
-          const hConfName = hTeam?.conference?.abbreviation || hTeam?.conference?.name || 'Unknown';
-          const aConfName = aTeam?.conference?.abbreviation || aTeam?.conference?.name || 'Unknown';
-          
-          // Display both teams' conference IDs and names in the header tag
-          const confDisplayTag = `AWAY [ID:${aConfId} ${aConfName}] vs HOME [ID:${hConfId} ${hConfName}]`;
-          
+          // Keep clean conference ID tag on the card for your reference
+          const hId = home.team?.conferenceId || home.team?.conference?.id || '?';
+          const aId = away.team?.conferenceId || away.team?.conference?.id || '?';
+          const confDisplayTag = hId === aId ? `Conf ID: ${hId}` : `IDs: A:${aId} H:${hId}`;
+
           const sit = comp.situation;
           let driveText = '';
           if (state === 'in' && sit) {
@@ -480,7 +475,7 @@ if (dayGames[0].gDate.getDay() === 6) {
         </div>
         <div class="team-row${awayClass}"><span>${isAwayPos ? '🏈 ' : ''}${g.awayRank}${g.awayTeam}</span><span class="score">${g.state === 'pre' ? '' : g.awayScore}</span></div>
         <div class="team-row${homeClass}"><span>${isHomePos ? '🏈 ' : ''}${g.homeRank}${g.homeTeam}</span><span class="score">${g.state === 'pre' ? '' : g.homeScore}</span></div>
-        ${g.driveText ? `<div class="drive-banner">Drive: ${g.driveTest}</div>` : ''}
+        ${g.driveText ? `<div class="drive-banner">Drive: ${g.driveText}</div>` : ''}
         ${footerHtml}
       `;
       return card;
