@@ -1,74 +1,74 @@
-  <script>
-    async function loadReports() {
-      const container = document.getElementById('injuries-container');
-      try {
-        const fetchFn = window.fetchAllCFBInjuries || window.fetchAllSECInjuries;
-        if (!fetchFn) {
-          container.innerHTML = "<p style='color:var(--red);'>injuries.js script failed to load.</p>";
-          return;
-        }
+<script>
+  async function loadReports() {
+    const container = document.getElementById('injuries-container');
+    if (!container) return;
 
-        // 5-second safety timeout so mobile network requests never hang forever
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Fetch timed out")), 5000)
-        );
-
-        const data = await Promise.race([fetchFn(), timeoutPromise]).catch(() => ({}));
-        
-        container.innerHTML = "";
-        const teams = Object.keys(data || {});
-        
-        // If no teams have active injuries, display a clean "Clean Bill of Health" card
-        if (teams.length === 0) {
-          container.innerHTML = `
-            <div class="team-card" style="text-align: center; padding: 24px;">
-              <span class="team-name" style="color: #38bdf8;">Clean Bill of Health</span>
-              <p class="player-detail" style="margin-top: 8px;">No reported player injuries or availability restrictions at this time.</p>
-            </div>`;
-          return;
-        }
-
-        teams.forEach(teamName => {
-          const teamData = data[teamName];
-          const players = teamData?.players || [];
-          if (!players.length) return;
-
-          const card = document.createElement('div');
-          card.className = 'team-card';
-
-          let playersHtml = players.map(p => {
-            const st = (p.status || '').toLowerCase();
-            let badgeClass = 'status-tag status-probable';
-            if (st.includes('out')) badgeClass = 'status-tag status-out';
-            else if (st.includes('question') || st.includes('doubt')) badgeClass = 'status-tag status-questionable';
-
-            return `
-              <div class="player-row">
-                <div class="player-info">
-                  <span class="player-name">${p.player} ${p.position ? `(${p.position})` : ''}</span>
-                  <span class="player-detail">${p.details || p.type || ''}</span>
-                </div>
-                <span class="${badgeClass}">${p.status}</span>
-              </div>
-            `;
-          }).join('');
-
-          card.innerHTML = `
-            <div class="team-header">
-              <span class="team-name">${teamName}</span>
-              <span class="report-count">${players.length} Reported</span>
-            </div>
-            ${playersHtml}
-          `;
-
-          container.appendChild(card);
-        });
-
-      } catch (err) {
-        container.innerHTML = `<p style="color:var(--red);">Error rendering page: ${err.message}</p>`;
+    try {
+      const fetchFn = window.fetchAllCFBInjuries || window.fetchAllSECInjuries;
+      if (!fetchFn) {
+        container.innerHTML = "<p style='color:var(--red);'>injuries.js script failed to load.</p>";
+        return;
       }
-    }
 
-    document.addEventListener('DOMContentLoaded', loadReports);
-  </script>
-  
+      // Fetch injury data (allowing full request execution)
+      const data = await fetchFn();
+      
+      // Remove loading state / debug elements
+      container.innerHTML = "";
+      
+      const teams = Object.keys(data || {});
+      
+      // Filter down to teams that actually have players in their injury array
+      const activeTeams = teams.filter(t => data[t]?.players && data[t].players.length > 0);
+
+      if (activeTeams.length === 0) {
+        container.innerHTML = `
+          <div class="team-card" style="text-align: center; padding: 24px;">
+            <span class="team-name" style="color: #38bdf8;">Clean Bill of Health</span>
+            <p class="player-detail" style="margin-top: 8px;">No reported player injuries or availability restrictions at this time.</p>
+          </div>`;
+        return;
+      }
+
+      activeTeams.forEach(teamName => {
+        const teamData = data[teamName];
+        const players = teamData.players;
+
+        const card = document.createElement('div');
+        card.className = 'team-card';
+
+        let playersHtml = players.map(p => {
+          const st = (p.status || '').toLowerCase();
+          let badgeClass = 'status-tag status-probable';
+          if (st.includes('out')) badgeClass = 'status-tag status-out';
+          else if (st.includes('question') || st.includes('doubt')) badgeClass = 'status-tag status-questionable';
+
+          return `
+            <div class="player-row">
+              <div class="player-info">
+                <span class="player-name">${p.player} ${p.position ? `(${p.position})` : ''}</span>
+                <span class="player-detail">${p.details || p.type || ''}</span>
+              </div>
+              <span class="${badgeClass}">${p.status}</span>
+            </div>
+          `;
+        }).join('');
+
+        card.innerHTML = `
+          <div class="team-header">
+            <span class="team-name">${teamName}</span>
+            <span class="report-count">${players.length} Reported</span>
+          </div>
+          ${playersHtml}
+        `;
+
+        container.appendChild(card);
+      });
+
+    } catch (err) {
+      container.innerHTML = `<p style="color:var(--red);">Error rendering page: ${err.message}</p>`;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', loadReports);
+</script>
