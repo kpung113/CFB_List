@@ -59,10 +59,31 @@ const MOCK_INJURIES = {
   }
 };
 
+// On-screen debugger banner for mobile troubleshooting
+function showMobileDebugBanner(teamsFound, totalPlayers) {
+  let banner = document.getElementById('mobile-debug-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'mobile-debug-banner';
+    banner.style.cssText = 'background:#181920; color:#38bdf8; font-size:0.75rem; font-weight:700; padding:8px 12px; text-align:center; border:1px solid #272935; margin-bottom:12px; border-radius:6px;';
+    const container = document.getElementById('games-container') || document.body;
+    container.prepend(banner);
+  }
+  
+  if (teamsFound > 0) {
+    banner.style.color = '#84cc16';
+    banner.innerText = `🟢 LIVE API SUCCESS: ${totalPlayers} player(s) found across ${teamsFound} team(s).`;
+  } else {
+    banner.style.color = '#eab308';
+    banner.innerText = `🟡 LIVE API EMPTY: Displaying Fallback / Mock Data.`;
+  }
+}
+
 async function fetchAllCFBInjuries() {
   console.log(`Starting fetch across ${ALL_FBS_TEAMS.length} FBS teams...`);
   const allInjuries = {};
   let totalLivePlayersFound = 0;
+  let liveTeamsFound = 0;
 
   const teamPromises = ALL_FBS_TEAMS.map(async (team) => {
     // ESPN Site API team injuries endpoint
@@ -108,6 +129,7 @@ async function fetchAllCFBInjuries() {
 
       if (validPlayers.length > 0) {
         totalLivePlayersFound += validPlayers.length;
+        liveTeamsFound++;
         allInjuries[team.name] = { 
           conference: team.conf, 
           players: validPlayers 
@@ -121,6 +143,9 @@ async function fetchAllCFBInjuries() {
   await Promise.all(teamPromises);
 
   console.log(`Fetch finished! Total live players found across all teams: ${totalLivePlayersFound}`);
+
+  // Display status on-screen for mobile devices
+  showMobileDebugBanner(liveTeamsFound, totalLivePlayersFound);
 
   // If live API returns empty across ALL teams, default to fallback
   if (Object.keys(allInjuries).length === 0) {
