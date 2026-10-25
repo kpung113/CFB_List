@@ -101,8 +101,15 @@
       });
     }
 
-    function isRanked(g) {
-      return g.competitions[0].competitors.some(c => c.curatedRank?.current <= 25 && c.curatedRank?.current > 0);
+    function getHighestRank(g) {
+      let best = 99;
+      g.competitions[0].competitors.forEach(c => {
+        const r = c.curatedRank?.current;
+        if (r && r > 0 && r < best) {
+          best = r;
+        }
+      });
+      return best <= 25 ? best : 99;
     }
 
     function getConfKey(t) {
@@ -113,36 +120,49 @@
 
       if (id === '8' || a === 'SEC' || n.includes('sec') || n.includes('southeastern')) return 'sec';
       if (id === '5' || a === 'B1G' || a === 'BIG TEN' || n.includes('big ten') || n.includes('b1g')) return 'btn';
-      if (id === '1' || a === 'ACC' || n.includes('acc') || n.includes('atlantic coast')) return 'acc';
       if (id === '4' || a === 'B12' || a === 'BIG 12' || a === 'BIG XII' || n.includes('big 12') || n.includes('big xii') || n.includes('b12')) return 'b12';
-      if (id === '15' || a === 'AAC' || n.includes('american athletic') || n.includes('aac')) return 'aac';
-      if (id === '12' || a === 'CUSA' || a === 'C-USA' || n.includes('conference usa') || n.includes('cusa')) return 'cusa';
-      if (id === '18' || a === 'IND' || a === 'INDEP' || n.includes('independent')) return 'indep';
+      if (id === '1' || a === 'ACC' || n.includes('acc') || n.includes('atlantic coast')) return 'acc';
       if (id === '151' || a === 'MAC' || n.includes('mid-american') || n.includes('mac')) return 'mac';
+      if (id === '12' || a === 'CUSA' || a === 'C-USA' || n.includes('conference usa') || n.includes('cusa')) return 'cusa';
       if (id === '17' || a === 'MWC' || a === 'MW' || n.includes('mountain west')) return 'mwc';
       if (id === '9' || a === 'PAC' || a === 'PAC-12' || a === 'PAC12' || n.includes('pac-12') || n.includes('pac12')) return 'pac12';
       if (id === '37' || a === 'SBC' || a === 'SUN BELT' || n.includes('sun belt')) return 'sbc';
+      if (id === '15' || a === 'AAC' || n.includes('american athletic') || n.includes('aac')) return 'aac';
+      if (id === '18' || a === 'IND' || a === 'INDEP' || n.includes('independent')) return 'indep';
       
       return 'other';
     }
 
     function getGamePriority(g) {
+      // 1. SEC games first
       if (isSEC(g)) return 1;
-      if (isRanked(g)) return 2;
-      const keys = g.competitions[0].competitors.map(c => getConfKey(c.team));
-      const tiers = ['btn', 'acc', 'b12', 'aac', 'cusa', 'indep', 'mac', 'mwc', 'pac12', 'sbc'];
-      for (let i = 0; i < tiers.length; i++) {
-        if (keys.includes(tiers[i])) return i + 3;
+
+      // 2. Top 25 games ordered by their highest rank (#1 up to #25)
+      const rank = getHighestRank(g);
+      if (rank <= 25) {
+        return 2 + rank; // Results in priority values from 3 (for #1 rank) up to 27 (for #25 rank)
       }
-      return 13;
+
+      // 3. Non-ranked conferences in your exact sequence
+      const keys = g.competitions[0].competitors.map(c => getConfKey(c.team));
+      const tiers = ['btn', 'b12', 'acc', 'mac', 'cusa', 'mwc', 'pac12', 'sbc'];
+      // Corresponding IDs: Big Ten (5), Big 12 (4), ACC (1), MAC (151), CUSA (12), MW (17), PAC12 (9), SBC (37)
+      
+      for (let i = 0; i < tiers.length; i++) {
+        if (keys.includes(tiers[i])) return 30 + i;
+      }
+
+      return 100; // Anything else
     }
 
     function getGameSortTag(g) {
       if (isSEC(g)) return 'SEC';
-      if (isRanked(g)) return 'RNK';
+      const rank = getHighestRank(g);
+      if (rank <= 25) return `RNK`;
+      
       const keys = g.competitions[0].competitors.map(c => getConfKey(c.team));
-      const tiers = ['btn', 'acc', 'b12', 'aac', 'cusa', 'indep', 'mac', 'mwc', 'pac12', 'sbc'];
-      const tags  = ['BTN', 'ACC', 'B12', 'AAC', 'CUSA', 'INDEP', 'MAC', 'MWC', 'PAC12', 'SBC'];
+      const tiers = ['btn', 'b12', 'acc', 'mac', 'cusa', 'mwc', 'pac12', 'sbc'];
+      const tags  = ['BTN', 'B12', 'ACC', 'MAC', 'CUSA', 'MWC', 'PAC12', 'SBC'];
       for (let i = 0; i < tiers.length; i++) {
         if (keys.includes(tiers[i])) return tags[i];
       }
