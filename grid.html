@@ -215,7 +215,7 @@
       const homeRecord = getTeamRecord(home);
 
       const card = document.createElement('div');
-      card.className = `game-card ${sec ? 'sec-game' : (ranked ? 'ranked-game' : '')} ${isCompleted ? 'completed-card' : ''}`;
+      card.className = `game-card ${sec ? 'sec-game' : ''} ${ranked ? 'ranked-game' : ''} ${isCompleted ? 'completed-card' : ''}`;
       card.innerHTML = `
         <div class="card-header">
           <span class="clock-status ${isCompleted ? 'completed-status' : ''}">${formatShortStatus(game.status.type.detail, game.status.type.state)}</span>
@@ -261,7 +261,6 @@
 
       if (completedGames.length) {
         const compHeader = document.createElement('div');
-        compHeader.className.completed-title = true;
         compHeader.className = 'section-divider completed-title';
         compHeader.innerHTML = `<span>Completed Games</span><span>(${completedGames.length})</span>`;
         container.appendChild(compHeader);
