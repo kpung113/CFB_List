@@ -199,7 +199,10 @@
       const comp = game.competitions[0];
       const home = comp.competitors.find(c => c.homeAway === 'home');
       const away = comp.competitors.find(c => c.homeAway === 'away');
-      const broadcast = comp.broadcasts?.[0]?.names?.[0] || '';
+      
+      let broadcast = comp.broadcasts?.[0]?.names?.[0] || '';
+      broadcast = broadcast.replace(/ACC Network/gi, 'ACCN').replace(/SEC Network/gi, 'SECN');
+
       const sec = isSEC(game);
       const aClass = isCompleted ? (away.winner ? 'winner' : 'loser') : '';
       const hClass = isCompleted ? (home.winner ? 'winner' : 'loser') : '';
