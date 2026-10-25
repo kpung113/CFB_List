@@ -123,14 +123,14 @@ For unranked matchups outside the SEC, games are grouped and ordered by conferen
 | Order | Conference Name | Conference ID | Conf Key Tag |
 | :---: | :--- | :---: | :---: |
 | **1** | Big Ten | `5` | `BTN` |
-| **2** | Big 12 | `4` / `151` | `B12` |
+| **2** | Big 12 | `4` | `B12` |
 | **3** | ACC | `1` | `ACC` |
-| **4** | MAC | `151` | `MAC` |
-| **5** | Conference USA (CUSA) | `12` | `CUSA` |
-| **6** | Mountain West (MW) | `17` | `MWC` |
-| **7** | Pac-12 | `9` | `PAC12` |
-| **8** | Sun Belt (SBC) | `37` | `SBC` |
-| **9** | Other / AAC / Independents | *Various* | `OTHR` |
+| **4** | AAC (AC) | `151` | `AAC` |
+| **5** | MAC | `15` | `MAC` |
+| **6** | Conference USA (CUSA) | `12` | `CUSA` |
+| **7** | Mountain West (MW) | `17` | `MWC` |
+| **8** | Pac-12 | `9` | `PAC12` |
+| **9** | Sun Belt (SBC) | `37` | `SBC` 
 
 ---
 
