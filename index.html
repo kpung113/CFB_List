@@ -215,7 +215,9 @@
       
       const hConf = getConfKey(home?.team);
       const aConf = getConfKey(away?.team);
-      const isPower4 = c => ['sec', 'bigten', 'big12', 'acc'].includes(c);
+      // Added 'aac' here so major conference matchups like UTSA/Tulane don't overshadow close P4 games inappropriately, 
+      // or ensure matching Power groups score correctly together.
+      const isPowerMajor = c => ['sec', 'bigten', 'big12', 'acc', 'aac'].includes(c);
 
       if (homeIsSec && awayIsSec) {
         base = 1200; // 1. SEC vs SEC
@@ -223,8 +225,8 @@
         base = 1000; // 2. Ranked vs Ranked
       } else if (hRnk <= 25 || aRnk <= 25) {
         base = 800;  // 3. Ranked vs Anyone else
-      } else if (isPower4(hConf) && isPower4(aConf)) {
-        base = 500;  // 4. Power 4 vs Power 4
+      } else if (isPowerMajor(hConf) && isPowerMajor(aConf)) {
+        base = 500;  // 4. Power 4 / Major vs Major
       } else {
         base = 200;  // 5. All others
       }
@@ -467,7 +469,7 @@
         </div>
         <div class="team-row${awayClass}"><span>${isAwayPos ? '🏈 ' : ''}${g.awayRank}${g.awayTeam}</span><span class="score">${g.state === 'pre' ? '' : g.awayScore}</span></div>
         <div class="team-row${homeClass}"><span>${isHomePos ? '🏈 ' : ''}${g.homeRank}${g.homeTeam}</span><span class="score">${g.state === 'pre' ? '' : g.homeScore}</span></div>
-        ${g.driveText ? `<div class="drive-banner">Drive: ${g.driveText}</div>` : ''}
+        ${g.driveText ? `<div class="drive-banner">Drive: ${g.driveTest}</div>` : ''}
         ${footerHtml}
       `;
       return card;
