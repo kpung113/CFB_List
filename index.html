@@ -38,6 +38,8 @@
     .game-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;border-left:5px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.4);}
     .game-card.live-4q{border-left-color:var(--red);background:linear-gradient(135deg,#181920 0%,#221518 100%);}
     .game-card.live{border-left-color:var(--maroon);background:linear-gradient(135deg,#181920 0%,#1f1418 100%);}
+    .game-card.sec-game{border-left-color:#f59e0b;}
+    .game-card.ranked-game{border-left-color:#ef4444;}
     .game-card.completed-card{opacity:.85;background:#172033;}
     .card-header{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--sub);margin-bottom:8px;}
     .team-row{display:flex;justify-content:space-between;align-items:center;margin:6px 0;font-size:1.1rem;font-weight:600;}
@@ -102,36 +104,64 @@
     const isSEC = g => g.rawEvent.competitions[0].competitors.some(c => String(c.team?.conferenceId || c.team?.conference?.id) === '8');
     const isRanked = g => g.hasRanked;
 
+    function getHighestRank(g) {
+      let best = 99;
+      g.rawEvent.competitions[0].competitors.forEach(c => {
+        const r = c.curatedRank?.current;
+        if (r && r > 0 && r < best) best = r;
+      });
+      return best <= 25 ? best : 99;
+    }
+
     function getConfKey(t) {
       if (!t) return 'other';
       const id = String(t.conferenceId || t.conference?.id || '');
-      const name = String(t.conference?.name || t.conference?.abbreviation || t.conference || '').toLowerCase();
-      
-      if (id === '8' || name.includes('sec')) return 'sec';
-      if (id === '5' || name.includes('big ten') || name.includes('b1g')) return 'bigten';
-      if (id === '4' || id === '151' || name.includes('big 12')) return 'big12';
-      if (id === '1' || name.includes('acc')) return 'acc';
+      if (id === '8')   return 'sec';
+      if (id === '5')   return 'btn';
+      if (id === '4')   return 'b12';
+      if (id === '1')   return 'acc';
+      if (id === '151') return 'aac';
+      if (id === '12')  return 'cusa';
+      if (id === '15')  return 'mac';
+      if (id === '17')  return 'mwc';
+      if (id === '9')   return 'pac12';
+      if (id === '37')  return 'sbc';
+      if (id === '18')  return 'indep';
       return 'other';
     }
 
-    function getGameConfTier(g) {
-      const confs = g.rawEvent.competitions[0].competitors.map(c => getConfKey(c.team));
-      if (confs.includes('sec')) return 1;
-      if (confs.includes('bigten')) return 2;
-      if (confs.includes('big12')) return 3;
-      if (confs.includes('acc')) return 4;
-      return 5;
+    function getGamePriority(g) {
+      if (isSEC(g)) return 1;
+      const rank = getHighestRank(g);
+      if (rank <= 25) return 2 + rank;
+
+      const keys = g.rawEvent.competitions[0].competitors.map(c => getConfKey(c.team));
+      const tiers = ['btn', 'b12', 'acc', 'aac', 'cusa', 'mac', 'mwc', 'pac12', 'sbc'];
+      for (let i = 0; i < tiers.length; i++) {
+        if (keys.includes(tiers[i])) return 30 + i;
+      }
+      return 100;
     }
 
     function getGameSortTag(g) {
       if (isSEC(g)) return 'SEC';
-      if (isRanked(g)) return 'RNK';
-      const t = getGameConfTier(g);
-      return t === 2 ? 'BTN' : t === 3 ? 'B12' : t === 4 ? 'ACC' : 'OTHR';
+      const rank = getHighestRank(g);
+      if (rank <= 25) return 'RNK';
+
+      const keys = g.rawEvent.competitions[0].competitors.map(c => getConfKey(c.team));
+      const tiers = ['btn', 'b12', 'acc', 'aac', 'cusa', 'mac', 'mwc', 'pac12', 'sbc'];
+      const tags  = ['BTN', 'B12', 'ACC', 'AAC', 'CUSA', 'MAC', 'MWC', 'PAC12', 'SBC'];
+      for (let i = 0; i < tiers.length; i++) {
+        if (keys.includes(tiers[i])) return tags[i];
+      }
+      return 'OTHR';
     }
 
-    function sortCompletedGames(games) {
-      return games.sort((a, b) => (Number(isSEC(b)) - Number(isSEC(a))) || (Number(isRanked(b)) - Number(isRanked(a))) || (getGameConfTier(a) - getGameConfTier(b)) || (a.gDate - b.gDate));
+    function sortGamesList(list) {
+      return list.sort((a, b) => {
+        const pA = getGamePriority(a), pB = getGamePriority(b);
+        return pA !== pB ? pA - pB : new Date(a.gDate) - new Date(b.gDate);
+      });
     }
 
     function calculateLivePriorityScore(g) {
@@ -194,7 +224,6 @@
       }
 
       let base = 200;
-      const powerIds = ['8', '5', '4', '11', '151'];
       const isPower4Team = id => ['8', '5', '4', '1', '151'].includes(id);
 
       if (homeIsSec && awayIsSec) {
@@ -283,18 +312,26 @@
           if (!home || !away) return;
 
           const state = e.status?.type?.state;
-          const isSec = comp.competitors.some(c => String(c.team?.conferenceId || c.team?.conference?.id) === "8");
+          const isSec = isSEC({ rawEvent: e });
           const hRank = home.curatedRank?.current, aRank = away.curatedRank?.current;
           const hasRanked = (hRank && hRank <= 25) || (aRank && aRank <= 25);
           let bestRank = Math.min(hRank <= 25 ? hRank : 99, aRank <= 25 ? aRank : 99);
 
-          const tv = comp.broadcasts?.[0]?.names?.[0] || "TV TBD";
+          let tv = comp.broadcasts?.[0]?.names?.[0] || "TV TBD";
+          tv = tv.replace(/ACC Network/gi, 'ACCN').replace(/SEC Network/gi, 'SECN');
+
           let spread = comp.odds?.[0]?.details || comp.odds?.[0]?.summary || '';
           if (spread === 'null' || spread === 'EVEN') spread = '';
 
-          const hId = home.team?.conferenceId || home.team?.conference?.id || '?';
-          const aId = away.team?.conferenceId || away.team?.conference?.id || '?';
-          const confDisplayTag = hId === aId ? `Conf ID: ${hId}` : `IDs: A:${aId} H:${hId}`;
+          // Find conference abbreviation helper for the tag
+          const getConfAbbr = teamObj => {
+            const ab = teamObj.team?.conference?.abbreviation;
+            if (ab) return ab.toUpperCase();
+            return `ID:${teamObj.team?.conferenceId || teamObj.team?.conference?.id || '?'}`;
+          };
+          const hConf = getConfAbbr(home);
+          const aConf = getConfAbbr(away);
+          const confDisplayTag = hConf === aConf ? hConf : `${aConf}/${hConf}`;
 
           const sit = comp.situation;
           let driveText = '';
@@ -315,10 +352,17 @@
           monEnd.setDate(gDate.getDate() + ((1 - gDate.getDay() + 7) % 7));
           monEnd.setHours(23, 59, 59, 999);
 
+          const getRecord = compObj => {
+            if (!compObj.records) return '';
+            const rec = compObj.records.find(r => r.type === 'total') || compObj.records[0];
+            return rec ? rec.summary : '';
+          };
+
           const gameObj = {
             id: e.id, homeId: home.id, awayId: away.id,
             homeTeam: home.team?.shortDisplayName || home.team?.name || 'Home',
             awayTeam: away.team?.shortDisplayName || away.team?.name || 'Away',
+            homeRecord: getRecord(home), awayRecord: getRecord(away),
             homeRank: hRank && hRank <= 25 ? `<span style="color:#84cc16;font-weight:bold;">#${hRank}</span> ` : '',
             awayRank: aRank && aRank <= 25 ? `<span style="color:#84cc16;font-weight:bold;">#${aRank}</span> ` : '',
             homeScore: home.score || "0", awayScore: away.score || "0",
@@ -338,9 +382,9 @@
           }
         });
 
-        live.sort((a, b) => b.priorityScore - a.priorityScore || a.gDate - b.gDate);
-        upcoming.sort((a, b) => a.gDate - b.gDate || (a.isSec ? 1 : 2) - (b.isSec ? 1 : 2));
-        sortCompletedGames(finals);
+        live.sort((a, b) => b.priorityScore - a.priorityScore || new Date(a.gDate) - new Date(b.gDate));
+        upcoming.sort((a, b) => new Date(a.gDate) - new Date(b.gDate) || (a.isSec ? 1 : 2) - (b.isSec ? 1 : 2));
+        sortGamesList(finals);
 
         renderGames(live, upcoming, finals);
         statusEl.innerText = "Live • 30s";
@@ -360,7 +404,7 @@
       if (upcoming.length) {
         const byDay = {};
         upcoming.forEach(g => {
-          const day = g.gDate.toDateString();
+          const day = new Date(g.gDate).toDateString();
           (byDay[day] = byDay[day] || []).push(g);
         });
 
@@ -368,10 +412,10 @@
           const dayGames = byDay[day];
           const dHeader = document.createElement("div");
           dHeader.className = "day-header";
-          dHeader.innerText = dayGames[0].gDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+          dHeader.innerText = new Date(dayGames[0].gDate).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
           container.appendChild(dHeader);
 
-          if (dayGames[0].gDate.getDay() === 6) {
+          if (new Date(dayGames[0].gDate).getDay() === 6) {
             const sec = dayGames.filter(g => g.isSec);
             const ranked = dayGames.filter(g => !g.isSec && g.hasRanked);
             const other = dayGames.filter(g => !g.isSec && !g.hasRanked);
@@ -405,7 +449,16 @@
 
     function createCard(g, isCompleted = false) {
       const card = document.createElement("div");
-      card.className = "game-card" + (isCompleted ? " completed-card" : "") + (g.state === 'in' ? (g.period >= 4 ? " live-4q" : " live") : "");
+      
+      let cardClass = "game-card";
+      if (isCompleted) cardClass += " completed-card";
+      if (g.isSec) cardClass += " sec-game";
+      else if (g.hasRanked) cardClass += " ranked-game";
+
+      if (g.state === 'in') {
+        cardClass += (g.period >= 4 ? " live-4q" : " live");
+      }
+      card.className = cardClass;
 
       const isAwayPos = g.posId && g.posId === String(g.awayId);
       const isHomePos = g.posId && g.posId === String(g.homeId);
@@ -440,8 +493,14 @@
             <a href="https://www.espn.com/college-football/game/_/gameId/${g.id}" target="_blank" rel="noopener noreferrer" class="watch-btn">Gamecast</a>
           </span>
         </div>
-        <div class="team-row${awayClass}"><span>${isAwayPos ? '🏈 ' : ''}${g.awayRank}${g.awayTeam}</span><span class="score">${g.state === 'pre' ? '' : g.awayScore}</span></div>
-        <div class="team-row${homeClass}"><span>${isHomePos ? '🏈 ' : ''}${g.homeRank}${g.homeTeam}</span><span class="score">${g.state === 'pre' ? '' : g.homeScore}</span></div>
+        <div class="team-row${awayClass}">
+          <span>${isAwayPos ? '🏈 ' : ''}${g.awayRank}${g.awayTeam} <span style="font-size:0.75rem; color:var(--sub); font-weight:normal;">${g.awayRecord ? `(${g.awayRecord})` : ''}</span></span>
+          <span class="score">${g.state === 'pre' ? '' : g.awayScore}</span>
+        </div>
+        <div class="team-row${homeClass}">
+          <span>${isHomePos ? '🏈 ' : ''}${g.homeRank}${g.homeTeam} <span style="font-size:0.75rem; color:var(--sub); font-weight:normal;">${g.homeRecord ? `(${g.homeRecord})` : ''}</span></span>
+          <span class="score">${g.state === 'pre' ? '' : g.homeScore}</span>
+        </div>
         ${g.driveText ? `<div class="drive-banner">Drive: ${g.driveText}</div>` : ''}
         ${footerHtml}
       `;
@@ -453,3 +512,4 @@
   </script>
 </body>
 </html>
+ 
