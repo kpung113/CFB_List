@@ -1,84 +1,308 @@
-<script>
-  async function loadReports() {
-    const container = document.getElementById('injuries-container');
-    if (!container) {
-      console.error("Injuries error: #injuries-container element not found on the page.");
-      return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEC Injury Report</title>
+  <script src="nav.js"></script>
+  <script src="injuries.js"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-8695308WQ8');
+    if (localStorage.getItem('dyslexiaMode') === 'enabled') {
+      document.documentElement.classList.add('dyslexia-font');
+    }
+  </script>
+  <style>
+    :root {
+      --bg:#0b0c10;
+      --card:#181920;
+      --border:#272935;
+      --text:#f8fafc;
+      --sub:#94a3b8;
+      --maroon:#5d1725;
+      --blue:#38bdf8;
+      --red:#ef4444;
+      --green:#84cc16;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 16px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    body.dyslexia-font, body.dyslexia-font * {
+      font-family: "Comic Sans MS", "Verdana", sans-serif !important;
+      letter-spacing: .05em !important;
+      word-spacing: .1em !important;
+    }
+    .dyslexia-toggle {
+      background:#181920;
+      border:1px solid var(--border);
+      color:var(--blue);
+      font-size:.75rem;
+      font-weight:700;
+      padding:5px 10px;
+      border-radius:6px;
+      cursor:pointer;
+    }
+    header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:20px;
+      padding-bottom:12px;
+      border-bottom:2px solid var(--maroon);
+    }
+    .header-left, .header-right, .header-title {
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .header-left { gap:12px; }
+    .menu-btn {
+      background:none;
+      border:none;
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      width:22px;
+      height:18px;
+      padding:0;
+      z-index:101;
+    }
+    .menu-btn span {
+      display:block;
+      width:100%;
+      height:2px;
+      background:var(--blue);
+      border-radius:2px;
+    }
+    .msu-logo {
+      height:38px;
+      width:auto;
+      object-fit:contain;
+      filter:drop-shadow(0 0 2px #fff);
+    }
+    h1 {
+      margin:0;
+      font-size:1.25rem;
+      font-weight:800;
+    }
+    #injuries-container {
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .team-card {
+      background: var(--card);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:16px;
+      box-shadow:0 4px 12px rgba(0,0,0,.18);
+    }
+    .team-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-bottom:12px;
+      padding-bottom:8px;
+      border-bottom:1px solid var(--border);
+    }
+    .team-name {
+      font-weight:800;
+      color: var(--text);
+    }
+    .report-count {
+      font-size:.72rem;
+      color:var(--sub);
+      background:#111319;
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:4px 8px;
+    }
+    .player-row {
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+      padding:8px 0;
+      border-bottom:1px solid rgba(255,255,255,0.04);
+    }
+    .player-row:last-child { border-bottom:none; }
+    .player-info {
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+    }
+    .player-name {
+      font-weight:700;
+      font-size:0.95rem;
+    }
+    .player-detail {
+      color:var(--sub);
+      font-size:0.8rem;
+      margin-top:2px;
+    }
+    .status-tag {
+      border-radius:999px;
+      padding:5px 10px;
+      font-size:.72rem;
+      font-weight:800;
+      white-space:nowrap;
+      border:1px solid transparent;
+    }
+    .status-probable {
+      background: rgba(132, 204, 22, 0.14);
+      color: var(--green);
+      border-color: rgba(132, 204, 22, 0.25);
+    }
+    .status-questionable {
+      background: rgba(234, 179, 8, 0.14);
+      color: #facc15;
+      border-color: rgba(234, 179, 8, 0.25);
+    }
+    .status-out {
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--red);
+      border-color: rgba(239, 68, 68, 0.25);
+    }
+    .empty-state {
+      background: var(--card);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:24px;
+      text-align:center;
+      color:var(--sub);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
+      <div class="header-title">
+        <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" alt="MSU Logo" class="msu-logo">
+        <h1>SEC Injury Report</h1>
+      </div>
+    </div>
+    <div class="header-right">
+      <button id="fontToggleBtn" class="dyslexia-toggle" onclick="toggleDyslexiaFont()">Kate Button: OFF</button>
+    </div>
+  </header>
+
+  <div id="injuries-container"></div>
+
+  <script>
+    function updateToggleButtonState() {
+      const btn = document.getElementById('fontToggleBtn');
+      if (!btn) return;
+      const active = localStorage.getItem('dyslexiaMode') === 'enabled';
+      btn.innerText = active ? 'Kate Button: ON' : 'Kate Button: OFF';
+      btn.style.borderColor = active ? '#38bdf8' : '#334155';
     }
 
-    try {
-      // Show a loading state so you never see a blank white screen
-      container.innerHTML = "<p style='color: #38bdf8; text-align: center; padding: 20px;'>Loading injury reports...</p>";
+    function toggleDyslexiaFont() {
+      const active = localStorage.getItem('dyslexiaMode') === 'enabled';
+      localStorage.setItem('dyslexiaMode', active ? 'disabled' : 'enabled');
+      document.body.classList.toggle('dyslexia-font', !active);
+      document.documentElement.classList.toggle('dyslexia-font', !active);
+      updateToggleButtonState();
+    }
 
-      const fetchFn = window.fetchAllCFBInjuries || window.fetchAllSECInjuries;
-      if (!fetchFn) {
-        container.innerHTML = "<p style='color:var(--red, #ef4444);'>injuries.js script failed to load (functions not found on window).</p>";
+    document.addEventListener('DOMContentLoaded', () => {
+      updateToggleButtonState();
+      if (localStorage.getItem('dyslexiaMode') === 'enabled') {
+        document.body.classList.add('dyslexia-font');
+      }
+    });
+
+    async function loadReports() {
+      const container = document.getElementById('injuries-container');
+      if (!container) {
+        console.error('Injuries error: #injuries-container element not found on the page.');
         return;
       }
 
-      // Fetch injury data
-      const data = await fetchFn();
-      
-      // Clear loading state
-      container.innerHTML = "";
-      
-      const teams = Object.keys(data || {});
-      const activeTeams = teams.filter(t => data[t]?.players && data[t].players.length > 0);
+      try {
+        container.innerHTML = "<div class='empty-state'>Loading injury reports...</div>";
 
-      if (activeTeams.length === 0) {
-        container.innerHTML = `
-          <div class="team-card" style="text-align: center; padding: 24px;">
-            <span class="team-name" style="color: #38bdf8;">Clean Bill of Health</span>
-            <p class="player-detail" style="margin-top: 8px;">No reported player injuries or availability restrictions at this time.</p>
-          </div>`;
-        return;
-      }
+        const fetchFn = window.fetchAllCFBInjuries || window.fetchAllSECInjuries;
+        if (!fetchFn) {
+          container.innerHTML = "<div class='empty-state' style='color: var(--red);'>injuries.js script failed to load (functions not found on window).</div>";
+          return;
+        }
 
-      activeTeams.forEach(teamName => {
-        const teamData = data[teamName];
-        const players = teamData.players || [];
+        const data = await fetchFn();
+        container.innerHTML = "";
 
-        const card = document.createElement('div');
-        card.className = 'team-card';
+        const teams = Object.keys(data || {});
+        const activeTeams = teams.filter(team => Array.isArray(data[team]?.players) && data[team].players.length > 0);
 
-        let playersHtml = players.map(p => {
-          const st = (p.status || '').toLowerCase();
-          let badgeClass = 'status-tag status-probable';
-          if (st.includes('out')) badgeClass = 'status-tag status-out';
-          else if (st.includes('question') || st.includes('doubt')) badgeClass = 'status-tag status-questionable';
-
-          return `
-            <div class="player-row">
-              <div class="player-info">
-                <span class="player-name">${p.player || 'Unknown Player'} ${p.position ? `(${p.position})` : ''}</span>
-                <span class="player-detail">${p.details || p.type || ''}</span>
-              </div>
-              <span class="${badgeClass}">${p.status || 'Unknown'}</span>
+        if (activeTeams.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div style="font-weight:800; color:#38bdf8; margin-bottom:8px;">Clean Bill of Health</div>
+              <div>No reported player injuries or availability restrictions at this time.</div>
             </div>
           `;
-        }).join('');
+          return;
+        }
 
-        card.innerHTML = `
-          <div class="team-header">
-            <span class="team-name">${teamName}</span>
-            <span class="report-count">${players.length} Reported</span>
-          </div>
-          ${playersHtml}
-        `;
+        activeTeams.forEach(teamName => {
+          const teamData = data[teamName];
+          const players = teamData.players || [];
 
-        container.appendChild(card);
-      });
+          const card = document.createElement('div');
+          card.className = 'team-card';
 
-    } catch (err) {
-      console.error("Error inside loadReports:", err);
-      container.innerHTML = `<p style="color:var(--red, #ef4444);">Error rendering page: ${err.message}</p>`;
+          const playersHtml = players.map(player => {
+            const st = String(player.status || '').toLowerCase();
+            let badgeClass = 'status-probable';
+            if (st.includes('out')) badgeClass = 'status-out';
+            else if (st.includes('question') || st.includes('doubt')) badgeClass = 'status-questionable';
+
+            return `
+              <div class="player-row">
+                <div class="player-info">
+                  <span class="player-name">${player.player || 'Unknown Player'}${player.position ? ` (${player.position})` : ''}</span>
+                  <span class="player-detail">${player.details || player.type || ''}</span>
+                </div>
+                <span class="status-tag ${badgeClass}">${player.status || 'Unknown'}</span>
+              </div>
+            `;
+          }).join('');
+
+          card.innerHTML = `
+            <div class="team-header">
+              <span class="team-name">${teamName}</span>
+              <span class="report-count">${players.length} Reported</span>
+            </div>
+            ${playersHtml}
+          `;
+
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error('Error inside loadReports:', err);
+        container.innerHTML = `<div class="empty-state" style="color: var(--red);">Error rendering page: ${err.message}</div>`;
+      }
     }
-  }
 
-  // Robust execution check: handles both normal loads and late injections
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadReports);
-  } else {
-    loadReports();
-  }
-</script>
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadReports);
+    } else {
+      loadReports();
+    }
+  </script>
+</body>
+</html>
