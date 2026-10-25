@@ -49,9 +49,10 @@
     .team-row { display: flex; justify-content: space-between; align-items: center; gap: 2px; }
     .team-row.winner { font-weight: 800; color: #fff; }
     .team-row.loser { color: #64748b; }
-    .team-info { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; overflow: hidden; }
+    .team-info { display: flex; align-items: center; gap: 3px; flex: 1; min-width: 0; overflow: hidden; }
     .team-rank { font-size: 0.55rem; color: #84cc16; font-weight: 800; flex-shrink: 0; }
     .team-abbr { font-weight: 700; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .team-record { font-size: 0.6rem; color: #94a3b8; font-weight: 500; flex-shrink: 0; margin-left: 2px; }
     .team-score { font-weight: 800; font-size: 0.8rem; font-variant-numeric: tabular-nums; min-width: 14px; text-align: right; }
     .no-games { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.85rem; font-weight: 600; padding: 16px; }
   </style>
@@ -132,16 +133,13 @@
     }
       
     function getGamePriority(g) {
-      // 1. SEC games first
       if (isSEC(g)) return 1;
 
-      // 2. Top 25 games ordered by their highest rank (#1 up to #25)
       const rank = getHighestRank(g);
       if (rank <= 25) {
-        return 2 + rank; // Results in priority values from 3 (for #1 rank) up to 27 (for #25 rank)
+        return 2 + rank;
       }
 
-      // 3. Non-ranked conferences in sequence: BTN (5), B12 (4), ACC (1), AAC (151), CUSA (12), MAC (15), MWC (17), PAC12 (9), SBC (37)
       const keys = g.competitions[0].competitors.map(c => getConfKey(c.team));
       const tiers = ['btn', 'b12', 'acc', 'aac', 'cusa', 'mac', 'mwc', 'pac12', 'sbc'];
       
@@ -149,7 +147,7 @@
         if (keys.includes(tiers[i])) return 30 + i;
       }
 
-      return 100; // Anything else
+      return 100;
     }
 
     function getGameSortTag(g) {
@@ -191,6 +189,12 @@
       } catch (err) { console.error('Error:', err); }
     }
 
+    function getTeamRecord(competitor) {
+      if (!competitor.records) return '';
+      const totalRecord = competitor.records.find(r => r.type === 'total') || competitor.records[0];
+      return totalRecord ? totalRecord.summary : '';
+    }
+
     function createGameCard(game, isCompleted) {
       const comp = game.competitions[0];
       const home = comp.competitors.find(c => c.homeAway === 'home');
@@ -201,6 +205,9 @@
       const hClass = isCompleted ? (home.winner ? 'winner' : 'loser') : '';
       const sortTagHtml = isCompleted ? `<span class="sort-tag">${getGameSortTag(game)}</span>` : '';
 
+      const awayRecord = getTeamRecord(away);
+      const homeRecord = getTeamRecord(home);
+
       const card = document.createElement('div');
       card.className = `game-card ${sec ? 'sec-game' : ''} ${isCompleted ? 'completed-card' : ''}`;
       card.innerHTML = `
@@ -210,11 +217,19 @@
         </div>
         <div class="teams-container">
           <div class="team-row ${aClass}">
-            <div class="team-info">${away.curatedRank?.current <= 25 ? `<span class="team-rank">#${away.curatedRank.current}</span>` : ''}<span class="team-abbr">${away.team.abbreviation || away.team.name}</span></div>
+            <div class="team-info">
+              ${away.curatedRank?.current <= 25 ? `<span class="team-rank">#${away.curatedRank.current}</span>` : ''}
+              <span class="team-abbr">${away.team.abbreviation || away.team.name}</span>
+              ${awayRecord ? `<span class="team-record">(${awayRecord})</span>` : ''}
+            </div>
             <span class="team-score">${away.score}</span>
           </div>
           <div class="team-row ${hClass}">
-            <div class="team-info">${home.curatedRank?.current <= 25 ? `<span class="team-rank">#${home.curatedRank.current}</span>` : ''}<span class="team-abbr">${home.team.abbreviation || home.team.name}</span></div>
+            <div class="team-info">
+              ${home.curatedRank?.current <= 25 ? `<span class="team-rank">#${home.curatedRank.current}</span>` : ''}
+              <span class="team-abbr">${home.team.abbreviation || home.team.name}</span>
+              ${homeRecord ? `<span class="team-record">(${homeRecord})</span>` : ''}
+            </div>
             <span class="team-score">${home.score}</span>
           </div>
         </div>`;
