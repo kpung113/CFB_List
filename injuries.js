@@ -1,26 +1,51 @@
-// injuries.js - SEC Football Injury & Availability Fetcher
+// injuries.js - Full College Football (All FBS Teams) Injury & Availability Fetcher
 
-const SEC_TEAMS = [ 
-  { id: '333',  name: 'Alabama',           abbrev: 'ALA'   }, 
-  { id: '8',    name: 'Arkansas',          abbrev: 'ARK'   }, 
-  { id: '2',    name: 'Auburn',            abbrev: 'AUB'   }, 
-  { id: '57',   name: 'Florida',           abbrev: 'FLA'   }, 
-  { id: '61',   name: 'Georgia',           abbrev: 'UGA'   }, 
-  { id: '96',   name: 'Kentucky',          abbrev: 'UK'    }, 
-  { id: '99',   name: 'LSU',               abbrev: 'LSU'   }, 
-  { id: '344',  name: 'Mississippi State', abbrev: 'MSST'  }, 
-  { id: '142',  name: 'Missouri',          abbrev: 'MIZZ'  }, 
-  { id: '201',  name: 'Oklahoma',          abbrev: 'OU'    }, 
-  { id: '145',  name: 'Ole Miss',          abbrev: 'OM'    }, 
-  { id: '2579', name: 'South Carolina',    abbrev: 'SC'    }, 
-  { id: '2633', name: 'Tennessee',         abbrev: 'TENN'  }, 
-  { id: '251',  name: 'Texas',             abbrev: 'TEX'   }, 
-  { id: '245',  name: 'Texas A&M',         abbrev: 'TAMU'  }, 
-  { id: '238',  name: 'Vanderbilt',        abbrev: 'VANDY' } 
+// 1. Expanded list of FBS Teams across all major conferences
+const ALL_FBS_TEAMS = [
+  // SEC
+  { id: '333',  name: 'Alabama',           conf: 'SEC' },
+  { id: '8',    name: 'Arkansas',          conf: 'SEC' },
+  { id: '2',    name: 'Auburn',            conf: 'SEC' },
+  { id: '57',   name: 'Florida',           conf: 'SEC' },
+  { id: '61',   name: 'Georgia',           conf: 'SEC' },
+  { id: '96',   name: 'Kentucky',          conf: 'SEC' },
+  { id: '99',   name: 'LSU',               conf: 'SEC' },
+  { id: '344',  name: 'Mississippi State', conf: 'SEC' },
+  { id: '142',  name: 'Missouri',          conf: 'SEC' },
+  { id: '201',  name: 'Oklahoma',          conf: 'SEC' },
+  { id: '145',  name: 'Ole Miss',          conf: 'SEC' },
+  { id: '2579', name: 'South Carolina',    conf: 'SEC' },
+  { id: '2633', name: 'Tennessee',         conf: 'SEC' },
+  { id: '251',  name: 'Texas',             conf: 'SEC' },
+  { id: '245',  name: 'Texas A&M',         conf: 'SEC' },
+  { id: '238',  name: 'Vanderbilt',        conf: 'SEC' },
+
+  // Big Ten
+  { id: '130',  name: 'Michigan',          conf: 'Big Ten' },
+  { id: '194',  name: 'Ohio State',        conf: 'Big Ten' },
+  { id: '213',  name: 'Penn State',        conf: 'Big Ten' },
+  { id: '275',  name: 'Wisconsin',         conf: 'Big Ten' },
+  { id: '356',  name: 'Illinois',          conf: 'Big Ten' },
+  { id: '26',   name: 'UCLA',              conf: 'Big Ten' },
+  { id: '30',   name: 'USC',               conf: 'Big Ten' },
+
+  // Big 12
+  { id: '252',  name: 'BYU',               conf: 'Big 12' },
+  { id: '2130', name: 'UCF',               conf: 'Big 12' },
+  { id: '239',  name: 'Baylor',            conf: 'Big 12' },
+  { id: '197',  name: 'Oklahoma State',    conf: 'Big 12' },
+  { id: '38',   name: 'Colorado',          conf: 'Big 12' },
+
+  // ACC
+  { id: '52',   name: 'Florida State',     conf: 'ACC' },
+  { id: '228',  name: 'Clemson',           conf: 'ACC' },
+  { id: '150',  name: 'North Carolina',    conf: 'ACC' },
+  { id: '183',  name: 'Syracuse',          conf: 'ACC' },
+  { id: '2567', name: 'SMU',               conf: 'ACC' }
 ];
 
-// Fallback data structure for non-gamedays / empty API windows
-const MOCK_SEC_INJURIES = {
+// Fallback dataset in case the live API is blank
+const MOCK_INJURIES = {
   "Mississippi State": {
     players: [
       { player: "Blake Shapen", position: "QB", status: "Out", type: "Shoulder", details: "Shoulder" },
@@ -29,34 +54,36 @@ const MOCK_SEC_INJURIES = {
   },
   "Georgia": {
     players: [
-      { player: "Roderick Robinson II", position: "RB", status: "Out", type: "Toe", details: "Toe" },
-      { player: "Trevor Etienne", position: "RB", status: "Probable", type: "Lower Body", details: "Lower Body" }
-    ]
-  },
-  "Texas": {
-    players: [
-      { player: "Quinn Ewers", position: "QB", status: "Questionable", type: "Abdomen", details: "Abdomen" }
+      { player: "Roderick Robinson II", position: "RB", status: "Out", type: "Toe", details: "Toe" }
     ]
   }
 };
 
-async function fetchAllSECInjuries() {
-  console.log("Fetching SEC injury reports via ESPN Site API...");
-  const secInjuries = {};
+async function fetchAllCFBInjuries() {
+  console.log(`Starting fetch across ${ALL_FBS_TEAMS.length} FBS teams...`);
+  const allInjuries = {};
+  let totalLivePlayersFound = 0;
 
-  const teamPromises = SEC_TEAMS.map(async (team) => {
-    // ESPN Site API team injuries endpoint (returns aggregated injury objects in 1 call)
+  const teamPromises = ALL_FBS_TEAMS.map(async (team) => {
+    // ESPN Site API team injuries endpoint
     const url = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/${team.id}/injuries`;
     
     try {
       const res = await fetch(url);
-      if (!res.ok) return;
+      
+      if (!res.ok) {
+        console.warn(`[API] ${team.name} (${team.id}) returned status: ${res.status}`);
+        return;
+      }
 
       const data = await res.json();
       
-      // Site API returns injuries nested under data.injuries or data.items
+      // ESPN returns lists under data.injuries or data.items
       const injuriesList = data.injuries || data.items || [];
-      if (injuriesList.length === 0) return;
+      
+      if (injuriesList.length > 0) {
+        console.log(`[LIVE MATCH] ${team.name} returned ${injuriesList.length} player injury report(s)!`);
+      }
 
       const validPlayers = injuriesList.map((item) => {
         const athlete = item.athlete || {};
@@ -80,21 +107,26 @@ async function fetchAllSECInjuries() {
       }).filter(Boolean);
 
       if (validPlayers.length > 0) {
-        secInjuries[team.name] = { players: validPlayers };
+        totalLivePlayersFound += validPlayers.length;
+        allInjuries[team.name] = { 
+          conference: team.conf, 
+          players: validPlayers 
+        };
       }
     } catch (err) {
-      console.warn(`Failed fetching injuries for ${team.name}:`, err);
+      console.error(`[ERROR] Failed fetching for ${team.name}:`, err);
     }
   });
 
   await Promise.all(teamPromises);
 
-  // If live API returns empty across all teams, fall back cleanly
-  if (Object.keys(secInjuries).length === 0) {
-    console.warn("No active live API injuries found across SEC. Loading fallback dataset.");
-    return MOCK_SEC_INJURIES;
+  console.log(`Fetch finished! Total live players found across all teams: ${totalLivePlayersFound}`);
+
+  // If live API returns empty across ALL teams, default to fallback
+  if (Object.keys(allInjuries).length === 0) {
+    console.warn("No active live injuries found across any FBS team. Loading fallback dataset.");
+    return MOCK_INJURIES;
   }
 
-  console.log("SEC Injury Fetch Complete!");
-  return secInjuries;
-    }
+  return allInjuries;
+}
