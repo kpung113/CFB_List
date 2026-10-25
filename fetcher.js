@@ -8,6 +8,28 @@ const ESPN_SCHEDULE_ENDPOINTS = {
   softball: 'https://site.api.espn.com/apis/site/v2/sports/baseball/college-softball/teams/344/schedule?season=2027&limit=100'
 };
 
+function normalizeEasternIsoDate(dateString) {
+  if (!dateString) return '';
+
+  const d = new Date(dateString);
+  if (Number.isNaN(d.getTime())) return '';
+
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+
+  const parts = formatter.formatToParts(d);
+  const map = {};
+  parts.forEach(part => {
+    if (part.type !== 'literal') map[part.type] = part.value;
+  });
+
+  return `${map.year}-${map.month}-${map.day}`;
+}
+
 function showDebug(msg) {
   console.log(msg);
   try {
@@ -43,7 +65,7 @@ async function fetchLiveSchedules() {
   const liveEventsMap = new Map();
   const sportRecordsMap = {};
 
-  showDebug("Starting ESPN multi-sport fetch...");
+  showDebug('Starting ESPN multi-sport fetch...');
 
   const fetchPromises = Object.entries(ESPN_SCHEDULE_ENDPOINTS).map(async ([sportKey, url]) => {
     try {
@@ -79,7 +101,7 @@ async function fetchLiveSchedules() {
 
         if (!msu || !opp) return;
 
-        const isoDate = event.date ? event.date.split('T')[0] : '';
+        const isoDate = normalizeEasternIsoDate(event.date);
         if (!isoDate) return;
 
         const isSecGame = comp.conferenceCompetition === true || 
@@ -100,7 +122,7 @@ async function fetchLiveSchedules() {
         const mScore = parseScore(msu.score);
         const oScore = parseScore(opp.score);
 
-        if (isCompleted || (mScore !== null && oScore !== null && mScore !== "" && oScore !== "")) {
+        if (isCompleted || (mScore !== null && oScore !== null && mScore !== '' && oScore !== '')) {
           if (mScore !== null && oScore !== null) {
             const win = msu.winner ?? (parseInt(mScore, 10) > parseInt(oScore, 10));
             result = `${win ? 'W' : 'L'} ${mScore}-${oScore}`;
@@ -123,6 +145,20 @@ async function fetchLiveSchedules() {
           : 'TBD';
 
         const lookupKey = `${sportKey}|${isoDate}`;
+        const existing = liveEventsMap.get(lookupKey);
+
+        if (existing) {
+          // Prefers a richer record when the same sport/date key appears more than once.
+          // This prevents duplicate entries created by ESPN timezone/date drift while keeping the merge simple.
+          if (!existing.network && tv) existing.network = tv;
+          if (!existing.result && result) existing.result = result;
+          if ((!existing.location || existing.location === 'Location TBD') && (comp.venue?.fullName || 'Location TBD')) {
+            existing.location = comp.venue?.fullName || 'Location TBD';
+          }
+          if (!existing.timeStr || existing.timeStr === 'TBD') existing.timeStr = timeStr;
+          return;
+        }
+
         liveEventsMap.set(lookupKey, {
           sportKey,
           opponent: opp.team?.displayName || opp.team?.shortDisplayName || 'Opponent',
@@ -147,6 +183,6 @@ async function fetchLiveSchedules() {
   });
 
   await Promise.all(fetchPromises);
-  showDebug("Fetch complete. Map size: " + liveEventsMap.size);
+  showDebug('Fetch complete. Map size: ' + liveEventsMap.size);
   return { liveEventsMap, sportRecordsMap };
 }
