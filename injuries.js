@@ -1,50 +1,49 @@
-// injuries.js - Full College Football (All FBS Teams) Injury & Availability Fetcher
+// injuries.js - Full College Football Injury & Availability Fetcher
 
-// 1. Expanded list of FBS Teams across all major conferences
 const ALL_FBS_TEAMS = [
   // SEC
-  { id: '333',  name: 'Alabama',           conf: 'SEC' },
-  { id: '8',    name: 'Arkansas',          conf: 'SEC' },
-  { id: '2',    name: 'Auburn',            conf: 'SEC' },
-  { id: '57',   name: 'Florida',           conf: 'SEC' },
-  { id: '61',   name: 'Georgia',           conf: 'SEC' },
-  { id: '96',   name: 'Kentucky',          conf: 'SEC' },
-  { id: '99',   name: 'LSU',               conf: 'SEC' },
-  { id: '344',  name: 'Mississippi State', conf: 'SEC' },
-  { id: '142',  name: 'Missouri',          conf: 'SEC' },
-  { id: '201',  name: 'Oklahoma',          conf: 'SEC' },
-  { id: '145',  name: 'Ole Miss',          conf: 'SEC' },
-  { id: '2579', name: 'South Carolina',    conf: 'SEC' },
-  { id: '2633', name: 'Tennessee',         conf: 'SEC' },
-  { id: '251',  name: 'Texas',             conf: 'SEC' },
-  { id: '245',  name: 'Texas A&M',         conf: 'SEC' },
-  { id: '238',  name: 'Vanderbilt',        conf: 'SEC' },
+  { id: '333',  name: 'Alabama' },
+  { id: '8',    name: 'Arkansas' },
+  { id: '2',    name: 'Auburn' },
+  { id: '57',   name: 'Florida' },
+  { id: '61',   name: 'Georgia' },
+  { id: '96',   name: 'Kentucky' },
+  { id: '99',   name: 'LSU' },
+  { id: '344',  name: 'Mississippi State' },
+  { id: '142',  name: 'Missouri' },
+  { id: '201',  name: 'Oklahoma' },
+  { id: '145',  name: 'Ole Miss' },
+  { id: '2579', name: 'South Carolina' },
+  { id: '2633', name: 'Tennessee' },
+  { id: '251',  name: 'Texas' },
+  { id: '245',  name: 'Texas A&M' },
+  { id: '238',  name: 'Vanderbilt' },
 
   // Big Ten
-  { id: '130',  name: 'Michigan',          conf: 'Big Ten' },
-  { id: '194',  name: 'Ohio State',        conf: 'Big Ten' },
-  { id: '213',  name: 'Penn State',        conf: 'Big Ten' },
-  { id: '275',  name: 'Wisconsin',         conf: 'Big Ten' },
-  { id: '356',  name: 'Illinois',          conf: 'Big Ten' },
-  { id: '26',   name: 'UCLA',              conf: 'Big Ten' },
-  { id: '30',   name: 'USC',               conf: 'Big Ten' },
+  { id: '130',  name: 'Michigan' },
+  { id: '194',  name: 'Ohio State' },
+  { id: '213',  name: 'Penn State' },
+  { id: '275',  name: 'Wisconsin' },
+  { id: '356',  name: 'Illinois' },
+  { id: '26',   name: 'UCLA' },
+  { id: '30',   name: 'USC' },
 
   // Big 12
-  { id: '252',  name: 'BYU',               conf: 'Big 12' },
-  { id: '2130', name: 'UCF',               conf: 'Big 12' },
-  { id: '239',  name: 'Baylor',            conf: 'Big 12' },
-  { id: '197',  name: 'Oklahoma State',    conf: 'Big 12' },
-  { id: '38',   name: 'Colorado',          conf: 'Big 12' },
+  { id: '252',  name: 'BYU' },
+  { id: '2130', name: 'UCF' },
+  { id: '239',  name: 'Baylor' },
+  { id: '197',  name: 'Oklahoma State' },
+  { id: '38',   name: 'Colorado' },
 
   // ACC
-  { id: '52',   name: 'Florida State',     conf: 'ACC' },
-  { id: '228',  name: 'Clemson',           conf: 'ACC' },
-  { id: '150',  name: 'North Carolina',    conf: 'ACC' },
-  { id: '183',  name: 'Syracuse',          conf: 'ACC' },
-  { id: '2567', name: 'SMU',               conf: 'ACC' }
+  { id: '52',   name: 'Florida State' },
+  { id: '228',  name: 'Clemson' },
+  { id: '150',  name: 'North Carolina' },
+  { id: '183',  name: 'Syracuse' },
+  { id: '2567', name: 'SMU' }
 ];
 
-// Fallback dataset in case the live API is blank or blocked
+// Fallback dataset (guarantees UI always renders)
 const MOCK_INJURIES = {
   "Mississippi State": {
     players: [
@@ -64,7 +63,6 @@ const MOCK_INJURIES = {
   }
 };
 
-// On-screen debugger banner for mobile troubleshooting
 function showMobileDebugBanner(teamsFound, totalPlayers) {
   let banner = document.getElementById('mobile-debug-banner');
   if (!banner) {
@@ -80,12 +78,11 @@ function showMobileDebugBanner(teamsFound, totalPlayers) {
     banner.innerText = `🟢 LIVE API SUCCESS: ${totalPlayers} player(s) found across ${teamsFound} team(s).`;
   } else {
     banner.style.color = '#eab308';
-    banner.innerText = `🟡 LIVE API EMPTY: Displaying Fallback / Mock Data.`;
+    banner.innerText = `🟡 LIVE API EMPTY: Displaying Fallback Data.`;
   }
 }
 
 async function fetchAllCFBInjuries() {
-  console.log(`Starting fetch across ${ALL_FBS_TEAMS.length} FBS teams...`);
   const allInjuries = {};
   let totalLivePlayersFound = 0;
   let liveTeamsFound = 0;
@@ -100,55 +97,44 @@ async function fetchAllCFBInjuries() {
 
         const data = await res.json();
         const injuriesList = data.injuries || data.items || [];
-        
         if (!Array.isArray(injuriesList) || injuriesList.length === 0) return;
 
         const validPlayers = injuriesList.map((item) => {
           const athlete = item.athlete || {};
-          const athleteName = athlete.displayName || athlete.fullName || "Player";
-          const pos = athlete.position?.abbreviation || "";
-          
-          const rawStatus = typeof item.status === 'object' 
-            ? (item.status?.displayName || item.status?.name || item.status?.type) 
-            : (item.status || "Unknown");
-
-          const injuryTypeStr = item.type || item.details?.type || "Injury";
-          const detailsStr = item.details?.description || item.details?.detail || injuryTypeStr;
-
           return {
-            player: athleteName,
-            position: pos,
-            status: rawStatus,
-            type: injuryTypeStr,
-            details: detailsStr
+            player: athlete.displayName || athlete.fullName || "Player",
+            position: athlete.position?.abbreviation || "",
+            status: typeof item.status === 'object' ? (item.status.displayName || item.status.name || "Unknown") : (item.status || "Unknown"),
+            type: item.type || "Injury",
+            details: item.details?.description || item.type || "Injury"
           };
         }).filter(Boolean);
 
         if (validPlayers.length > 0) {
           totalLivePlayersFound += validPlayers.length;
           liveTeamsFound++;
-          allInjuries[team.name] = { 
-            conference: team.conf, 
-            players: validPlayers 
-          };
+          // Matches standard structure expected by your UI renderer:
+          allInjuries[team.name] = { players: validPlayers };
         }
       } catch (err) {
-        // Individual team fetch failed silently
+        // Individual team fetch failed
       }
     });
 
     await Promise.all(teamPromises);
   } catch (err) {
-    console.warn("Global fetch encountered an issue. Using fallback dataset.", err);
+    console.warn("Error during API fetch loop:", err);
   }
 
-  // Always show debug banner
   showMobileDebugBanner(liveTeamsFound, totalLivePlayersFound);
 
-  // If live API returns empty or was blocked across all teams, return fallback dataset
+  // If live API returns 0 players across all teams, cleanly return MOCK_INJURIES
   if (Object.keys(allInjuries).length === 0) {
     return MOCK_INJURIES;
   }
 
   return allInjuries;
 }
+
+// Alias so older SEC-specific script calls in your HTML won't throw undefined errors
+const fetchAllSECInjuries = fetchAllCFBInjuries;
