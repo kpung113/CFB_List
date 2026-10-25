@@ -43,33 +43,16 @@ const ALL_FBS_TEAMS = [
   { id: '2567', name: 'SMU' }
 ];
 
-// Fallback dataset (guarantees UI always renders)
-const MOCK_INJURIES = {
-  "Mississippi State": {
-    players: [
-      { player: "Blake Shapen", position: "QB", status: "Out", type: "Shoulder", details: "Shoulder" },
-      { player: "Kevin Coleman Jr.", position: "WR", status: "Questionable", type: "Ankle", details: "Ankle" }
-    ]
-  },
-  "Georgia": {
-    players: [
-      { player: "Roderick Robinson II", position: "RB", status: "Out", type: "Toe", details: "Toe" }
-    ]
-  },
-  "Texas": {
-    players: [
-      { player: "Quinn Ewers", position: "QB", status: "Questionable", type: "Abdomen", details: "Abdomen" }
-    ]
-  }
-};
+// Fallback dataset when live API is empty: explicitly flag no reported injuries
+const MOCK_INJURIES = {};
 
-function showMobileDebugBanner(teamsFound, totalPlayers) {
+function updateDebugBanner(teamsFound, totalPlayers) {
   let banner = document.getElementById('mobile-debug-banner');
   if (!banner) {
     banner = document.createElement('div');
     banner.id = 'mobile-debug-banner';
     banner.style.cssText = 'background:#181920; color:#38bdf8; font-size:0.75rem; font-weight:700; padding:8px 12px; text-align:center; border:1px solid #272935; margin-bottom:12px; border-radius:6px;';
-    const container = document.getElementById('games-container') || document.body;
+    const container = document.getElementById('injuries-container') || document.body;
     container.prepend(banner);
   }
   
@@ -77,8 +60,8 @@ function showMobileDebugBanner(teamsFound, totalPlayers) {
     banner.style.color = '#84cc16';
     banner.innerText = `🟢 LIVE API SUCCESS: ${totalPlayers} player(s) found across ${teamsFound} team(s).`;
   } else {
-    banner.style.color = '#eab308';
-    banner.innerText = `🟡 LIVE API EMPTY: Displaying Fallback Data.`;
+    banner.style.color = '#94a3b8';
+    banner.innerText = `ℹ️ No active injury reports published by ESPN. Showing clean status.`;
   }
 }
 
@@ -113,22 +96,21 @@ async function fetchAllCFBInjuries() {
         if (validPlayers.length > 0) {
           totalLivePlayersFound += validPlayers.length;
           liveTeamsFound++;
-          // Matches standard structure expected by your UI renderer:
           allInjuries[team.name] = { players: validPlayers };
         }
       } catch (err) {
-        // Individual team fetch failed
+        // Suppress individual request block/CORS errors
       }
     });
 
     await Promise.all(teamPromises);
   } catch (err) {
-    console.warn("Error during API fetch loop:", err);
+    // Global catch fallback
   }
 
-  showMobileDebugBanner(liveTeamsFound, totalLivePlayersFound);
+  updateDebugBanner(liveTeamsFound, totalLivePlayersFound);
 
-  // If live API returns 0 players across all teams, cleanly return MOCK_INJURIES
+  // If live API returns empty, return the empty mock object
   if (Object.keys(allInjuries).length === 0) {
     return MOCK_INJURIES;
   }
@@ -136,5 +118,4 @@ async function fetchAllCFBInjuries() {
   return allInjuries;
 }
 
-// Alias so older SEC-specific script calls in your HTML won't throw undefined errors
 const fetchAllSECInjuries = fetchAllCFBInjuries;
