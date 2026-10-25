@@ -1,24 +1,28 @@
 <script>
   async function loadReports() {
     const container = document.getElementById('injuries-container');
-    if (!container) return;
+    if (!container) {
+      console.error("Injuries error: #injuries-container element not found on the page.");
+      return;
+    }
 
     try {
+      // Show a loading state so you never see a blank white screen
+      container.innerHTML = "<p style='color: #38bdf8; text-align: center; padding: 20px;'>Loading injury reports...</p>";
+
       const fetchFn = window.fetchAllCFBInjuries || window.fetchAllSECInjuries;
       if (!fetchFn) {
-        container.innerHTML = "<p style='color:var(--red);'>injuries.js script failed to load.</p>";
+        container.innerHTML = "<p style='color:var(--red, #ef4444);'>injuries.js script failed to load (functions not found on window).</p>";
         return;
       }
 
-      // Fetch injury data (allowing full request execution)
+      // Fetch injury data
       const data = await fetchFn();
       
-      // Remove loading state / debug elements
+      // Clear loading state
       container.innerHTML = "";
       
       const teams = Object.keys(data || {});
-      
-      // Filter down to teams that actually have players in their injury array
       const activeTeams = teams.filter(t => data[t]?.players && data[t].players.length > 0);
 
       if (activeTeams.length === 0) {
@@ -32,7 +36,7 @@
 
       activeTeams.forEach(teamName => {
         const teamData = data[teamName];
-        const players = teamData.players;
+        const players = teamData.players || [];
 
         const card = document.createElement('div');
         card.className = 'team-card';
@@ -46,10 +50,10 @@
           return `
             <div class="player-row">
               <div class="player-info">
-                <span class="player-name">${p.player} ${p.position ? `(${p.position})` : ''}</span>
+                <span class="player-name">${p.player || 'Unknown Player'} ${p.position ? `(${p.position})` : ''}</span>
                 <span class="player-detail">${p.details || p.type || ''}</span>
               </div>
-              <span class="${badgeClass}">${p.status}</span>
+              <span class="${badgeClass}">${p.status || 'Unknown'}</span>
             </div>
           `;
         }).join('');
@@ -66,9 +70,15 @@
       });
 
     } catch (err) {
-      container.innerHTML = `<p style="color:var(--red);">Error rendering page: ${err.message}</p>`;
+      console.error("Error inside loadReports:", err);
+      container.innerHTML = `<p style="color:var(--red, #ef4444);">Error rendering page: ${err.message}</p>`;
     }
   }
 
-  document.addEventListener('DOMContentLoaded', loadReports);
+  // Robust execution check: handles both normal loads and late injections
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadReports);
+  } else {
+    loadReports();
+  }
 </script>
