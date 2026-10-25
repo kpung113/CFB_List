@@ -96,10 +96,48 @@ The final internal priority score is mapped to an integer value from **0 to 10**
 
 ### 3. `grid.html` (Saturday Master Game Matrix)
 * **Purpose:** Provide a high-density, minimal-scrolling view of all live games and completed games happening on Saturdays, capturing everything going on across college sports on a given Saturday.
-* **Sorting & Ordering Rules:**
-  * SEC games prioritized.
-  * Top 25 ranked matchups featured prominently.
-  * Specific conference sorting order hierarchy to optimize game-day scanning on mobile screens.
+# College Football Game Sorting & Priority Rules
+
+## 1. Sorting Hierarchy Overview
+Games (both live and completed) are ordered according to the following strict tier-based sequence:
+1. **SEC Games** (Highest priority)
+2. **Top 25 Matchups** (Ranked #1 through #25 in numerical order)
+3. **Non-Ranked Conferences** (Ordered by conference hierarchy)
+
+---
+
+## 2. Detailed Priority Tiers
+
+### Tier 1: SEC Teams
+* **Condition:** Any game involving an SEC team (`conferenceId: 8`).
+* **Priority Value:** `1`
+
+### Tier 2: Top 25 Ranked Teams
+* **Condition:** Any game featuring a team with a Top 25 ranking ($1 \le \text{Rank} \le 25$).
+* **Ordering:** Sorted dynamically by their highest ranking (e.g., #1 matches appear before #2, #2 before #3, up to #25).
+* **Priority Value:** `2 + Rank` (Values range from `3` to `27`)
+
+### Tier 3: Non-Ranked Conferences
+For unranked matchups outside the SEC, games are grouped and ordered by conference ID sequence:
+
+| Order | Conference Name | Conference ID | Conf Key Tag |
+| :---: | :--- | :---: | :---: |
+| **1** | Big Ten | `5` | `BTN` |
+| **2** | Big 12 | `4` / `151` | `B12` |
+| **3** | ACC | `1` | `ACC` |
+| **4** | MAC | `151` | `MAC` |
+| **5** | Conference USA (CUSA) | `12` | `CUSA` |
+| **6** | Mountain West (MW) | `17` | `MWC` |
+| **7** | Pac-12 | `9` | `PAC12` |
+| **8** | Sun Belt (SBC) | `37` | `SBC` |
+| **9** | Other / AAC / Independents | *Various* | `OTHR` |
+
+---
+
+## 3. Secondary Sort Rule
+* **Tie-Breaker:** If two games fall within the exact same priority tier, they are sorted chronologically by their **game start time** (earliest first).
+* 
+
 
 ### 4. `away.html` (Geographic Away Game Distance Calculator)
 * **Purpose:** Allow users to input a ZIP code to calculate and display all away games sorted by straight-line mile distance (shortest distance first).
