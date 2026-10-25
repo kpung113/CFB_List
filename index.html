@@ -45,6 +45,7 @@
     .team-row.loser{color:#64748b;}
     .score{font-size:1.25rem;font-weight:bold;}
     .sort-tag{background:#334155;color:#38bdf8;font-size:.6rem;padding:2px 5px;border-radius:3px;font-weight:700;margin-right:6px;}
+    .conf-tag{background:#272935;color:var(--sub);font-size:.6rem;padding:2px 5px;border-radius:3px;font-weight:700;margin-right:6px;border:1px solid #334155;}
     .drive-banner{font-size:.75rem;color:#38bdf8;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);padding:4px 8px;border-radius:6px;margin:8px 0;font-weight:600;}
     .watch-btn{color:#fff;text-decoration:none;font-weight:bold;font-size:.75rem;background:var(--maroon);border:1px solid #7d2033;padding:3px 8px;border-radius:4px;}
     .intensity-container{display:flex;align-items:center;gap:10px;background:#111319;border:1px solid var(--border);border-radius:8px;padding:6px 12px;}
@@ -150,7 +151,7 @@
     }
 
     function sortCompletedGames(games) {
-      return games.sort((a, b) => (isSEC(b) - isSEC(a)) || (isRanked(b) - isRanked(a)) || (getGameConfTier(a) - getGameConfTier(b)) || (a.gDate - b.gDate));
+      return games.sort((a, b) => (isSEC(b) - isSEC(a)) || (isRanked(b) - isRanked(b)) || (getGameConfTier(a) - getGameConfTier(b)) || (a.gDate - b.gDate));
     }
 
     function calculateLivePriorityScore(g) {
@@ -215,9 +216,7 @@
       
       const hConf = getConfKey(home?.team);
       const aConf = getConfKey(away?.team);
-      // Added 'aac' here so major conference matchups like UTSA/Tulane don't overshadow close P4 games inappropriately, 
-      // or ensure matching Power groups score correctly together.
-      const isPowerMajor = c => ['sec', 'bigten', 'big12', 'acc', 'aac'].includes(c);
+      const isPower4 = c => ['sec', 'bigten', 'big12', 'acc'].includes(c);
 
       if (homeIsSec && awayIsSec) {
         base = 1200; // 1. SEC vs SEC
@@ -225,8 +224,8 @@
         base = 1000; // 2. Ranked vs Ranked
       } else if (hRnk <= 25 || aRnk <= 25) {
         base = 800;  // 3. Ranked vs Anyone else
-      } else if (isPowerMajor(hConf) && isPowerMajor(aConf)) {
-        base = 500;  // 4. Power 4 / Major vs Major
+      } else if (isPower4(hConf) && isPower4(aConf)) {
+        base = 500;  // 4. Power 4 vs Power 4
       } else {
         base = 200;  // 5. All others
       }
@@ -323,6 +322,11 @@
           let spread = comp.odds?.[0]?.details || comp.odds?.[0]?.summary || '';
           if (spread === 'null' || spread === 'EVEN') spread = '';
 
+          // Capture conference text/labels for display check
+          const hConfName = home.team?.conference?.abbreviation || home.team?.conference?.name || getConfKey(home.team);
+          const aConfName = away.team?.conference?.abbreviation || away.team?.conference?.name || getConfKey(away.team);
+          const confDisplayTag = hConfName === aConfName ? hConfName : `${aConfName} / ${hConfName}`;
+
           const sit = comp.situation;
           let driveText = '';
           if (state === 'in' && sit) {
@@ -351,7 +355,7 @@
             homeScore: home.score || "0", awayScore: away.score || "0",
             homeWinner: home.winner, awayWinner: away.winner,
             state, statusDetail: e.status?.type?.shortDetail || '', period: e.status?.period || 0,
-            isSec, hasRanked, bestRank, tv, spread, winProb,
+            isSec, hasRanked, bestRank, tv, spread, winProb, confDisplayTag,
             posId: String(sit?.possession || ''), driveText, gDate, rawEvent: e
           };
 
@@ -399,7 +403,7 @@
           dHeader.innerText = dayGames[0].gDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
           container.appendChild(dHeader);
 
-          if (dayGames[0].gDate.getDay() === 6) {
+if (dayGames[0].gDate.getDay() === 6) {
             const sec = dayGames.filter(g => g.isSec);
             const ranked = dayGames.filter(g => !g.isSec && g.hasRanked);
             const other = dayGames.filter(g => !g.isSec && !g.hasRanked);
@@ -463,6 +467,7 @@
         <div class="card-header">
           <span>${g.statusDetail}</span>
           <span class="card-header-right">
+            <span class="conf-tag">${g.confDisplayTag}</span>
             <span class="broadcast">${isCompleted ? `<span class="sort-tag">${getGameSortTag(g)}</span>` : ''}<strong style="color:#84cc16;">📺 ${g.tv}</strong></span>
             <a href="https://www.espn.com/college-football/game/_/gameId/${g.id}" target="_blank" rel="noopener noreferrer" class="watch-btn">Gamecast</a>
           </span>
