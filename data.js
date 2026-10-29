@@ -81,9 +81,6 @@ const masterDataset = [
   { sportKey: 'womens-basketball', opponent: 'Kentucky', isoDate: '2027-02-28', timeStr: '2:00 PM', isHome: false, location: 'Lexington, Ky.', result: '' },
 
   // BASEBALL
-  { sportKey: 'baseball', opponent: 'Auburn (Exh.)', isoDate: '2025-10-08', timeStr: '7:00 PM', isHome: false, location: 'Biloxi (Keesler Federal Park)', result: '' },
-  { sportKey: 'baseball', opponent: 'Southern Miss (Exh.)', isoDate: '2025-10-10', timeStr: '3:00 PM', isHome: false, location: 'Biloxi (Keesler Federal Park)', result: '' },
-  { sportKey: 'baseball', opponent: 'Western Kentucky (Exh.)', isoDate: '2025-10-18', timeStr: '2:00 PM', isHome: false, location: 'Jackson, Tenn. (Rockabillys Stadium)', result: '' },
   { sportKey: 'baseball', opponent: 'Little Rock (Exh.)', isoDate: '2025-10-30', timeStr: '7:00 PM', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'baseball', opponent: 'Stony Brook', isoDate: '2027-02-19', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'baseball', opponent: 'Stony Brook', isoDate: '2027-02-20', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
