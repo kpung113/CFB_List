@@ -14,8 +14,6 @@ const masterDataset = [
   { sportKey: 'football', opponent: 'Ole Miss', isoDate: '2026-11-27', timeStr: '12:00 PM', isHome: false, location: 'Oxford, Miss.', result: '' },
 
   // MEN'S BASKETBALL
-  { sportKey: 'mens-basketball', opponent: 'North Carolina State (Exh.)', isoDate: '2026-10-18', timeStr: '4:00 PM', isHome: false, location: 'Greensboro, N.C.', result: '' },
-  { sportKey: 'mens-basketball', opponent: 'Memphis (Exh.)', isoDate: '2026-10-23', timeStr: '8:00 PM', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'mens-basketball', opponent: 'Tennessee Tech', isoDate: '2026-11-02', timeStr: '7:30 PM', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'mens-basketball', opponent: 'Northwestern State', isoDate: '2026-11-05', timeStr: '7:30 PM', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'mens-basketball', opponent: 'Jackson State', isoDate: '2026-11-09', timeStr: '7:30 PM', isHome: true, location: 'Starkville', result: '' },
@@ -51,7 +49,6 @@ const masterDataset = [
   { sportKey: 'mens-basketball', opponent: 'TBA (SEC Tournament)', isoDate: '2027-03-10', timeStr: 'TBD', isHome: false, location: 'Nashville, Tenn.', result: '' },
 
   // WOMEN'S BASKETBALL
-  { sportKey: 'womens-basketball', opponent: 'Louisiana Tech', isoDate: '2026-10-18', timeStr: '5:00 PM', isHome: false, location: 'Choctaw, Miss.', result: '' },
   { sportKey: 'womens-basketball', opponent: 'North Alabama', isoDate: '2026-11-03', timeStr: '7:30 PM', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'womens-basketball', opponent: 'UT Martin', isoDate: '2026-11-08', timeStr: '3:00 PM', isHome: false, location: 'Martin, Tenn.', result: '' },
   { sportKey: 'womens-basketball', opponent: 'Troy', isoDate: '2026-11-11', timeStr: '7:30 PM', isHome: true, location: 'Starkville', result: '' },
