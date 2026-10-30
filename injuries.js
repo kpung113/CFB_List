@@ -4,20 +4,18 @@ window.fetchAllSECInjuries = async function() {
     if (!response.ok) return {};
     
     const flatInjuries = await response.json();
-    
-    // Group the flat list by team so your HTML page card layout can render them
     const grouped = {};
     
-    if (Array.isArray(flatInjuries)) {
+    if (Array.isArray(flatInjuries) && flatInjuries.length > 0) {
       flatInjuries.forEach(item => {
         const teamName = item.team || "SEC Team";
         if (!grouped[teamName]) {
           grouped[teamName] = { players: [] };
         }
         grouped[teamName].players.push({
-          player: item.player,
-          position: item.position,
-          status: item.status,
+          player: item.player || "Unknown",
+          position: item.position || "",
+          status: item.status || "Available",
           details: item.details || ""
         });
       });
