@@ -1,29 +1,34 @@
-window.fetchAllSECInjuries = async function() {
+async function fetchAllSECInjuries() {
   try {
-    const response = await fetch('./sec-injuries.json?' + new Date().getTime());
-    if (!response.ok) return {};
-    
-    const flatInjuries = await response.json();
+    // Add cache-busting timestamp so the browser doesn't serve old JSON
+    const res = await fetch('./sec-injuries.json?' + new Date().getTime());
+    if (!res.ok) return {};
+
+    const rawData = await res.json();
     const grouped = {};
-    
-    if (Array.isArray(flatInjuries) && flatInjuries.length > 0) {
-      flatInjuries.forEach(item => {
+
+    if (Array.isArray(rawData)) {
+      rawData.forEach(item => {
         const teamName = item.team || "SEC Team";
         if (!grouped[teamName]) {
           grouped[teamName] = { players: [] };
         }
         grouped[teamName].players.push({
-          player: item.player || "Unknown",
+          player: item.player || "Unknown Player",
           position: item.position || "",
-          status: item.status || "Available",
+          status: item.status || "Questionable",
           details: item.details || ""
         });
       });
     }
-    
+
     return grouped;
   } catch (err) {
-    console.error("Failed to load SEC injuries JSON:", err);
+    console.error("Error fetching SEC injury data:", err);
     return {};
   }
-};
+}
+
+// Attach functions to window for injuries.html to call
+window.fetchAllSECInjuries = fetchAllSECInjuries;
+window.fetchAllCFBInjuries = fetchAllSECInjuries;
