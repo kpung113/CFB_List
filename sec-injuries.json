@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "player": "Player Name",
+    "position": "QB",
+    "status": "Questionable",
+    "team": "Mississippi State"
+  }
+]
