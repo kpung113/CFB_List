@@ -260,8 +260,23 @@
       }
 
       const totalRaw = base + marginScore + timeScore + upsetBoost;
-      return Math.round(totalRaw);
+      let finalScore = Math.round(totalRaw);
+
+      // --- 5. CAP UNRANKED VS UNRANKED MATCHUPS AT A 7 (Raw equivalent ~1120) ---
+      const isUnrankedMatchup = (hRnk > 25 && aRnk > 25);
+      if (isUnrankedMatchup) {
+        // 1600 ceiling * (7 / 10) = 1120 raw score cap
+        const unrankedCapRaw = 1120;
+        if (finalScore > unrankedCapRaw) {
+          finalScore = unrankedCapRaw;
+        }
+      }
+
+      return finalScore;
     }
+    
+    
+  
     
     
     function renderIntensityMeter(rawScore) {
