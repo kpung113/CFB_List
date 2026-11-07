@@ -100,6 +100,8 @@
       updateToggleButtonState();
       if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
       if (typeof renderSharedNav === 'function') renderSharedNav();
+      fetchScores();
+      setInterval(fetchScores, 30000);
     });
 
     const isSEC = g => g.rawEvent.competitions[0].competitors.some(c => String(c.team?.conferenceId || c.team?.conference?.id) === '8');
@@ -163,6 +165,68 @@
         const pA = getGamePriority(a), pB = getGamePriority(b);
         return pA !== pB ? pA - pB : new Date(a.gDate) - new Date(b.gDate);
       });
+    }
+
+    function renderGameCard(g, containerEl) {
+      const card = document.createElement('div');
+      const isCompleted = g.state === 'post';
+      
+      let cardClass = 'game-card';
+      if (g.state === 'in') {
+        cardClass += (g.period >= 4 ? ' live-4q' : ' live');
+      } else if (isCompleted) {
+        cardClass += ' completed-card';
+      } else if (g.isSec) {
+        cardClass += ' sec-game';
+      } else if (g.hasRanked) {
+        cardClass += ' ranked-game';
+      }
+      card.className = cardClass;
+
+      const isHomePos = g.posId === g.homeId;
+      const isAwayPos = g.posId === g.awayId;
+
+      let awayClass = '', homeClass = '';
+      if (isCompleted) {
+        if (g.awayWinner) { awayClass = ' winner'; homeClass = ' loser'; }
+        else if (g.homeWinner) { homeClass = ' winner'; awayClass = ' loser'; }
+      }
+
+      const hasIntensity = g.state === 'in' && typeof g.priorityScore === 'number';
+      const hasMeta = g.spread || g.winProb;
+
+      let footerHtml = '';
+      if (hasIntensity || hasMeta) {
+        footerHtml = `<div class="card-footer-flex">`;
+        if (hasIntensity) {
+          footerHtml += renderIntensityMeter(g.priorityScore);
+        }
+        if (hasMeta) {
+          footerHtml += `<div class="win-prob-badge">${g.winProb ? `<span>${g.winProb}</span>` : (g.spread ? `<span>${g.spread}</span>` : '')}</div>`;
+        }
+        footerHtml += `</div>`;
+      }
+
+      card.innerHTML = `
+        <div class="card-header">
+          <span>${g.statusDetail}</span>
+          <span class="card-header-right">
+            <span class="broadcast">${isCompleted ? `<span class="sort-tag">${getGameSortTag(g)}</span>` : ''}<strong style="color:#84cc16;">📺 ${g.tv}</strong></span>
+            <a href="https://www.espn.com/college-football/game/_/gameId/${g.id}" target="_blank" rel="noopener noreferrer" class="watch-btn">Gamecast</a>
+          </span>
+        </div>
+        <div class="team-row${awayClass}">
+          <span>${isAwayPos ? '🏈 ' : ''}${g.awayRank}${g.awayTeam} <span style="font-size:0.75rem; color:var(--sub); font-weight:normal;">${g.awayRecord ? `(${g.awayRecord})` : ''}</span></span>
+          <span class="score">${g.state === 'pre' ? '' : g.awayScore}</span>
+        </div>
+        <div class="team-row${homeClass}">
+          <span>${isHomePos ? '🏈 ' : ''}${g.homeRank}${g.homeTeam} <span style="font-size:0.75rem; color:var(--sub); font-weight:normal;">${g.homeRecord ? `(${g.homeRecord})` : ''}</span></span>
+          <span class="score">${g.state === 'pre' ? '' : g.homeScore}</span>
+        </div>
+        ${g.driveText ? `<div class="drive-banner">Drive: ${g.driveText}</div>` : ''}
+        ${footerHtml}
+      `;
+      containerEl.appendChild(card);
     }
 
     async function fetchScores() {
@@ -252,9 +316,37 @@
         upcoming.sort((a, b) => new Date(a.gDate) - new Date(b.gDate) || (a.isSec ? 1 : 2) - (b.isSec ? 1 : 2));
         sortGamesList(finals);
 
+        const container = document.getElementById("games-container");
+        container.innerHTML = "";
+
+        if (live.length > 0) {
+          const lH = document.createElement('div');
+          lH.className = 'day-header';
+          lH.innerText = '🔴 Live Games';
+          container.appendChild(lH);
+          live.forEach(g => renderGameCard(g, container));
+        }
+
+        if (upcoming.length > 0ULL || upcoming.length > 0) {
+          const uH = document.createElement('div');
+          uH.className = 'day-header';
+          uH.innerText = '📅 Upcoming Games';
+          container.appendChild(uH);
+          upcoming.forEach(g => renderGameCard(g, container));
+        }
+
+        if (finals.length > 0) {
+          const fH = document.createElement('div');
+          fH.className = 'day-header';
+          fH.innerText = '✅ Final Scores';
+          container.appendChild(fH);
+          finals.forEach(g => renderGameCard(g, container));
+        }
+
         statusEl.innerText = "Live • 30s";
       } catch (err) {
         statusEl.innerText = "Error Loading";
+        console.error(err);
       }
     }
   </script>
