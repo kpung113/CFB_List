@@ -163,8 +163,7 @@
         return pA !== pB ? pA - pB : new Date(a.gDate) - new Date(b.gDate);
       });
     }
-
-      function calculateLivePriorityScore(g) {
+function calculateLivePriorityScore(g) {
       const comp = g.rawEvent?.competitions?.[0];
       const home = comp?.competitors?.find(c => c.homeAway === 'home');
       const away = comp?.competitors?.find(c => c.homeAway === 'away');
@@ -196,34 +195,30 @@
                                        (aRnk > 25 && hRnk <= 10 && awayScore > homeScore && margin > 10);
 
       // --- 1. SNOOZEFEST RULE (0–2) ---
-      // Margin > 16 with the exception of a Top 10 team losing big
       if (margin > 16 && !top10TeamLosingBy16) {
         return p >= 4 ? 2 : 1;
       }
 
       // --- 2. POINT REDUCTIONS & HARD CAPS ---
       let maxAllowed = 10;
-      // Maxes at an 8 if margin > 16 with < 10 mins remaining in 4th (rem <= 600)
       if (p === 4 && rem <= 600 && margin > 16 && !top10TeamLosingBy16) {
         maxAllowed = Math.min(maxAllowed, 8);
       }
-      // Maxes at an 8 if margin > 10 with < 5 mins remaining in 4th (rem <= 300)
       if (p === 4 && rem <= 300 && margin > 10 && !unrankedLeadingTop10By10) {
         maxAllowed = Math.min(maxAllowed, 8);
       }
 
       // --- 3. TURN TV ON NOW! (9–10) ---
-      // Must be SEC or ranked. Must be within 10-point margin UNLESS unranked team leading top 10 by > 10.
       const isEligibleForTopTier = isSEC || isRanked;
       const within10OrTop10Upset = (margin <= 10) || unrankedLeadingTop10By10;
 
       if (isEligibleForTopTier && within10OrTop10Upset) {
-        let score = (p >= 3 || margin <= 4) ? 10 : 9;
+        // Can only hit a 10 if it's the 4th quarter or overtime (p >= 4)
+        let score = (p >= 4 && (margin <= 4 || unrankedLeadingTop10By10)) ? 10 : 9;
         return Math.min(score, maxAllowed);
       }
 
       // --- 4. GREAT GAME (6–8) ---
-      // SEC or game including ranked teams, margin within 16
       if (isEligibleForTopTier && margin <= 16) {
         let score = 7;
         if (margin <= 10 && p >= 3) score = 8;
@@ -232,7 +227,6 @@
       }
 
       // --- 5. WATCHABLE (3–5) ---
-      // Non-SEC, unranked teams, margin within 16
       if (!isSEC && !isRanked && margin <= 16) {
         let score = 4;
         if (margin <= 10 && p >= 3) score = 5;
@@ -241,7 +235,9 @@
       }
 
       return Math.min(4, maxAllowed);
-      }
+}
+    
+       
     
     
     function renderIntensityMeter(rawScore) {
