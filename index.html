@@ -164,101 +164,85 @@
       });
     }
 
-    function calculateLivePriorityScore(g) {
+      function calculateLivePriorityScore(g) {
       const comp = g.rawEvent?.competitions?.[0];
       const home = comp?.competitors?.find(c => c.homeAway === 'home');
       const away = comp?.competitors?.find(c => c.homeAway === 'away');
       
       const homeConfId = String(home?.team?.conferenceId || home?.team?.conference?.id || '');
       const awayConfId = String(away?.team?.conferenceId || away?.team?.conference?.id || '');
-      
-      const homeIsSec = homeConfId === '8';
-      const awayIsSec = awayConfId === '8';
+      const isSEC = (homeConfId === '8' || awayConfId === '8');
       
       const hRank = home?.curatedRank?.current;
       const aRank = away?.curatedRank?.current;
       const hRnk = hRank && hRank <= 25 ? hRank : 99;
       const aRnk = aRank && aRank <= 25 ? aRank : 99;
+      const isRanked = (hRnk <= 25 || aRnk <= 25);
 
       const homeScore = parseInt(g.homeScore || 0);
       const awayScore = parseInt(g.awayScore || 0);
       const margin = Math.abs(homeScore - awayScore);
       const p = g.period || 1;
 
-      let upsetBonus = 0;
-      let isUpsetAlert = false;
-
-      if (hRnk <= 25) {
-        const deficit = awayScore - homeScore; 
-        const lead = homeScore - awayScore;   
-        
-        if (deficit >= 10) {
-          isUpsetAlert = true;
-          upsetBonus = hRnk <= 10 ? 900 : 500;
-        } else if (deficit > 0) {
-          isUpsetAlert = true;
-          upsetBonus = hRnk <= 10 ? 500 : 300;
-        }
-        
-        if (hRnk <= 10 && p >= 3 && lead <= 7) {
-          isUpsetAlert = true;
-          upsetBonus = Math.max(upsetBonus, 650);
-        }
-      } 
-      else if (aRnk <= 25) {
-        const deficit = homeScore - awayScore; 
-        const lead = awayScore - homeScore;   
-
-        if (deficit >= 10) {
-          isUpsetAlert = true;
-          upsetBonus = aRnk <= 10 ? 900 : 500;
-        } else if (deficit > 0) {
-          isUpsetAlert = true;
-          upsetBonus = aRnk <= 10 ? 500 : 300;
-        }
-
-        if (aRnk <= 10 && p >= 3 && lead <= 7) {
-          isUpsetAlert = true;
-          upsetBonus = Math.max(upsetBonus, 650);
-        }
-      }
-
-      let base = 200;
-      const isPower4Team = id => ['8', '5', '4', '1', '151'].includes(id);
-
-      if (homeIsSec && awayIsSec) {
-        base = 1200;
-      } else if (hRnk <= 25 && aRnk <= 25) {
-        base = 1000;
-      } else if (hRnk <= 25 || aRnk <= 25) {
-        base = 800;
-      } else if (isPower4Team(homeConfId) && isPower4Team(awayConfId)) {
-        base = 500;
-      } else {
-        base = 200;
-      }
-
-      const marginBonus = margin <= 10 ? Math.round((10 - margin) * 6.25) : 0;
-      let timeScore = 0;
       let rem = 900;
       const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
       if (m) rem = parseInt(m[1]) * 60 + parseInt(m[2]);
-      const quarterElapsed = 900 - rem;
 
-      if (margin > 10 && !isUpsetAlert) {
-        const blowoutScore = Math.round((base * 0.1));
-        return blowoutScore;
+      // --- EXCEPTIONS & SPECIAL CONDITIONS ---
+      const top10TeamLosingBy16 = (hRnk <= 10 && homeScore < awayScore && margin > 16) || 
+                                  (aRnk <= 10 && awayScore < homeScore && margin > 16);
+      
+      const unrankedLeadingTop10By10 = (hRnk > 25 && aRnk <= 10 && homeScore > awayScore && margin > 10) ||
+                                       (aRnk > 25 && hRnk <= 10 && awayScore > homeScore && margin > 10);
+
+      // --- 1. SNOOZEFEST RULE (0–2) ---
+      // Margin > 16 with the exception of a Top 10 team losing big
+      if (margin > 16 && !top10TeamLosingBy16) {
+        return p >= 4 ? 2 : 1;
       }
 
-      if (p === 1) timeScore = Math.round((quarterElapsed / 900) * 25);
-      else if (p === 2) timeScore = 25 + Math.round((quarterElapsed / 900) * 50);
-      else if (p === 3) timeScore = 100 + Math.round((quarterElapsed / 900) * 100);
-      else if (p === 4) timeScore = 300 + Math.round((quarterElapsed / 900) * 300);
-      else if (p > 4) timeScore = 700;
+      // --- 2. POINT REDUCTIONS & HARD CAPS ---
+      let maxAllowed = 10;
+      // Maxes at an 8 if margin > 16 with < 10 mins remaining in 4th (rem <= 600)
+      if (p === 4 && rem <= 600 && margin > 16 && !top10TeamLosingBy16) {
+        maxAllowed = Math.min(maxAllowed, 8);
+      }
+      // Maxes at an 8 if margin > 10 with < 5 mins remaining in 4th (rem <= 300)
+      if (p === 4 && rem <= 300 && margin > 10 && !unrankedLeadingTop10By10) {
+        maxAllowed = Math.min(maxAllowed, 8);
+      }
 
-      const rawScore = base + marginBonus + timeScore;
-      return rawScore + upsetBonus;
-    }
+      // --- 3. TURN TV ON NOW! (9–10) ---
+      // Must be SEC or ranked. Must be within 10-point margin UNLESS unranked team leading top 10 by > 10.
+      const isEligibleForTopTier = isSEC || isRanked;
+      const within10OrTop10Upset = (margin <= 10) || unrankedLeadingTop10By10;
+
+      if (isEligibleForTopTier && within10OrTop10Upset) {
+        let score = (p >= 3 || margin <= 4) ? 10 : 9;
+        return Math.min(score, maxAllowed);
+      }
+
+      // --- 4. GREAT GAME (6–8) ---
+      // SEC or game including ranked teams, margin within 16
+      if (isEligibleForTopTier && margin <= 16) {
+        let score = 7;
+        if (margin <= 10 && p >= 3) score = 8;
+        if (margin > 10 && p <= 2) score = 6;
+        return Math.min(score, maxAllowed);
+      }
+
+      // --- 5. WATCHABLE (3–5) ---
+      // Non-SEC, unranked teams, margin within 16
+      if (!isSEC && !isRanked && margin <= 16) {
+        let score = 4;
+        if (margin <= 10 && p >= 3) score = 5;
+        if (margin > 10) score = 3;
+        return Math.min(score, maxAllowed);
+      }
+
+      return Math.min(4, maxAllowed);
+      }
+    
     
     function renderIntensityMeter(rawScore) {
       const displayScore = Math.min(Math.max(Math.round((rawScore / 1600) * 10), 0), 10);
