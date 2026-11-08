@@ -81,7 +81,6 @@ const masterDataset = [
   { sportKey: 'womens-basketball', opponent: 'Kentucky', isoDate: '2027-02-28', timeStr: '2:00 PM', isHome: false, location: 'Lexington, Ky.', result: '' },
 
   // BASEBALL
-  { sportKey: 'baseball', opponent: 'Little Rock (Exh.)', isoDate: '2025-10-30', timeStr: '7:00 PM', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'baseball', opponent: 'Stony Brook', isoDate: '2027-02-19', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'baseball', opponent: 'Stony Brook', isoDate: '2027-02-20', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
   { sportKey: 'baseball', opponent: 'Stony Brook', isoDate: '2027-02-21', timeStr: 'TBA', isHome: true, location: 'Starkville', result: '' },
