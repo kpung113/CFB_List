@@ -240,42 +240,43 @@ function calculateLivePriorityScore(g) {
        
     
     
-    function renderIntensityMeter(rawScore) {
-      const displayScore = Math.min(Math.max(Math.round((rawScore / 1600) * 10), 0), 10);
+    function renderIntensityMeter(score0to10) {
+  const displayScore = Math.min(Math.max(Math.round(score0to10), 0), 10);
 
-      let label = 'Snoozefest', color = '#ef4444', angle = -40;
+  let label = 'Snoozefest', color = '#ef4444', angle = -40;
 
-      if (displayScore >= 9) {
-        label = 'TURN TV ON NOW!';
-        color = '#84cc16';
-        angle = 55;
-      } else if (displayScore >= 6) {
-        label = 'Great Game';
-        color = '#22c55e';
-        angle = 25;
-      } else if (displayScore >= 3) {
-        label = 'Watchable';
-        color = '#eab308';
-        angle = 0;
-      }
+  if (displayScore >= 9) {
+    label = 'TURN TV ON NOW!';
+    color = '#84cc16';
+    angle = 55;
+  } else if (displayScore >= 6) {
+    label = 'Great Game';
+    color = '#22c55e';
+    angle = 25;
+  } else if (displayScore >= 3) {
+    label = 'Watchable';
+    color = '#eab308';
+    angle = 0;
+  }
 
-      return `
-        <div class="intensity-container">
-          <div class="gauge-wrapper">
-            <svg class="gauge-svg" viewBox="0 0 100 55">
-              <path d="M 10 50 A 40 40 0 0 1 33.4 18.2" fill="none" stroke="#ef4444" stroke-width="12"/>
-              <path d="M 33.4 18.2 A 40 40 0 0 1 66.6 18.2" fill="none" stroke="#eab308" stroke-width="12"/>
-              <path d="M 66.6 18.2 A 40 40 0 0 1 90 50" fill="none" stroke="#22c55e" stroke-width="12"/>
-              <circle cx="50" cy="50" r="5" fill="#f8fafc"/>
-              <g transform="rotate(${angle}, 50, 50)"><polygon points="47,50 53,50 50,14" fill="#f8fafc"/></g>
-            </svg>
-          </div>
-          <div class="intensity-text-group">
-            <span class="intensity-label" style="color:${color};">${label}</span>
-            <span class="intensity-score">Intensity Score: ${displayScore}</span>
-          </div>
-        </div>`;
+  return `
+    <div class="intensity-container">
+      <div class="gauge-wrapper">
+        <svg class="gauge-svg" viewBox="0 0 100 55">
+          <path d="M 10 50 A 40 40 0 0 1 33.4 18.2" fill="none" stroke="#ef4444" stroke-width="12"/>
+          <path d="M 33.4 18.2 A 40 40 0 0 1 66.6 18.2" fill="none" stroke="#eab308" stroke-width="12"/>
+          <path d="M 66.6 18.2 A 40 40 0 0 1 90 50" fill="none" stroke="#22c55e" stroke-width="12"/>
+          <circle cx="50" cy="50" r="5" fill="#f8fafc"/>
+          <g transform="rotate(${angle}, 50, 50)"><polygon points="47,50 53,50 50,14" fill="#f8fafc"/></g>
+        </svg>
+      </div>
+      <div class="intensity-text-group">
+        <span class="intensity-label" style="color:${color};">${label}</span>
+        <span class="intensity-score">Intensity Score: ${displayScore}</span>
+      </div>
+    </div>`;
     }
+    
 
     async function fetchScores() {
       const statusEl = document.getElementById("update-status");
