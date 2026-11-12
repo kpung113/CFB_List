@@ -163,7 +163,8 @@
         return pA !== pB ? pA - pB : new Date(a.gDate) - new Date(b.gDate);
       });
     }
-function calculateLivePriorityScore(g) {
+
+        function calculateLivePriorityScore(g) {
       const comp = g.rawEvent?.competitions?.[0];
       const home = comp?.competitors?.find(c => c.homeAway === 'home');
       const away = comp?.competitors?.find(c => c.homeAway === 'away');
@@ -178,6 +179,28 @@ function calculateLivePriorityScore(g) {
       const aRnk = aRank && aRank <= 25 ? aRank : 99;
       const isRanked = (hRnk <= 25 || aRnk <= 25);
 
+      // --- 15-MINUTE PRE-GAME WINDOW CHECK ---
+      const gameDate = comp?.date || g.date;
+      if (gameDate) {
+        const startTime = new Date(gameDate);
+        const now = new Date();
+        const diffMinutes = (startTime - now) / 60000;
+        
+        if (diffMinutes >= 0 && diffMinutes <= 15) {
+          // Baseline intensity score based on marquee value / prestige
+          let baseScore = 4.0; // Default Watchable baseline
+          if (homeIsSec && awayIsSec) baseScore = 8.0;
+          else if (hRnk <= 10 && aRnk <= 10) baseScore = 8.5;
+          else if (isRanked) baseScore = 7.0;
+          else if (isSEC) baseScore = 6.0;
+
+          g._isUpcomingStart = true;
+          return Number(baseScore.toFixed(1));
+        }
+      }
+      
+      g._isUpcomingStart = false; // Reset if outside window
+
       const homeScore = parseInt(g.homeScore || 0);
       const awayScore = parseInt(g.awayScore || 0);
       const margin = Math.abs(homeScore - awayScore);
@@ -187,7 +210,6 @@ function calculateLivePriorityScore(g) {
       const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
       if (m) rem = parseInt(m[1]) * 60 + parseInt(m[2]);
       
-      // Total game time remaining fraction (1.0 at start down to 0.0 at end of regulation)
       const totalSecondsLeft = Math.max(0, (4 - Math.min(p, 4)) * 900 + rem);
       const timeRemainingFactor = totalSecondsLeft / 3600; 
 
@@ -198,14 +220,13 @@ function calculateLivePriorityScore(g) {
       const unrankedLeadingTop10By10 = (hRnk > 25 && aRnk <= 10 && homeScore > awayScore && margin > 10) ||
                                        (aRnk > 25 && hRnk <= 10 && awayScore > homeScore && margin > 10);
 
-      // --- 1. SNOOZEFEST TIER (0.0–2.0) ---
+      // --- SNOOZEFEST TIER (0.0–2.0) ---
       if (margin > 16 && !top10TeamLosingBy16) {
         if (margin > 30) return 0.0;
         const score = 2.0 - ((margin - 17) / 14) * 2.0;
         return Number(Math.max(0.0, score).toFixed(1));
       }
 
-      // --- HARD CAPS & REDUCTIONS ---
       let maxAllowed = 10.0;
       if (p === 4 && rem <= 600 && margin > 16 && !top10TeamLosingBy16) {
         maxAllowed = Math.min(maxAllowed, 8.0);
@@ -214,8 +235,6 @@ function calculateLivePriorityScore(g) {
         maxAllowed = Math.min(maxAllowed, 8.0);
       }
 
-      // --- MARGIN CATEGORY TIGHTNESS WEIGHT (0 to 1 scale based on your break points) ---
-      // <=3 (1.0), 6 (0.8), 7 (0.65), 8 (0.5), 10 (0.35), 14 (0.2), 16 (0.1)
       let marginWeight = 0.1;
       if (margin <= 3) marginWeight = 1.0;
       else if (margin <= 6) marginWeight = 0.8;
@@ -225,10 +244,9 @@ function calculateLivePriorityScore(g) {
       else if (margin <= 14) marginWeight = 0.2;
       else if (margin <= 16) marginWeight = 0.1;
 
-      // Combined score: Blend of margin closeness category and time urgency remaining
       const urgencyBonus = timeRemainingFactor * 0.8;
 
-      // --- 2. TURN TV ON NOW! TIER (9.0–10.0) ---
+      // --- TURN TV ON NOW! TIER (9.0–10.0) ---
       const isEligibleForTopTier = isSEC || isRanked;
       const within10OrTop10Upset = (margin <= 10) || unrankedLeadingTop10By10;
 
@@ -241,14 +259,14 @@ function calculateLivePriorityScore(g) {
         return Math.min(Number(score9.toFixed(1)), maxAllowed);
       }
 
-      // --- 3. GREAT GAME TIER (6.0–8.9) ---
+      // --- GREAT GAME TIER (6.0–8.9) ---
       if (isEligibleForTopTier && margin <= 16) {
         let baseGreat = (margin <= 10 && p >= 3) ? 7.2 : 6.2;
         let score = baseGreat + (marginWeight * 1.2) + (urgencyBonus * 0.5);
         return Math.min(Math.max(Number(score.toFixed(1)), 6.0), Math.min(8.9, maxAllowed));
       }
 
-      // --- 4. WATCHABLE TIER (3.0–5.9) ---
+      // --- WATCHABLE TIER (3.0–5.9) ---
       if (margin <= 16) {
         let baseWatchable = (margin <= 10 && p >= 3) ? 4.5 : 3.5;
         let score = baseWatchable + (marginWeight * 1.2) + (urgencyBonus * 0.5);
@@ -256,19 +274,23 @@ function calculateLivePriorityScore(g) {
       }
 
       return Math.min(Number((2.0 + urgencyBonus).toFixed(1)), maxAllowed);
-}
+        }
     
     
     
        
     
     
-    function renderIntensityMeter(scoreInput) {
+    function renderIntensityMeter(scoreInput, g) {
   const displayScore = Math.min(Math.max(Number(scoreInput), 0), 10).toFixed(1);
 
   let label = 'Snoozefest', color = '#ef4444', angle = -40;
 
-  if (displayScore >= 9.0) {
+  if (g && g._isUpcomingStart) {
+    label = 'Upcoming Start';
+    color = '#38bdf8'; // Accent blue for upcoming games
+    angle = 0;
+  } else if (displayScore >= 9.0) {
     label = 'TURN TV ON NOW!';
     color = '#84cc16';
     angle = 55;
@@ -299,6 +321,7 @@ function calculateLivePriorityScore(g) {
       </div>
     </div>`;
     }
+    
     
     
 
