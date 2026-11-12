@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bully's CBB Board</title>
+  <script src="nav.js"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
+  <script>
+    window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+    gtag('js',new Date());gtag('config','G-8695308WQ8');
+    if(localStorage.getItem('dyslexiaMode')==='enabled')document.documentElement.classList.add('dyslexia-font');
+  </script>
+  <style>
+    :root{--bg:#0b0c10;--card:#181920;--border:#272935;--text:#f8fafc;--maroon:#5d1725;--red:#ef4444;--sub:#94a3b8;--gold:#84cc16;}
+    *{box-sizing:border-box;}
+    body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:16px;}
+    body.dyslexia-font,body.dyslexia-font *{font-family:"Comic Sans MS",Verdana,sans-serif!important;letter-spacing:.05em!important;word-spacing:.1em!important;}
+    .dyslexia-toggle,.sport-toggle{background:#181920;border:1px solid var(--border);color:#38bdf8;font-size:.75rem;font-weight:700;padding:5px 10px;border-radius:6px;cursor:pointer;}
+    .sport-toggle.active{background:#38bdf8;color:#0b0c10;border-color:#38bdf8;}
+    .nav-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);z-index:99;opacity:0;visibility:hidden;pointer-events:none;transition:0.2s;}
+    .nav-overlay.open{opacity:1;visibility:visible;pointer-events:auto;}
+    .nav-drawer{position:fixed;top:0;left:-260px;width:260px;height:100vh;background:#181920;border-right:1px solid var(--border);z-index:100;display:flex;flex-direction:column;transition:0.3s;box-shadow:4px 0 15px rgba(0,0,0,.4);}
+    .nav-drawer.open{left:0;}
+    .drawer-header{padding:14px 16px;font-weight:800;font-size:.9rem;text-transform:uppercase;color:#38bdf8;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+    .drawer-close{background:none;border:none;color:var(--sub);font-size:1.3rem;cursor:pointer;}
+    .drawer-links{list-style:none;padding:8px 0;margin:0;display:flex;flex-direction:column;}
+    .drawer-links a{padding:12px 18px;color:var(--text);text-decoration:none;font-size:.85rem;font-weight:700;display:block;border-left:3px solid transparent;}
+    .drawer-links a:hover,.drawer-links a.active{background:#222530;border-left-color:#38bdf8;color:#38bdf8;}
+    header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--maroon);}
+    .header-left,.header-right,.header-title,.card-header-right{display:flex;align-items:center;gap:8px;}
+    .header-left{gap:12px;}
+    .menu-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;width:22px;height:18px;padding:0;z-index:101;}
+    .menu-btn span{display:block;width:100%;height:2px;background:#38bdf8;border-radius:2px;}
+    .msu-logo{height:38px;width:auto;object-fit:contain;filter:drop-shadow(0 0 2px #fff);}
+    h1{margin:0;font-size:1.25rem;font-weight:800;}
+    .status-badge{font-size:.75rem;padding:4px 10px;background:#222530;border:1px solid var(--border);border-radius:12px;color:var(--sub);}
+    .toggle-group{display:flex;gap:6px;}
+    .day-header{font-size:1.05rem;font-weight:800;background:#12131a;border-left:4px solid var(--maroon);padding:8px 12px;margin:24px 0 10px;border-radius:4px;}
+    .tier-header{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gold);margin:14px 0 8px 4px;padding-bottom:4px;border-bottom:1px solid #222530;}
+    .game-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;border-left:5px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.4);}
+    .game-card.live-late{border-left-color:var(--red);background:linear-gradient(135deg,#181920 0%,#221518 100%);}
+    .game-card.live{border-left-color:var(--maroon);background:linear-gradient(135deg,#181920 0%,#1f1418 100%);}
+    .game-card.sec-game{border-left-color:#f59e0b;}
+    .game-card.ranked-game{border-left-color:#ef4444;}
+    .game-card.completed-card{opacity:.85;background:#172033;}
+    .card-header{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--sub);margin-bottom:8px;}
+    .team-row{display:flex;justify-content:space-between;align-items:center;margin:6px 0;font-size:1.1rem;font-weight:600;}
+    .team-row.winner{font-weight:800;color:#fff;}
+    .team-row.loser{color:#64748b;}
+    .score{font-size:1.25rem;font-weight:bold;}
+    .sort-tag{background:#334155;color:#38bdf8;font-size:.6rem;padding:2px 5px;border-radius:3px;font-weight:700;margin-right:6px;}
+    .watch-btn{color:#fff;text-decoration:none;font-weight:bold;font-size:.75rem;background:var(--maroon);border:1px solid #7d2033;padding:3px 8px;border-radius:4px;}
+    .intensity-container{display:flex;align-items:center;gap:10px;background:#111319;border:1px solid var(--border);border-radius:8px;padding:6px 12px;}
+    .gauge-wrapper{position:relative;width:54px;height:30px;flex-shrink:0;}
+    .gauge-svg{width:100%;height:100%;overflow:visible;}
+    .intensity-text-group{display:flex;flex-direction:column;}
+    .intensity-label{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
+    .intensity-score{font-size:.65rem;color:var(--sub);font-weight:600;}
+    .card-footer-flex {display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;padding-top:6px;border-top:1px solid var(--border);}
+    .card-footer-flex .intensity-container {margin-top:0;flex-grow:1;}
+    .win-prob-badge {font-size:.75rem;color:var(--sub);background:#111319;border:1px solid var(--border);padding:8px 10px;border-radius:8px;white-space:nowrap;text-align:center;}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
+      <div class="header-title">
+        <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" alt="MSU Logo" class="msu-logo">
+        <h1 id="page-title">Bully's MBB Board</h1>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="toggle-group">
+        <button id="mbbToggle" class="sport-toggle active" onclick="setSport('mbb')">Men's</button>
+        <button id="wbbToggle" class="sport-toggle" onclick="setSport('wbb')">Women's</button>
+      </div>
+      <button id="fontToggleBtn" class="dyslexia-toggle" onclick="toggleDyslexiaFont()">Kate Button: OFF</button>
+      <span id="update-status" class="status-badge">Loading...</span>
+    </div>
+  </header>
+  
+  <div id="games-container"></div>
+
+  <script>
+    let currentSport = 'mbb'; // 'mbb' or 'wbb'
+
+    function setSport(sport) {
+      currentSport = sport;
+      document.getElementById('mbbToggle').classList.toggle('active', sport === 'mbb');
+      document.getElementById('wbbToggle').classList.toggle('active', sport === 'wbb');
+      document.getElementById('page-title').innerText = sport === 'mbb' ? "Bully's MBB Board" : "Bully's WBB Board";
+      fetchScores();
+    }
+
+    function updateToggleButtonState() {
+      const btn = document.getElementById('fontToggleBtn');
+      if (!btn) return;
+      const active = localStorage.getItem('dyslexiaMode') === 'enabled';
+      btn.innerText = active ? 'Kate Button: ON' : 'Kate Button: OFF';
+      btn.style.borderColor = active ? '#38bdf8' : '#334155';
+    }
+
+    function toggleDyslexiaFont() {
+      const active = localStorage.getItem('dyslexiaMode') === 'enabled';
+      localStorage.setItem('dyslexiaMode', active ? 'disabled' : 'enabled');
+      document.body.classList.toggle('dyslexia-font', !active);
+      document.documentElement.classList.toggle('dyslexia-font', !active);
+      updateToggleButtonState();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateToggleButtonState();
+      if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
+      if (typeof renderSharedNav === 'function') renderSharedNav();
+      fetchScores();
+      setInterval(fetchScores, 30000);
+    });
+
+    const isSEC = g => g.rawEvent.competitions[0].competitors.some(c => String(c.team?.conferenceId || c.team?.conference?.id) === '8');
+
+    function getHighestRank(g) {
+      let best = 99;
+      g.rawEvent.competitions[0].competitors.forEach(c => {
+        const r = c.curatedRank?.current;
+        if (r && r > 0 && r < best) best = r;
+      });
+      return best <= 25 ? best : 99;
+    }
+
+    function calculateLivePriorityScore(g) {
+      const comp = g.rawEvent?.competitions?.[0];
+      const home = comp?.competitors?.find(c => c.homeAway === 'home');
+      const away = comp?.competitors?.find(c => c.homeAway === 'away');
+      
+      const homeConfId = String(home?.team?.conferenceId || home?.team?.conference?.id || '');
+      const awayConfId = String(away?.team?.conferenceId || away?.team?.conference?.id || '');
+      const isSECGame = (homeConfId === '8' || awayConfId === '8');
+      
+      const hRank = home?.curatedRank?.current;
+      const aRank = away?.curatedRank?.current;
+      const hRnk = hRank && hRank <= 25 ? hRank : 99;
+      const aRnk = aRank && aRank <= 25 ? aRank : 99;
+      const isRanked = (hRnk <= 25 || aRnk <= 25);
+
+      // --- 15-MINUTE PRE-GAME WINDOW CHECK ---
+      const gameDate = comp?.date || g.date;
+      if (gameDate) {
+        const startTime = new Date(gameDate);
+        const now = new Date();
+        const diffMinutes = (startTime - now) / 60000;
+        
+        if (diffMinutes >= 0 && diffMinutes <= 15) {
+          let baseScore = 4.0;
+          if (hRnk <= 10 && aRnk <= 10) baseScore = 8.5;
+          else if (isRanked) baseScore = 7.0;
+          else if (isSECGame) baseScore = 6.0;
+
+          g._isUpcomingStart = true;
+          return Number(baseScore.toFixed(1));
+        }
+      }
+      g._isUpcomingStart = false;
+
+      const homeScore = parseInt(g.homeScore || 0);
+      const awayScore = parseInt(g.awayScore || 0);
+      const margin = Math.abs(homeScore - awayScore);
+      const p = g.period || 1;
+
+      // Determine half / quarter rules
+      const isWomens = currentSport === 'wbb';
+      const isSecondHalf = isWomens ? (p >= 3) : (p >= 2);
+
+      // Time remaining in period estimation (assuming 20 min halves for MBB, 10 min quarters for WBB)
+      let periodSeconds = isWomens ? 600 : 1200;
+      let rem = periodSeconds;
+      const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
+      if (m) rem = parseInt(m[1]) * 60 + parseInt(m[2]);
+
+      const totalPeriods = isWomens ? 4 : 2;
+      const totalSecondsLeft = Math.max(0, (totalPeriods - Math.min(p, totalPeriods)) * periodSeconds + rem);
+      const maxTotalGameSeconds = totalPeriods * periodSeconds;
+      const timeRemainingFactor = totalSecondsLeft / maxTotalGameSeconds; 
+
+      // --- EXCEPTIONS & CONDITIONS ---
+      const top10TeamLosingBy15 = (hRnk <= 10 && homeScore < awayScore && margin > 15) || 
+                                  (aRnk <= 10 && awayScore < homeScore && margin > 15);
+
+      const unrankedLeadingRanked = (hRnk > 25 && aRnk <= 25 && homeScore > awayScore) ||
+                                    (aRnk > 25 && hRnk <= 25 && awayScore > homeScore);
+
+      const rankedTeamLeading = (hRnk <= 25 && homeScore > awayScore) || (aRnk <= 25 && awayScore > homeScore);
+      const rankedTeamLosing = (hRnk <= 25 && homeScore < awayScore) || (aRnk <= 25 && awayScore < homeScore);
+      const bothUnranked = (hRnk > 25 && aRnk > 25);
+
+      // --- 1. SNOOZEFEST TIER (0.0–2.0) ---
+      if (margin > 15 && !top10TeamLosingBy15) {
+        if (margin > 30) return 0.0;
+        const score = 2.0 - ((margin - 16) / 14) * 2.0;
+        return Number(Math.max(0.0, score).toFixed(1));
+      }
+
+      const urgencyBonus = (1 - timeRemainingFactor) * 1.5;
+
+      // --- 2. TURN TV ON NOW! (9.0–10.0) ---
+      if (top10TeamLosingBy15 || (isSecondHalf && margin < 10 && rankedTeamLosing)) {
+        let score9 = 9.0 + (urgencyBonus * 0.6) + ((10 - margin) * 0.05);
+        return Math.min(Number(score9.toFixed(1)), 10.0);
+      }
+
+      // --- 3. GREAT GAME TIER (6.0–8.9) ---
+      const isGreatGame = (!isSecondHalf && unrankedLeadingRanked) || 
+                          (isSecondHalf && margin < 10) || 
+                          (isSecondHalf && unrankedLeadingRanked && margin >= 10 && margin <= 15);
+
+      if (isGreatGame) {
+        let base = (!isSecondHalf && unrankedLeadingRanked) ? 6.5 : 7.2;
+        let score = base + urgencyBonus + ((15 - margin) * 0.05);
+        return Math.min(Math.max(Number(score.toFixed(1)), 6.0), 8.9);
+      }
+
+      // --- 4. WATCHABLE TIER (3.0–5.9) ---
+      const isWatchable = (!isSecondHalf && (rankedTeamLeading || bothUnranked)) ||
+                          (isSecondHalf && margin >= 10 && margin <= 15 && !unrankedLeadingRanked);
+
+      if (isWatchable) {
+        let base = !isSecondHalf ? 4.0 : 4.5;
+        let score = base + (urgencyBonus * 0.5);
+        return Math.min(Math.max(Number(score.toFixed(1)), 3.0), 5.9);
+      }
+
+      return Number((3.5 + urgencyBonus).toFixed(1));
+    }
+
+    function renderIntensityMeter(scoreInput, g) {
+      const displayScore = Math.min(Math.max(Number(scoreInput), 0), 10).toFixed(1);
+      let label = 'Snoozefest', color = '#ef4444', angle = -40;
+
+      if (g && g._isUpcomingStart) {
+        label = 'Upcoming Start';
+        color = '#38bdf8';
+        angle = 0;
+      } else if (displayScore >= 9.0) {
+        label = 'TURN TV ON NOW!';
+        color = '#84cc16';
+        angle = 55;
+      } else if (displayScore >= 6.0) {
+        label = 'Great Game';
+        color = '#22c55e';
+        angle = 25;
+      } else if (displayScore >= 3.0) {
+        label = 'Watchable';
+        color = '#eab308';
+        angle = 0;
+      }
+
+      return `
+        <div class="intensity-container">
+          <div class="gauge-wrapper">
+            <svg class="gauge-svg" viewBox="0 0 100 55">
+              <path d="M 10 50 A 40 40 0 0 1 33.4 18.2" fill="none" stroke="#ef4444" stroke-width="12"/>
+              <path d="M 33.4 18.2 A 40 40 0 0 1 66.6 18.2" fill="none" stroke="#eab308" stroke-width="12"/>
+              <path d="M 66.6 18.2 A 40 40 0 0 1 90 50" fill="none" stroke="#22c55e" stroke-width="12"/>
+              <circle cx="50" cy="50" r="5" fill="#f8fafc"/>
+              <g transform="rotate(${angle}, 50, 50)"><polygon points="47,50 53,50 50,14" fill="#f8fafc"/></g>
+            </svg>
+          </div>
+          <div class="intensity-text-group">
+            <span class="intensity-label" style="color:${color};">${label}</span>
+            <span class="intensity-score">Intensity Score: ${displayScore}</span>
+          </div>
+        </div>`;
+    }
+
+    async function fetchScores() {
+      const statusEl = document.getElementById("update-status");
+      statusEl.innerText = "Refreshing...";
+      try {
+        const sportPath = currentSport === 'mbb' ? 'mens-college-basketball' : 'womens-college-basketball';
+        // groups=50 gets top tier / major conference games, limit=300 covers current day slate
+        const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=50&limit=300`);
+        const data = await res.json();
+        const live = [], upcoming = [], finals = [], now = new Date();
+
+        (data.events || []).forEach(e => {
+          const comp = e.competitions?.[0]; if (!comp) return;
+          const home = comp.competitors?.find(c => c.homeAway === 'home');
+          const away = comp.competitors?.find(c => c.homeAway === 'away');
+          if (!home || !away) return;
+
+          const state = e.status?.type?.state;
+          const isSec = isSEC({ rawEvent: e });
+          const hRank = home.curatedRank?.current, aRank = away.curatedRank?.current;
+          const hasRanked = (hRank && hRank <= 25) || (aRank && aRank <= 25);
+
+          // FILTER: Current day only AND must be SEC or Top 25
+          const gDate = new Date(e.date);
+          const isToday = gDate.toDateString() === now.toDateString();
+          if (!isToday && state !== 'in') return; // Keep live games even if date boundary shifts slightly, skip non-today pre/post
+          if (!isSec && !hasRanked) return;
+
+          let tv = comp.broadcasts?.[0]?.names?.[0] || "TV TBD";
+
+          const getRecord = compObj => {
+            if (!compObj.records) return '';
+            const rec = compObj.records.find(r => r.type === 'total') || compObj.records[0];
+            return rec ? rec.summary : '';
+          };
+
+          const gameObj = {
+            id: e.id, homeId: home.id, awayId: away.id,
+            homeTeam: home.team?.shortDisplayName || home.team?.name || 'Home',
+            awayTeam: away.team?.shortDisplayName || away.team?.name || 'Away',
+            homeRecord: getRecord(home), awayRecord: getRecord(away),
+            homeRank: hRank && hRank <= 25 ? `<span style="color:#84cc16;font-weight:bold;">#${hRank}</span> ` : '',
+            awayRank: aRank && aRank <= 25 ? `<span style="color:#84cc16;font-weight:bold;">#${aRank}</span> ` : '',
+            homeScore: home.score || "0", awayScore: away.score || "0",
+            homeWinner: home.winner, awayWinner: away.winner,
+            state, statusDetail: e.status?.type?.shortDetail || '', period: e.status?.period || 0,
+            isSec, hasRanked, tv, gDate, rawEvent: e
+          };
+
+          if (state === 'in') {
+            gameObj.priorityScore = calculateLivePriorityScore(gameObj);
+            live.push(gameObj);
+          } else if (state === 'pre') {
+            upcoming.push(gameObj);
+          } else if (state === 'post') {
+            finals.push(gameObj);
+          }
+        });
+
+        live.sort((a, b) => b.priorityScore - a.priorityScore || new Date(a.gDate) - new Date(b.gDate));
+        upcoming.sort((a, b) => new Date(a.gDate) - new Date(b.gDate));
+        finals.sort((a, b) => new Date(b.gDate) - new Date(a.gDate));
+
+        renderGames(live, upcoming, finals);
+        statusEl.innerText = "Live • 30s";
+      } catch (err) {
+        statusEl.innerText = "Error Loading";
+      }
+    }
+
+    function renderGames(live, upcoming, finals) {
+      const container = document.getElementById("games-container");
+      container.innerHTML = "";
+      if (!live.length && !upcoming.length && !finals.length) {
+        container.innerHTML = "<p style='text-align:center; color:var(--sub); margin-top:40px;'>No SEC or Top 25 games found for today.</p>"; return;
+      }
+
+      if (live.length) {
+        const lHeader = document.createElement("div");
+        lHeader.className = "tier-header";
+        lHeader.innerText = "Live Games";
+        container.appendChild(lHeader);
+        live.forEach(g => container.appendChild(createCard(g, false)));
+      }
+
+      if (upcoming.length) {
+        const uHeader = document.createElement("div");
+        uHeader.className = "tier-header";
+        uHeader.innerText = "Upcoming Today";
+        container.appendChild(uHeader);
+        upcoming.forEach(g => container.appendChild(createCard(g, false)));
+      }
+
+      if (finals.length) {
+        const fHeader = document.createElement("div");
+        fHeader.className = "tier-header";
+        fHeader.innerText = "Completed Games";
+        container.appendChild(fHeader);
+        finals.forEach(g => container.appendChild(createCard(g, true)));
+      }
+    }
+
+    function createCard(g, isCompleted = false) {
+      const card = document.createElement("div");
+      let cardClass = "game-card";
+      if (isCompleted) cardClass += " completed-card";
+      if (g.isSec) cardClass += " sec-game";
+      else if (g.hasRanked) cardClass += " ranked-game";
+
+      if (g.state === 'in') {
+        cardClass += ((currentSport === 'mbb' && g.period >= 2) || (currentSport === 'wbb' && g.period >= 3) ? " live-late" : " live");
+      }
+      card.className = cardClass;
+
+      let awayClass = '', homeClass = '';
+      if (isCompleted) {
+        if (g.awayWinner) { awayClass = ' winner'; homeClass = ' loser'; }
+        else if (g.homeWinner) { homeClass = ' winner'; awayClass = ' loser'; }
+      }
+
+      const hasIntensity = g.state === 'in' && typeof g.priorityScore === 'number';
+
+      let footerHtml = '';
+      if (hasIntensity) {
+        footerHtml = `<div class="card-footer-flex">${renderIntensityMeter(g.priorityScore, g)}</div>`;
+      }
+
+      const sportSlug = currentSport === 'mbb' ? 'mens-college-basketball' : 'womens-college-basketball';
+
+      card.innerHTML = `
+        <div class="card-header">
+          <span>${g.statusDetail}</span>
+          <span class="card-header-right">
+            <span class="broadcast">${isCompleted ? `<span class="sort-tag">${g.isSec ? 'SEC' : 'RNK'}</span>` : ''}<strong style="color:#84cc16;">📺 ${g.tv}</strong></span>
+            <a href="https://www.espn.com/${sportSlug}/game/_/gameId/${g.id}" target="_blank" rel="noopener noreferrer" class="watch-btn">Gamecast</a>
+          </span>
+        </div>
+        <div class="team-row${awayClass}">
+          <span>${g.awayRank}${g.awayTeam} <span style="font-size:0.75rem; color:var(--sub); font-weight:normal;">${g.awayRecord ? `(${g.awayRecord})` : ''}</span></span>
+          <span class="score">${g.state === 'pre' ? '' : g.awayScore}</span>
+        </div>
+        <div class="team-row${homeClass}">
+          <span>${g.homeRank}${g.homeTeam} <span style="font-size:0.75rem; color:var(--sub); font-weight:normal;">${g.homeRecord ? `(${g.homeRecord})` : ''}</span></span>
+          <span class="score">${g.state === 'pre' ? '' : g.homeScore}</span>
+        </div>
+        ${footerHtml}
+      `;
+      return card;
+    }
+  </script>
+</body>
+</html>
