@@ -407,7 +407,7 @@
 
     function parseCityState(s) {
       if (!s) return null;
-      let c = String(s).replace(/\([^)\n]*(stadium|field|arena|center|complex|park|coliseum)[^)\n]*\)/gi, '');
+      let c = String(s).replace(/\([^)*\n]*(stadium|field|arena|center|complex|park|coliseum)[^)*\n]*\)/gi, '');
       c = c.replace(/\s+/g, ' ').trim();
       if (!c) return null;
 
@@ -480,7 +480,52 @@
     }
 
     function normalizeOpponent(value) {
-      return String(value || '').replace(/[^a-z0-9]/gi, '').toLowerCase();
+      return String(value || '')
+        .toLowerCase()
+        .replace(/&/g, 'and')
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .trim()
+        .replace(/\s+/g, ' ');
+    }
+
+    function opponentsMatch(a, b) {
+      const first = normalizeOpponent(a);
+      const second = normalizeOpponent(b);
+      if (!first || !second) return false;
+      if (first === second) return true;
+
+      // Match a full ESPN display name to a shorter schedule name without
+      // treating teams with only one shared name token as identical.
+      const firstTokens = first.split(' ');
+      const secondTokens = second.split(' ');
+      const shorter = firstTokens.length <= secondTokens.length ? firstTokens : secondTokens;
+      const longer = firstTokens.length > secondTokens.length ? firstTokens : secondTokens;
+      return shorter.length >= 2 && shorter.every(token => longer.includes(token));
+    }
+
+    function sportKeyForName(name) {
+      return {
+        'Football': 'football',
+        'Baseball': 'baseball',
+        "Men's Basketball": 'mens-basketball',
+        "Women's Basketball": 'womens-basketball'
+      }[name] || name;
+    }
+
+    function dateKey(value) {
+      const raw = String(value || '');
+      if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
+
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10);
+    }
+
+    function dayDifference(a, b) {
+      const first = Date.parse(`${dateKey(a)}T00:00:00Z`);
+      const second = Date.parse(`${dateKey(b)}T00:00:00Z`);
+      return Number.isFinite(first) && Number.isFinite(second)
+        ? Math.abs(first - second) / 86400000
+        : Infinity;
     }
 
     async function fetchAllEvents() {
@@ -544,8 +589,26 @@
         for (const localGame of masterDataset) {
           if (localGame.isHome) continue;
 
-          const dupKey = `${localGame.isoDate}-${normalizeOpponent(localGame.opponent)}`;
-          if (events.some(e => `${e.date.toISOString().split('T')[0]}-${normalizeOpponent(e.opponent)}` === dupKey)) {
+          const localSport = localGame.sportKey || 'Sports';
+          const localDate = localGame.isoDate;
+          const apiCandidates = events.filter(event =>
+            sportKeyForName(event.sport) === localSport &&
+            opponentsMatch(event.opponent, localGame.opponent) &&
+            dayDifference(event.date, localDate) <= 1
+          );
+
+          const exactDateMatch = apiCandidates.some(event =>
+            dayDifference(event.date, localDate) === 0
+          );
+          const nearbyScheduleGame = masterDataset.some(otherGame =>
+            otherGame !== localGame &&
+            !otherGame.isHome &&
+            (otherGame.sportKey || 'Sports') === localSport &&
+            opponentsMatch(otherGame.opponent, localGame.opponent) &&
+            dayDifference(otherGame.isoDate, localDate) <= 1
+          );
+
+          if (exactDateMatch || (apiCandidates.length === 1 && !nearbyScheduleGame)) {
             continue;
           }
 
@@ -616,7 +679,6 @@
           distance: (Number.isFinite(game.lat) && Number.isFinite(game.lon)) ? getDist(uLat, uLon, game.lat, game.lon) : 9999
         }));
 
-        
         renderGames();
       } catch (err) {
         statusEl.innerText = 'Error fetching away game information.';
