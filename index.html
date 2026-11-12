@@ -186,6 +186,8 @@ function calculateLivePriorityScore(g) {
       let rem = 900;
       const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
       if (m) rem = parseInt(m[1]) * 60 + parseInt(m[2]);
+      const quarterElapsed = 900 - rem;
+      const timeProgress = Math.min(Math.max(quarterElapsed / 900, 0), 1); // 0.0 to 1.0
 
       // --- EXCEPTIONS & SPECIAL CONDITIONS ---
       const top10TeamLosingBy16 = (hRnk <= 10 && homeScore < awayScore && margin > 16) || 
@@ -194,48 +196,55 @@ function calculateLivePriorityScore(g) {
       const unrankedLeadingTop10By10 = (hRnk > 25 && aRnk <= 10 && homeScore > awayScore && margin > 10) ||
                                        (aRnk > 25 && hRnk <= 10 && awayScore > homeScore && margin > 10);
 
-      // --- 1. SNOOZEFEST RULE (0–2) ---
+      // --- 1. SNOOZEFEST TIER (0.0–2.0) ---
       if (margin > 16 && !top10TeamLosingBy16) {
-        return p >= 4 ? 2 : 1;
+        let score = p >= 4 ? 2.0 : 1.0;
+        return Number(score.toFixed(1));
       }
 
-      // --- 2. POINT REDUCTIONS & HARD CAPS ---
-      let maxAllowed = 10;
+      // --- HARD CAPS & REDUCTIONS ---
+      let maxAllowed = 10.0;
       if (p === 4 && rem <= 600 && margin > 16 && !top10TeamLosingBy16) {
-        maxAllowed = Math.min(maxAllowed, 8);
+        maxAllowed = Math.min(maxAllowed, 8.0);
       }
       if (p === 4 && rem <= 300 && margin > 10 && !unrankedLeadingTop10By10) {
-        maxAllowed = Math.min(maxAllowed, 8);
+        maxAllowed = Math.min(maxAllowed, 8.0);
       }
 
-      // --- 3. TURN TV ON NOW! (9–10) ---
+      // Granular modifiers based on exact tightness (0 to 1 scale where 0 margin = +1.0 boost)
+      const marginTightnessFactor = Math.max(0, (16 - margin) / 16); 
+      const clockUrgencyBonus = timeProgress * 0.4;
+
+      // --- 2. TURN TV ON NOW! TIER (9.0–10.0) ---
       const isEligibleForTopTier = isSEC || isRanked;
       const within10OrTop10Upset = (margin <= 10) || unrankedLeadingTop10By10;
 
       if (isEligibleForTopTier && within10OrTop10Upset) {
-        // Can only hit a 10 if it's the 4th quarter or overtime (p >= 4)
-        let score = (p >= 4 && (margin <= 4 || unrankedLeadingTop10By10)) ? 10 : 9;
-        return Math.min(score, maxAllowed);
+        if (p >= 4 && (margin <= 4 || unrankedLeadingTop10By10)) {
+          let peakScore = 9.5 + (margin === 0 ? 0.5 : (4 - margin) * 0.1) + (timeProgress * 0.4);
+          return Math.min(Math.max(Number(peakScore.toFixed(1)), 9.0), maxAllowed);
+        }
+        let score9 = 9.0 + (marginTightnessFactor * 0.5) + clockUrgencyBonus;
+        return Math.min(Number(score9.toFixed(1)), maxAllowed);
       }
 
-      // --- 4. GREAT GAME (6–8) ---
+      // --- 3. GREAT GAME TIER (6.0–8.9) ---
       if (isEligibleForTopTier && margin <= 16) {
-        let score = 7;
-        if (margin <= 10 && p >= 3) score = 8;
-        if (margin > 10 && p <= 2) score = 6;
-        return Math.min(score, maxAllowed);
+        let baseGreat = (margin <= 10 && p >= 3) ? 7.5 : 6.2;
+        let score = baseGreat + (marginTightnessFactor * 1.0) + clockUrgencyBonus;
+        return Math.min(Math.max(Number(score.toFixed(1)), 6.0), Math.min(8.9, maxAllowed));
       }
 
-      // --- 5. WATCHABLE (3–5) ---
-      if (!isSEC && !isRanked && margin <= 16) {
-        let score = 4;
-        if (margin <= 10 && p >= 3) score = 5;
-        if (margin > 10) score = 3;
-        return Math.min(score, maxAllowed);
+      // --- 4. WATCHABLE TIER (3.0–5.9) ---
+      if (margin <= 16) {
+        let baseWatchable = (margin <= 10 && p >= 3) ? 4.5 : 3.5;
+        let score = baseWatchable + (marginTightnessFactor * 1.0) + clockUrgencyBonus;
+        return Math.min(Math.max(Number(score.toFixed(1)), 3.0), Math.min(5.9, maxAllowed));
       }
 
-      return Math.min(4, maxAllowed);
+      return Math.min(Number((2.0 + clockUrgencyBonus).toFixed(1)), maxAllowed);
 }
+    
     
        
     
