@@ -2,6 +2,7 @@
 const NAV_LINKS = [
   { title: "Scores Board", url: "index.html" },
   { title: "Game Grid", url: "grid.html" },
+  { title: "Basketball Board", url: "BballList.html" },
   { title: "MSU Schedule", url: "schedules.html" },
   { title: "Closest Away Games", url: "away.html" },
   { title: "MSU Trip", url: "visit.html" }
