@@ -273,12 +273,11 @@
     }
 
     
-            async function fetchScores() {
+                async function fetchScores() {
       const statusEl = document.getElementById("update-status");
       statusEl.innerText = "Refreshing...";
       try {
         const sportPath = currentSport === 'mbb' ? 'mens-college-basketball' : 'womens-college-basketball';
-        // groups=50 pulls Division I games, limit=500 ensures we sweep the full daily slate
         const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=50&limit=500`);
         const data = await res.json();
         const live = [], upcoming = [], finals = [], now = new Date();
@@ -294,10 +293,10 @@
           const hRank = home.curatedRank?.current, aRank = away.curatedRank?.current;
           const hasRanked = (hRank && hRank <= 25) || (aRank && aRank <= 25);
 
-          // STRICT FILTER: Keep only if it's an SEC game OR features a Top 25 ranked team. Hide all others.
+          // STRICT FILTER: Must be SEC or feature a Top 25 team
           if (!isSec && !hasRanked) return;
 
-          // FILTER: Current day only (except live games that might cross boundaries)
+          // CURRENT DAY FILTER: Skip if not today and not live
           const gDate = new Date(e.date);
           const isToday = gDate.toDateString() === now.toDateString();
           if (!isToday && state !== 'in') return;
@@ -342,7 +341,8 @@
       } catch (err) {
         statusEl.innerText = "Error Loading";
       }
-            }
+                }
+    
     
 
     function renderGames(live, upcoming, finals) {
