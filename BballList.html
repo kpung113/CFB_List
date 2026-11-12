@@ -278,7 +278,7 @@
       statusEl.innerText = "Refreshing...";
       try {
         const sportPath = currentSport === 'mbb' ? 'mens-college-basketball' : 'womens-college-basketball';
-        const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=50&limit=500`);
+        const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?limit=600`);
         const data = await res.json();
         const live = [], upcoming = [], finals = [], now = new Date();
 
