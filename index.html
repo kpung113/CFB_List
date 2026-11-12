@@ -195,12 +195,15 @@ function calculateLivePriorityScore(g) {
       
       const unrankedLeadingTop10By10 = (hRnk > 25 && aRnk <= 10 && homeScore > awayScore && margin > 10) ||
                                        (aRnk > 25 && hRnk <= 10 && awayScore > homeScore && margin > 10);
-
       // --- 1. SNOOZEFEST TIER (0.0–2.0) ---
       if (margin > 16 && !top10TeamLosingBy16) {
-        let score = p >= 4 ? 2.0 : 1.0;
-        return Number(score.toFixed(1));
+        if (margin > 30) return 0.0;
+        // Scales inversely from 2.0 at a 17-point margin down to 0.1 at a 30-point margin
+        const score = 2.0 - ((margin - 17) / 14) * 2.0;
+        return Number(Math.max(0.0, score).toFixed(1));
       }
+  
+
 
       // --- HARD CAPS & REDUCTIONS ---
       let maxAllowed = 10.0;
