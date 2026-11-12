@@ -35,7 +35,6 @@
     h1{margin:0;font-size:1.25rem;font-weight:800;}
     .status-badge{font-size:.75rem;padding:4px 10px;background:#222530;border:1px solid var(--border);border-radius:12px;color:var(--sub);}
     .toggle-group{display:flex;gap:6px;}
-    .day-header{font-size:1.05rem;font-weight:800;background:#12131a;border-left:4px solid var(--maroon);padding:8px 12px;margin:24px 0 10px;border-radius:4px;}
     .tier-header{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gold);margin:14px 0 8px 4px;padding-bottom:4px;border-bottom:1px solid #222530;}
     .game-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;border-left:5px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.4);}
     .game-card.live-late{border-left-color:var(--red);background:linear-gradient(135deg,#181920 0%,#221518 100%);}
@@ -58,7 +57,6 @@
     .intensity-score{font-size:.65rem;color:var(--sub);font-weight:600;}
     .card-footer-flex {display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;padding-top:6px;border-top:1px solid var(--border);}
     .card-footer-flex .intensity-container {margin-top:0;flex-grow:1;}
-    .win-prob-badge {font-size:.75rem;color:var(--sub);background:#111319;border:1px solid var(--border);padding:8px 10px;border-radius:8px;white-space:nowrap;text-align:center;}
   </style>
 </head>
 <body>
@@ -83,7 +81,7 @@
   <div id="games-container"></div>
 
   <script>
-    let currentSport = 'mbb'; // 'mbb' or 'wbb'
+    let currentSport = 'mbb';
 
     function setSport(sport) {
       currentSport = sport;
@@ -117,45 +115,42 @@
       setInterval(fetchScores, 30000);
     });
 
-    const isSEC = g => g.rawEvent.competitions[0].competitors.some(c => String(c.team?.conferenceId || c.team?.conference?.id) === '8');
+    const SEC_TEAMS = [
+      'Alabama', 'Arkansas', 'Auburn', 'Florida', 'Georgia', 'Kentucky', 
+      'LSU', 'Mississippi State', 'Missouri', 'Oklahoma', 'Ole Miss', 
+      'South Carolina', 'Tennessee', 'Texas', 'Texas A&M', 'Vanderbilt'
+    ];
 
-    function getHighestRank(g) {
-      let best = 99;
-      g.rawEvent.competitions[0].competitors.forEach(c => {
-        const r = c.curatedRank?.current;
-        if (r && r > 0 && r < best) best = r;
+    const isSEC = e => {
+      const comp = e.competitions?.[0];
+      return (comp?.competitors || []).some(c => {
+        const id = String(c.team?.conferenceId || c.team?.conference?.id || '');
+        const name = c.team?.shortDisplayName || c.team?.name || '';
+        const abbr = (c.team?.conference?.abbreviation || '').toUpperCase();
+        return id === '8' || abbr === 'SEC' || SEC_TEAMS.some(t => name.includes(t));
       });
-      return best <= 25 ? best : 99;
-    }
+    };
 
     function calculateLivePriorityScore(g) {
       const comp = g.rawEvent?.competitions?.[0];
       const home = comp?.competitors?.find(c => c.homeAway === 'home');
       const away = comp?.competitors?.find(c => c.homeAway === 'away');
       
-      const homeConfId = String(home?.team?.conferenceId || home?.team?.conference?.id || '');
-      const awayConfId = String(away?.team?.conferenceId || away?.team?.conference?.id || '');
-      const isSECGame = (homeConfId === '8' || awayConfId === '8');
-      
+      const isSECGame = isSEC(g.rawEvent);
       const hRank = home?.curatedRank?.current;
       const aRank = away?.curatedRank?.current;
       const hRnk = hRank && hRank <= 25 ? hRank : 99;
       const aRnk = aRank && aRank <= 25 ? aRank : 99;
       const isRanked = (hRnk <= 25 || aRnk <= 25);
 
-      // --- 15-MINUTE PRE-GAME WINDOW CHECK ---
       const gameDate = comp?.date || g.date;
       if (gameDate) {
-        const startTime = new Date(gameDate);
-        const now = new Date();
-        const diffMinutes = (startTime - now) / 60000;
-        
+        const diffMinutes = (new Date(gameDate) - new Date()) / 60000;
         if (diffMinutes >= 0 && diffMinutes <= 15) {
           let baseScore = 4.0;
           if (hRnk <= 10 && aRnk <= 10) baseScore = 8.5;
           else if (isRanked) baseScore = 7.0;
           else if (isSECGame) baseScore = 6.0;
-
           g._isUpcomingStart = true;
           return Number(baseScore.toFixed(1));
         }
@@ -167,66 +162,39 @@
       const margin = Math.abs(homeScore - awayScore);
       const p = g.period || 1;
 
-      // Determine half / quarter rules
       const isWomens = currentSport === 'wbb';
       const isSecondHalf = isWomens ? (p >= 3) : (p >= 2);
-
-      // Time remaining in period estimation (assuming 20 min halves for MBB, 10 min quarters for WBB)
-      let periodSeconds = isWomens ? 600 : 1200;
+      const periodSeconds = isWomens ? 600 : 1200;
       let rem = periodSeconds;
       const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
       if (m) rem = parseInt(m[1]) * 60 + parseInt(m[2]);
 
       const totalPeriods = isWomens ? 4 : 2;
-      const totalSecondsLeft = Math.max(0, (totalPeriods - Math.min(p, totalPeriods)) * periodSeconds + rem);
-      const maxTotalGameSeconds = totalPeriods * periodSeconds;
-      const timeRemainingFactor = totalSecondsLeft / maxTotalGameSeconds; 
+      const timeRemainingFactor = Math.max(0, (totalPeriods - Math.min(p, totalPeriods)) * periodSeconds + rem) / (totalPeriods * periodSeconds); 
 
-      // --- EXCEPTIONS & CONDITIONS ---
-      const top10TeamLosingBy15 = (hRnk <= 10 && homeScore < awayScore && margin > 15) || 
-                                  (aRnk <= 10 && awayScore < homeScore && margin > 15);
-
-      const unrankedLeadingRanked = (hRnk > 25 && aRnk <= 25 && homeScore > awayScore) ||
-                                    (aRnk > 25 && hRnk <= 25 && awayScore > homeScore);
-
-      const rankedTeamLeading = (hRnk <= 25 && homeScore > awayScore) || (aRnk <= 25 && awayScore > homeScore);
+      const top10TeamLosingBy15 = (hRnk <= 10 && homeScore < awayScore && margin > 15) || (aRnk <= 10 && awayScore < homeScore && margin > 15);
+      const unrankedLeadingRanked = (hRnk > 25 && aRnk <= 25 && homeScore > awayScore) || (aRnk > 25 && hRnk <= 25 && awayScore > homeScore);
       const rankedTeamLosing = (hRnk <= 25 && homeScore < awayScore) || (aRnk <= 25 && awayScore < homeScore);
-      const bothUnranked = (hRnk > 25 && aRnk > 25);
 
-      // --- 1. SNOOZEFEST TIER (0.0–2.0) ---
       if (margin > 15 && !top10TeamLosingBy15) {
         if (margin > 30) return 0.0;
-        const score = 2.0 - ((margin - 16) / 14) * 2.0;
-        return Number(Math.max(0.0, score).toFixed(1));
+        return Number(Math.max(0.0, 2.0 - ((margin - 16) / 14) * 2.0).toFixed(1));
       }
 
       const urgencyBonus = (1 - timeRemainingFactor) * 1.5;
 
-      // --- 2. TURN TV ON NOW! (9.0–10.0) ---
       if (top10TeamLosingBy15 || (isSecondHalf && margin < 10 && rankedTeamLosing)) {
-        let score9 = 9.0 + (urgencyBonus * 0.6) + ((10 - margin) * 0.05);
-        return Math.min(Number(score9.toFixed(1)), 10.0);
+        return Math.min(Number((9.0 + (urgencyBonus * 0.6) + ((10 - margin) * 0.05)).toFixed(1)), 10.0);
       }
 
-      // --- 3. GREAT GAME TIER (6.0–8.9) ---
-      const isGreatGame = (!isSecondHalf && unrankedLeadingRanked) || 
-                          (isSecondHalf && margin < 10) || 
-                          (isSecondHalf && unrankedLeadingRanked && margin >= 10 && margin <= 15);
-
-      if (isGreatGame) {
+      if ((!isSecondHalf && unrankedLeadingRanked) || (isSecondHalf && margin < 10) || (isSecondHalf && unrankedLeadingRanked && margin <= 15)) {
         let base = (!isSecondHalf && unrankedLeadingRanked) ? 6.5 : 7.2;
-        let score = base + urgencyBonus + ((15 - margin) * 0.05);
-        return Math.min(Math.max(Number(score.toFixed(1)), 6.0), 8.9);
+        return Math.min(Math.max(Number((base + urgencyBonus + ((15 - margin) * 0.05)).toFixed(1)), 6.0), 8.9);
       }
 
-      // --- 4. WATCHABLE TIER (3.0–5.9) ---
-      const isWatchable = (!isSecondHalf && (rankedTeamLeading || bothUnranked)) ||
-                          (isSecondHalf && margin >= 10 && margin <= 15 && !unrankedLeadingRanked);
-
-      if (isWatchable) {
+      if ((!isSecondHalf && (hRnk <= 25 || aRnk <= 25 || (hRnk > 25 && aRnk > 25))) || (isSecondHalf && margin >= 10 && margin <= 15 && !unrankedLeadingRanked)) {
         let base = !isSecondHalf ? 4.0 : 4.5;
-        let score = base + (urgencyBonus * 0.5);
-        return Math.min(Math.max(Number(score.toFixed(1)), 3.0), 5.9);
+        return Math.min(Math.max(Number((base + (urgencyBonus * 0.5)).toFixed(1)), 3.0), 5.9);
       }
 
       return Number((3.5 + urgencyBonus).toFixed(1));
@@ -237,21 +205,13 @@
       let label = 'Snoozefest', color = '#ef4444', angle = -40;
 
       if (g && g._isUpcomingStart) {
-        label = 'Upcoming Start';
-        color = '#38bdf8';
-        angle = 0;
+        label = 'Upcoming Start'; color = '#38bdf8'; angle = 0;
       } else if (displayScore >= 9.0) {
-        label = 'TURN TV ON NOW!';
-        color = '#84cc16';
-        angle = 55;
+        label = 'TURN TV ON NOW!'; color = '#84cc16'; angle = 55;
       } else if (displayScore >= 6.0) {
-        label = 'Great Game';
-        color = '#22c55e';
-        angle = 25;
+        label = 'Great Game'; color = '#22c55e'; angle = 25;
       } else if (displayScore >= 3.0) {
-        label = 'Watchable';
-        color = '#eab308';
-        angle = 0;
+        label = 'Watchable'; color = '#eab308'; angle = 0;
       }
 
       return `
@@ -272,8 +232,7 @@
         </div>`;
     }
 
-    
-                    async function fetchScores() {
+    async function fetchScores() {
       const statusEl = document.getElementById("update-status");
       statusEl.innerText = "Refreshing...";
       try {
@@ -289,7 +248,7 @@
           if (!home || !away) return;
 
           const state = e.status?.type?.state;
-          const isSec = isSEC({ rawEvent: e });
+          const isSec = isSEC(e);
           const hRank = home.curatedRank?.current, aRank = away.curatedRank?.current;
           const hasRanked = (hRank && hRank <= 25) || (aRank && aRank <= 25);
 
@@ -298,16 +257,10 @@
           const gDate = new Date(e.date);
           if (gDate.toDateString() !== now.toDateString() && state !== 'in') return;
 
-          let tv = comp.broadcasts?.[0]?.names?.[0] || "TV TBD";
-
-          const getRecord = compObj => {
-            if (!compObj.records) return '';
-            const rec = compObj.records.find(r => r.type === 'total') || compObj.records[0];
-            return rec ? rec.summary : '';
-          };
+          const getRecord = compObj => (compObj.records?.find(r => r.type === 'total') || compObj.records?.[0])?.summary || '';
 
           const gameObj = {
-            id: e.id, homeId: home.id, awayId: away.id,
+            id: e.id,
             homeTeam: home.team?.shortDisplayName || home.team?.name || 'Home',
             awayTeam: away.team?.shortDisplayName || away.team?.name || 'Away',
             homeRecord: getRecord(home), awayRecord: getRecord(away),
@@ -316,7 +269,7 @@
             homeScore: home.score || "0", awayScore: away.score || "0",
             homeWinner: home.winner, awayWinner: away.winner,
             state, statusDetail: e.status?.type?.shortDetail || '', period: e.status?.period || 0,
-            isSec, hasRanked, tv, gDate, rawEvent: e
+            isSec, hasRanked, tv: comp.broadcasts?.[0]?.names?.[0] || "TV TBD", gDate, rawEvent: e
           };
 
           if (state === 'in') {
@@ -338,46 +291,33 @@
       } catch (err) {
         statusEl.innerText = "Error Loading";
       }
-                    }
-    
-    
+    }
 
     function renderGames(live, upcoming, finals) {
       const container = document.getElementById("games-container");
       container.innerHTML = "";
       if (!live.length && !upcoming.length && !finals.length) {
-        container.innerHTML = "<p style='text-align:center; color:var(--sub); margin-top:40px;'>No SEC or Top 25 games found for today.</p>"; return;
+        container.innerHTML = "<p style='text-align:center; color:var(--sub); margin-top:40px;'>No SEC or Top 25 games found for today.</p>";
+        return;
       }
 
-      if (live.length) {
-        const lHeader = document.createElement("div");
-        lHeader.className = "tier-header";
-        lHeader.innerText = "Live Games";
-        container.appendChild(lHeader);
-        live.forEach(g => container.appendChild(createCard(g, false)));
-      }
+      const appendSection = (title, list, isCompleted) => {
+        if (!list.length) return;
+        const header = document.createElement("div");
+        header.className = "tier-header";
+        header.innerText = title;
+        container.appendChild(header);
+        list.forEach(g => container.appendChild(createCard(g, isCompleted)));
+      };
 
-      if (upcoming.length) {
-        const uHeader = document.createElement("div");
-        uHeader.className = "tier-header";
-        uHeader.innerText = "Upcoming Today";
-        container.appendChild(uHeader);
-        upcoming.forEach(g => container.appendChild(createCard(g, false)));
-      }
-
-      if (finals.length) {
-        const fHeader = document.createElement("div");
-        fHeader.className = "tier-header";
-        fHeader.innerText = "Completed Games";
-        container.appendChild(fHeader);
-        finals.forEach(g => container.appendChild(createCard(g, true)));
-      }
+      appendSection("Live Games", live, false);
+      appendSection("Upcoming Today", upcoming, false);
+      appendSection("Completed Games", finals, true);
     }
 
     function createCard(g, isCompleted = false) {
       const card = document.createElement("div");
-      let cardClass = "game-card";
-      if (isCompleted) cardClass += " completed-card";
+      let cardClass = "game-card" + (isCompleted ? " completed-card" : "");
       if (g.isSec) cardClass += " sec-game";
       else if (g.hasRanked) cardClass += " ranked-game";
 
@@ -393,12 +333,6 @@
       }
 
       const hasIntensity = g.state === 'in' && typeof g.priorityScore === 'number';
-
-      let footerHtml = '';
-      if (hasIntensity) {
-        footerHtml = `<div class="card-footer-flex">${renderIntensityMeter(g.priorityScore, g)}</div>`;
-      }
-
       const sportSlug = currentSport === 'mbb' ? 'mens-college-basketball' : 'womens-college-basketball';
 
       card.innerHTML = `
@@ -417,7 +351,7 @@
           <span>${g.homeRank}${g.homeTeam} <span style="font-size:0.75rem; color:var(--sub); font-weight:normal;">${g.homeRecord ? `(${g.homeRecord})` : ''}</span></span>
           <span class="score">${g.state === 'pre' ? '' : g.homeScore}</span>
         </div>
-        ${footerHtml}
+        ${hasIntensity ? `<div class="card-footer-flex">${renderIntensityMeter(g.priorityScore, g)}</div>` : ''}
       `;
       return card;
     }
