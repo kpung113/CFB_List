@@ -186,8 +186,10 @@ function calculateLivePriorityScore(g) {
       let rem = 900;
       const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
       if (m) rem = parseInt(m[1]) * 60 + parseInt(m[2]);
-      const quarterElapsed = 900 - rem;
-      const timeProgress = Math.min(Math.max(quarterElapsed / 900, 0), 1); // 0.0 to 1.0
+      
+      // Total game time remaining fraction (1.0 at start down to 0.0 at end of regulation)
+      const totalSecondsLeft = Math.max(0, (4 - Math.min(p, 4)) * 900 + rem);
+      const timeRemainingFactor = totalSecondsLeft / 3600; 
 
       // --- EXCEPTIONS & SPECIAL CONDITIONS ---
       const top10TeamLosingBy16 = (hRnk <= 10 && homeScore < awayScore && margin > 16) || 
@@ -195,15 +197,13 @@ function calculateLivePriorityScore(g) {
       
       const unrankedLeadingTop10By10 = (hRnk > 25 && aRnk <= 10 && homeScore > awayScore && margin > 10) ||
                                        (aRnk > 25 && hRnk <= 10 && awayScore > homeScore && margin > 10);
+
       // --- 1. SNOOZEFEST TIER (0.0–2.0) ---
       if (margin > 16 && !top10TeamLosingBy16) {
         if (margin > 30) return 0.0;
-        // Scales inversely from 2.0 at a 17-point margin down to 0.1 at a 30-point margin
         const score = 2.0 - ((margin - 17) / 14) * 2.0;
         return Number(Math.max(0.0, score).toFixed(1));
       }
-  
-
 
       // --- HARD CAPS & REDUCTIONS ---
       let maxAllowed = 10.0;
@@ -214,9 +214,19 @@ function calculateLivePriorityScore(g) {
         maxAllowed = Math.min(maxAllowed, 8.0);
       }
 
-      // Granular modifiers based on exact tightness (0 to 1 scale where 0 margin = +1.0 boost)
-      const marginTightnessFactor = Math.max(0, (16 - margin) / 16); 
-      const clockUrgencyBonus = timeProgress * 0.4;
+      // --- MARGIN CATEGORY TIGHTNESS WEIGHT (0 to 1 scale based on your break points) ---
+      // <=3 (1.0), 6 (0.8), 7 (0.65), 8 (0.5), 10 (0.35), 14 (0.2), 16 (0.1)
+      let marginWeight = 0.1;
+      if (margin <= 3) marginWeight = 1.0;
+      else if (margin <= 6) marginWeight = 0.8;
+      else if (margin <= 7) marginWeight = 0.65;
+      else if (margin <= 8) marginWeight = 0.5;
+      else if (margin <= 10) marginWeight = 0.35;
+      else if (margin <= 14) marginWeight = 0.2;
+      else if (margin <= 16) marginWeight = 0.1;
+
+      // Combined score: Blend of margin closeness category and time urgency remaining
+      const urgencyBonus = timeRemainingFactor * 0.8;
 
       // --- 2. TURN TV ON NOW! TIER (9.0–10.0) ---
       const isEligibleForTopTier = isSEC || isRanked;
@@ -224,29 +234,30 @@ function calculateLivePriorityScore(g) {
 
       if (isEligibleForTopTier && within10OrTop10Upset) {
         if (p >= 4 && (margin <= 4 || unrankedLeadingTop10By10)) {
-          let peakScore = 9.5 + (margin === 0 ? 0.5 : (4 - margin) * 0.1) + (timeProgress * 0.4);
+          let peakScore = 9.0 + (marginWeight * 0.5) + ((1 - timeRemainingFactor) * 0.5);
           return Math.min(Math.max(Number(peakScore.toFixed(1)), 9.0), maxAllowed);
         }
-        let score9 = 9.0 + (marginTightnessFactor * 0.5) + clockUrgencyBonus;
+        let score9 = 9.0 + (marginWeight * 0.5) + (urgencyBonus * 0.2);
         return Math.min(Number(score9.toFixed(1)), maxAllowed);
       }
 
       // --- 3. GREAT GAME TIER (6.0–8.9) ---
       if (isEligibleForTopTier && margin <= 16) {
-        let baseGreat = (margin <= 10 && p >= 3) ? 7.5 : 6.2;
-        let score = baseGreat + (marginTightnessFactor * 1.0) + clockUrgencyBonus;
+        let baseGreat = (margin <= 10 && p >= 3) ? 7.2 : 6.2;
+        let score = baseGreat + (marginWeight * 1.2) + (urgencyBonus * 0.5);
         return Math.min(Math.max(Number(score.toFixed(1)), 6.0), Math.min(8.9, maxAllowed));
       }
 
       // --- 4. WATCHABLE TIER (3.0–5.9) ---
       if (margin <= 16) {
         let baseWatchable = (margin <= 10 && p >= 3) ? 4.5 : 3.5;
-        let score = baseWatchable + (marginTightnessFactor * 1.0) + clockUrgencyBonus;
+        let score = baseWatchable + (marginWeight * 1.2) + (urgencyBonus * 0.5);
         return Math.min(Math.max(Number(score.toFixed(1)), 3.0), Math.min(5.9, maxAllowed));
       }
 
-      return Math.min(Number((2.0 + clockUrgencyBonus).toFixed(1)), maxAllowed);
+      return Math.min(Number((2.0 + urgencyBonus).toFixed(1)), maxAllowed);
 }
+    
     
     
        
