@@ -240,20 +240,20 @@ function calculateLivePriorityScore(g) {
        
     
     
-    function renderIntensityMeter(score0to10) {
-  const displayScore = Math.min(Math.max(Math.round(score0to10), 0), 10);
+    function renderIntensityMeter(scoreInput) {
+  const displayScore = Math.min(Math.max(Number(scoreInput), 0), 10).toFixed(1);
 
   let label = 'Snoozefest', color = '#ef4444', angle = -40;
 
-  if (displayScore >= 9) {
+  if (displayScore >= 9.0) {
     label = 'TURN TV ON NOW!';
     color = '#84cc16';
     angle = 55;
-  } else if (displayScore >= 6) {
+  } else if (displayScore >= 6.0) {
     label = 'Great Game';
     color = '#22c55e';
     angle = 25;
-  } else if (displayScore >= 3) {
+  } else if (displayScore >= 3.0) {
     label = 'Watchable';
     color = '#eab308';
     angle = 0;
@@ -276,6 +276,7 @@ function calculateLivePriorityScore(g) {
       </div>
     </div>`;
     }
+    
     
 
     async function fetchScores() {
