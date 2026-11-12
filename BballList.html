@@ -272,13 +272,14 @@
         </div>`;
     }
 
-    async function fetchScores() {
+    
+            async function fetchScores() {
       const statusEl = document.getElementById("update-status");
       statusEl.innerText = "Refreshing...";
       try {
         const sportPath = currentSport === 'mbb' ? 'mens-college-basketball' : 'womens-college-basketball';
-        // groups=50 gets top tier / major conference games, limit=300 covers current day slate
-        const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=50&limit=300`);
+        // groups=50 pulls Division I games, limit=500 ensures we sweep the full daily slate
+        const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=50&limit=500`);
         const data = await res.json();
         const live = [], upcoming = [], finals = [], now = new Date();
 
@@ -293,11 +294,13 @@
           const hRank = home.curatedRank?.current, aRank = away.curatedRank?.current;
           const hasRanked = (hRank && hRank <= 25) || (aRank && aRank <= 25);
 
-          // FILTER: Current day only AND must be SEC or Top 25
+          // STRICT FILTER: Keep only if it's an SEC game OR features a Top 25 ranked team. Hide all others.
+          if (!isSec && !hasRanked) return;
+
+          // FILTER: Current day only (except live games that might cross boundaries)
           const gDate = new Date(e.date);
           const isToday = gDate.toDateString() === now.toDateString();
-          if (!isToday && state !== 'in') return; // Keep live games even if date boundary shifts slightly, skip non-today pre/post
-          if (!isSec && !hasRanked) return;
+          if (!isToday && state !== 'in') return;
 
           let tv = comp.broadcasts?.[0]?.names?.[0] || "TV TBD";
 
@@ -339,7 +342,8 @@
       } catch (err) {
         statusEl.innerText = "Error Loading";
       }
-    }
+            }
+    
 
     function renderGames(live, upcoming, finals) {
       const container = document.getElementById("games-container");
