@@ -273,7 +273,7 @@
     }
 
     
-                async function fetchScores() {
+                    async function fetchScores() {
       const statusEl = document.getElementById("update-status");
       statusEl.innerText = "Refreshing...";
       try {
@@ -293,13 +293,10 @@
           const hRank = home.curatedRank?.current, aRank = away.curatedRank?.current;
           const hasRanked = (hRank && hRank <= 25) || (aRank && aRank <= 25);
 
-          // STRICT FILTER: Must be SEC or feature a Top 25 team
           if (!isSec && !hasRanked) return;
 
-          // CURRENT DAY FILTER: Skip if not today and not live
           const gDate = new Date(e.date);
-          const isToday = gDate.toDateString() === now.toDateString();
-          if (!isToday && state !== 'in') return;
+          if (gDate.toDateString() !== now.toDateString() && state !== 'in') return;
 
           let tv = comp.broadcasts?.[0]?.names?.[0] || "TV TBD";
 
@@ -341,7 +338,7 @@
       } catch (err) {
         statusEl.innerText = "Error Loading";
       }
-                }
+                    }
     
     
 
