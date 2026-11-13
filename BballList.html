@@ -135,7 +135,7 @@
         const confId = String(c.team?.conferenceId || c.team?.conference?.id || '');
         const name = c.team?.shortDisplayName || c.team?.name || '';
         const abbr = (c.team?.conference?.abbreviation || '').toUpperCase();
-        return confId === '8' || abbr === 'SEC' || SEC_TEAM_NAMES.some(t => name.includes(t));
+        return confId === '8' || abbr === 'SEC' || SEC_TEAM_NAMES.some(t => name === t);
       });
     };
 
@@ -198,11 +198,11 @@
 
       const urgencyBonus = (1 - timeRemainingFactor) * 1.5;
 
-            if (top10TeamLosingBy15 || (isSecondHalf && margin < 10 && rankedTeamLosing)) {
+      const isLateGame = isWomens ? (p >= 4) : (p >= 2);
+      if (isLateGame && (top10TeamLosingBy15 || (margin < 10 && rankedTeamLosing))) {
         let score9 = 9.0 + (urgencyBonus * 0.2) + ((10 - margin) * 0.02);
         return Math.min(Number(score9.toFixed(1)), 9.4);
-            }
-      
+      }
 
       if ((!isSecondHalf && unrankedLeadingRanked) || (isSecondHalf && margin < 10) || (isSecondHalf && unrankedLeadingRanked && margin <= 15)) {
         let base = (!isSecondHalf && unrankedLeadingRanked) ? 6.5 : 7.2;
@@ -255,7 +255,6 @@
       try {
         const sportPath = currentSport === 'mbb' ? 'mens-college-basketball' : 'womens-college-basketball';
         
-        // Fetch both Division I slate (groups=50) and SEC conference feed (groups=8) concurrently to guarantee unranked SEC games are caught
         const [res50, res8] = await Promise.all([
           fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=50&limit=500`),
           fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=8&limit=100`)
@@ -264,7 +263,6 @@
         const data50 = await res50.json();
         const data8 = await res8.json();
 
-        // Merge and deduplicate events by ID
         const eventMap = new Map();
         [...(data50.events || []), ...(data8.events || [])].forEach(e => {
           if (e && e.id) eventMap.set(e.id, e);
@@ -283,7 +281,6 @@
           const hRank = home.curatedRank?.current, aRank = away.curatedRank?.current;
           const hasRanked = (hRank && hRank <= 25) || (aRank && aRank <= 25);
 
-          // STRICT FILTER: Keep only if SEC or Top 25
           if (!isSec && !hasRanked) return;
 
           const gDate = new Date(e.date);
@@ -367,11 +364,14 @@
       const hasIntensity = g.state === 'in' && typeof g.priorityScore === 'number';
       const sportSlug = currentSport === 'mbb' ? 'mens-college-basketball' : 'womens-college-basketball';
 
+      // Badge tag: Show "SEC" if it's an SEC game, or "RNK" if it features a Top 25 team
+      const badgeText = g.isSec ? 'SEC' : 'RNK';
+
       card.innerHTML = `
         <div class="card-header">
           <span>${g.statusDetail}</span>
           <span class="card-header-right">
-            <span class="broadcast">${isCompleted ? `<span class="sort-tag">${g.isSec ? 'SEC' : 'RNK'}</span>` : ''}<strong style="color:#84cc16;">📺 ${g.tv}</strong></span>
+            <span class="broadcast"><span class="sort-tag">${badgeText}</span><strong style="color:#84cc16;">📺 ${g.tv}</strong></span>
             <a href="https://www.espn.com/${sportSlug}/game/_/gameId/${g.id}" target="_blank" rel="noopener noreferrer" class="watch-btn">Gamecast</a>
           </span>
         </div>
