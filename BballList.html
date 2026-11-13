@@ -84,13 +84,10 @@
     let currentSport = 'mbb';
 
     function getInitialSport() {
-      // 0 = Sunday, 1 = Monday, 2 = Tuesday, 3 = Wednesday, 4 = Thursday, 5 = Friday, 6 = Saturday
       const day = new Date().getDay();
-      // Women's on Sunday (0), Monday (1), Thursday (4)
       if (day === 0 || day === 1 || day === 4) {
         return 'wbb';
       }
-      // Men's on Tuesday (2), Wednesday (3), Friday (5), Saturday (6)
       return 'mbb';
     }
 
@@ -122,10 +119,7 @@
       updateToggleButtonState();
       if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
       if (typeof renderSharedNav === 'function') renderSharedNav();
-      
-      // Set initial sport based on day of the week rule
       setSport(getInitialSport());
-      
       setInterval(fetchScores, 30000);
     });
 
@@ -156,13 +150,15 @@
       const hRnk = hRank && hRank <= 25 ? hRank : 99;
       const aRnk = aRank && aRank <= 25 ? aRank : 99;
       const isRanked = (hRnk <= 25 || aRnk <= 25);
+      const isRankedVsRanked = (hRnk <= 25 && aRnk <= 25);
 
       const gameDate = comp?.date || g.date;
       if (gameDate) {
         const diffMinutes = (new Date(gameDate) - new Date()) / 60000;
         if (diffMinutes >= 0 && diffMinutes <= 15) {
           let baseScore = 4.0;
-          if (hRnk <= 10 && aRnk <= 10) baseScore = 8.5;
+          if (isRankedVsRanked) baseScore = 8.0;
+          else if (hRnk <= 10 && aRnk <= 10) baseScore = 8.5;
           else if (isRanked) baseScore = 7.0;
           else if (isSECGame) baseScore = 6.0;
           g._isUpcomingStart = true;
@@ -189,6 +185,12 @@
       const top10TeamLosingBy15 = (hRnk <= 10 && homeScore < awayScore && margin > 15) || (aRnk <= 10 && awayScore < homeScore && margin > 15);
       const unrankedLeadingRanked = (hRnk > 25 && aRnk <= 25 && homeScore > awayScore) || (aRnk > 25 && hRnk <= 25 && awayScore > homeScore);
       const rankedTeamLosing = (hRnk <= 25 && homeScore < awayScore) || (aRnk <= 25 && awayScore < homeScore);
+
+      // --- RANKED VS RANKED CLOSE GAME EXCEPTION ---
+      if (isRankedVsRanked && margin < 10 && !top10TeamLosingBy15) {
+        let score = 7.5 + ((10 - margin) * 0.1) + ((1 - timeRemainingFactor) * 1.3);
+        return Math.min(Math.max(Number(score.toFixed(1)), 6.0), 8.9);
+      }
 
       if (margin > 15 && !top10TeamLosingBy15) {
         if (margin > 30) return 0.0;
