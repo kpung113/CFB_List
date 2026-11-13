@@ -123,19 +123,21 @@
       setInterval(fetchScores, 30000);
     });
 
-    const SEC_TEAM_NAMES = [
-      'Alabama', 'Arkansas', 'Auburn', 'Florida', 'Georgia', 'Kentucky', 
-      'LSU', 'Mississippi State', 'Missouri', 'Oklahoma', 'Ole Miss', 
-      'South Carolina', 'Tennessee', 'Texas', 'Texas A&M', 'Vanderbilt'
-    ];
-
     const isSEC = e => {
       const comp = e.competitions?.[0];
-      return (comp?.competitors || []).some(c => {
-        const confId = String(c.team?.conferenceId || c.team?.conference?.id || '');
-        const name = c.team?.shortDisplayName || c.team?.name || '';
+      const competitors = comp?.competitors || [];
+      
+      // Log feed info to console to debug conference IDs
+      console.log('Event:', e.name, 'Competitors:', competitors.map(c => ({
+        team: c.team?.name,
+        confId: c.team?.conferenceId || c.team?.conference?.id,
+        confAbbr: c.team?.conference?.abbreviation
+      })));
+
+      return competitors.some(c => {
+        const id = String(c.team?.conferenceId || c.team?.conference?.id || '');
         const abbr = (c.team?.conference?.abbreviation || '').toUpperCase();
-        return confId === '8' || abbr === 'SEC' || SEC_TEAM_NAMES.some(t => name === t);
+        return id === '8' || abbr === 'SEC';
       });
     };
 
@@ -255,22 +257,12 @@
       try {
         const sportPath = currentSport === 'mbb' ? 'mens-college-basketball' : 'womens-college-basketball';
         
-        const [res50, res8] = await Promise.all([
-          fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=50&limit=500`),
-          fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=8&limit=100`)
-        ]);
-        
-        const data50 = await res50.json();
-        const data8 = await res8.json();
-
-        const eventMap = new Map();
-        [...(data50.events || []), ...(data8.events || [])].forEach(e => {
-          if (e && e.id) eventMap.set(e.id, e);
-        });
-
+        // Fetch strictly from the main Division I scoreboard endpoint (groups=50) to prevent cross-conference noise leaks
+        const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=50&limit=600`);
+        const data = await res.json();
         const live = [], upcoming = [], finals = [], now = new Date();
 
-        eventMap.forEach(e => {
+        (data.events || []).forEach(e => {
           const comp = e.competitions?.[0]; if (!comp) return;
           const home = comp.competitors?.find(c => c.homeAway === 'home');
           const away = comp.competitors?.find(c => c.homeAway === 'away');
@@ -281,12 +273,16 @@
           const hRank = home.curatedRank?.current, aRank = away.curatedRank?.current;
           const hasRanked = (hRank && hRank <= 25) || (aRank && aRank <= 25);
 
+          // STRICT FILTER: Must be strictly SEC or Top 25
           if (!isSec && !hasRanked) return;
 
           const gDate = new Date(e.date);
           if (gDate.toDateString() !== now.toDateString() && state !== 'in') return;
 
           const getRecord = compObj => (compObj.records?.find(r => r.type === 'total') || compObj.records?.[0])?.summary || '';
+
+          // Capture conference IDs for visual debugging on the card
+          const confIds = (comp.competitors || []).map(c => c.team?.conferenceId || c.team?.conference?.id || 'none').join('/');
 
           const gameObj = {
             id: e.id,
@@ -298,7 +294,7 @@
             homeScore: home.score || "0", awayScore: away.score || "0",
             homeWinner: home.winner, awayWinner: away.winner,
             state, statusDetail: e.status?.type?.shortDetail || '', period: e.status?.period || 0,
-            isSec, hasRanked, tv: comp.broadcasts?.[0]?.names?.[0] || "TV TBD", gDate, rawEvent: e
+            isSec, hasRanked, tv: comp.broadcasts?.[0]?.names?.[0] || "TV TBD", gDate, rawEvent: e, confIds
           };
 
           if (state === 'in') {
@@ -364,14 +360,11 @@
       const hasIntensity = g.state === 'in' && typeof g.priorityScore === 'number';
       const sportSlug = currentSport === 'mbb' ? 'mens-college-basketball' : 'womens-college-basketball';
 
-      // Badge tag: Show "SEC" if it's an SEC game, or "RNK" if it features a Top 25 team
-      const badgeText = g.isSec ? 'SEC' : 'RNK';
-
       card.innerHTML = `
         <div class="card-header">
           <span>${g.statusDetail}</span>
           <span class="card-header-right">
-            <span class="broadcast"><span class="sort-tag">${badgeText}</span><strong style="color:#84cc16;">📺 ${g.tv}</strong></span>
+            <span class="broadcast"><span class="sort-tag">Conf: ${g.confIds}</span><strong style="color:#84cc16;">📺 ${g.tv}</strong></span>
             <a href="https://www.espn.com/${sportSlug}/game/_/gameId/${g.id}" target="_blank" rel="noopener noreferrer" class="watch-btn">Gamecast</a>
           </span>
         </div>
