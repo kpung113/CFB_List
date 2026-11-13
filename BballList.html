@@ -198,9 +198,11 @@
 
       const urgencyBonus = (1 - timeRemainingFactor) * 1.5;
 
-      if (top10TeamLosingBy15 || (isSecondHalf && margin < 10 && rankedTeamLosing)) {
-        return Math.min(Number((9.0 + (urgencyBonus * 0.6) + ((10 - margin) * 0.05)).toFixed(1)), 10.0);
-      }
+            if (top10TeamLosingBy15 || (isSecondHalf && margin < 10 && rankedTeamLosing)) {
+        let score9 = 9.0 + (urgencyBonus * 0.2) + ((10 - margin) * 0.02);
+        return Math.min(Number(score9.toFixed(1)), 9.4);
+            }
+      
 
       if ((!isSecondHalf && unrankedLeadingRanked) || (isSecondHalf && margin < 10) || (isSecondHalf && unrankedLeadingRanked && margin <= 15)) {
         let base = (!isSecondHalf && unrankedLeadingRanked) ? 6.5 : 7.2;
