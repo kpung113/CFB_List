@@ -123,7 +123,7 @@
       setInterval(fetchScores, 30000);
     });
 
-    const SEC_TEAMS = [
+    const SEC_TEAM_NAMES = [
       'Alabama', 'Arkansas', 'Auburn', 'Florida', 'Georgia', 'Kentucky', 
       'LSU', 'Mississippi State', 'Missouri', 'Oklahoma', 'Ole Miss', 
       'South Carolina', 'Tennessee', 'Texas', 'Texas A&M', 'Vanderbilt'
@@ -132,10 +132,10 @@
     const isSEC = e => {
       const comp = e.competitions?.[0];
       return (comp?.competitors || []).some(c => {
-        const id = String(c.team?.conferenceId || c.team?.conference?.id || '');
+        const confId = String(c.team?.conferenceId || c.team?.conference?.id || '');
         const name = c.team?.shortDisplayName || c.team?.name || '';
         const abbr = (c.team?.conference?.abbreviation || '').toUpperCase();
-        return id === '8' || abbr === 'SEC' || SEC_TEAMS.some(t => name.includes(t));
+        return confId === '8' || abbr === 'SEC' || SEC_TEAM_NAMES.some(t => name.includes(t));
       });
     };
 
@@ -186,7 +186,6 @@
       const unrankedLeadingRanked = (hRnk > 25 && aRnk <= 25 && homeScore > awayScore) || (aRnk > 25 && hRnk <= 25 && awayScore > homeScore);
       const rankedTeamLosing = (hRnk <= 25 && homeScore < awayScore) || (aRnk <= 25 && awayScore < homeScore);
 
-      // --- RANKED VS RANKED CLOSE GAME EXCEPTION ---
       if (isRankedVsRanked && margin < 10 && !top10TeamLosingBy15) {
         let score = 7.5 + ((10 - margin) * 0.1) + ((1 - timeRemainingFactor) * 1.3);
         return Math.min(Math.max(Number(score.toFixed(1)), 6.0), 8.9);
@@ -253,11 +252,25 @@
       statusEl.innerText = "Refreshing...";
       try {
         const sportPath = currentSport === 'mbb' ? 'mens-college-basketball' : 'womens-college-basketball';
-        const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?limit=600`);
-        const data = await res.json();
+        
+        // Fetch both Division I slate (groups=50) and SEC conference feed (groups=8) concurrently to guarantee unranked SEC games are caught
+        const [res50, res8] = await Promise.all([
+          fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=50&limit=500`),
+          fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=8&limit=100`)
+        ]);
+        
+        const data50 = await res50.json();
+        const data8 = await res8.json();
+
+        // Merge and deduplicate events by ID
+        const eventMap = new Map();
+        [...(data50.events || []), ...(data8.events || [])].forEach(e => {
+          if (e && e.id) eventMap.set(e.id, e);
+        });
+
         const live = [], upcoming = [], finals = [], now = new Date();
 
-        (data.events || []).forEach(e => {
+        eventMap.forEach(e => {
           const comp = e.competitions?.[0]; if (!comp) return;
           const home = comp.competitors?.find(c => c.homeAway === 'home');
           const away = comp.competitors?.find(c => c.homeAway === 'away');
@@ -268,6 +281,7 @@
           const hRank = home.curatedRank?.current, aRank = away.curatedRank?.current;
           const hasRanked = (hRank && hRank <= 25) || (aRank && aRank <= 25);
 
+          // STRICT FILTER: Keep only if SEC or Top 25
           if (!isSec && !hasRanked) return;
 
           const gDate = new Date(e.date);
