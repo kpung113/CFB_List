@@ -39,7 +39,7 @@
     .game-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;border-left:5px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.4);}
     .game-card.live-late{border-left-color:var(--red);background:linear-gradient(135deg,#181920 0%,#221518 100%);}
     .game-card.live{border-left-color:var(--maroon);background:linear-gradient(135deg,#181920 0%,#1f1418 100%);}
-    .game-card.sec-game{border-left-color:#f59e0b;}
+    .game-card.conf23-game{border-left-color:#f59e0b;}
     .game-card.ranked-game{border-left-color:#ef4444;}
     .game-card.completed-card{opacity:.85;background:#172033;}
     .card-header{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--sub);margin-bottom:8px;}
@@ -123,21 +123,11 @@
       setInterval(fetchScores, 30000);
     });
 
-    const isSEC = e => {
+    const hasConf23 = e => {
       const comp = e.competitions?.[0];
-      const competitors = comp?.competitors || [];
-      
-      // Log feed info to console to debug conference IDs
-      console.log('Event:', e.name, 'Competitors:', competitors.map(c => ({
-        team: c.team?.name,
-        confId: c.team?.conferenceId || c.team?.conference?.id,
-        confAbbr: c.team?.conference?.abbreviation
-      })));
-
-      return competitors.some(c => {
+      return (comp?.competitors || []).some(c => {
         const id = String(c.team?.conferenceId || c.team?.conference?.id || '');
-        const abbr = (c.team?.conference?.abbreviation || '').toUpperCase();
-        return id === '8' || abbr === 'SEC';
+        return id === '23';
       });
     };
 
@@ -146,7 +136,7 @@
       const home = comp?.competitors?.find(c => c.homeAway === 'home');
       const away = comp?.competitors?.find(c => c.homeAway === 'away');
       
-      const isSECGame = isSEC(g.rawEvent);
+      const isConf23Game = hasConf23(g.rawEvent);
       const hRank = home?.curatedRank?.current;
       const aRank = away?.curatedRank?.current;
       const hRnk = hRank && hRank <= 25 ? hRank : 99;
@@ -162,7 +152,7 @@
           if (isRankedVsRanked) baseScore = 8.0;
           else if (hRnk <= 10 && aRnk <= 10) baseScore = 8.5;
           else if (isRanked) baseScore = 7.0;
-          else if (isSECGame) baseScore = 6.0;
+          else if (isConf23Game) baseScore = 6.0;
           g._isUpcomingStart = true;
           return Number(baseScore.toFixed(1));
         }
@@ -257,7 +247,6 @@
       try {
         const sportPath = currentSport === 'mbb' ? 'mens-college-basketball' : 'womens-college-basketball';
         
-        // Fetch strictly from the main Division I scoreboard endpoint (groups=50) to prevent cross-conference noise leaks
         const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=50&limit=600`);
         const data = await res.json();
         const live = [], upcoming = [], finals = [], now = new Date();
@@ -269,19 +258,18 @@
           if (!home || !away) return;
 
           const state = e.status?.type?.state;
-          const isSec = isSEC(e);
+          const isConf23 = hasConf23(e);
           const hRank = home.curatedRank?.current, aRank = away.curatedRank?.current;
           const hasRanked = (hRank && hRank <= 25) || (aRank && aRank <= 25);
 
-          // STRICT FILTER: Must be strictly SEC or Top 25
-          if (!isSec && !hasRanked) return;
+          // STRICT FILTER: Must have conference ID 23 or feature a Top 25 ranked team
+          if (!isConf23 && !hasRanked) return;
 
           const gDate = new Date(e.date);
           if (gDate.toDateString() !== now.toDateString() && state !== 'in') return;
 
           const getRecord = compObj => (compObj.records?.find(r => r.type === 'total') || compObj.records?.[0])?.summary || '';
 
-          // Capture conference IDs for visual debugging on the card
           const confIds = (comp.competitors || []).map(c => c.team?.conferenceId || c.team?.conference?.id || 'none').join('/');
 
           const gameObj = {
@@ -294,7 +282,7 @@
             homeScore: home.score || "0", awayScore: away.score || "0",
             homeWinner: home.winner, awayWinner: away.winner,
             state, statusDetail: e.status?.type?.shortDetail || '', period: e.status?.period || 0,
-            isSec, hasRanked, tv: comp.broadcasts?.[0]?.names?.[0] || "TV TBD", gDate, rawEvent: e, confIds
+            isConf23, hasRanked, tv: comp.broadcasts?.[0]?.names?.[0] || "TV TBD", gDate, rawEvent: e, confIds
           };
 
           if (state === 'in') {
@@ -322,7 +310,7 @@
       const container = document.getElementById("games-container");
       container.innerHTML = "";
       if (!live.length && !upcoming.length && !finals.length) {
-        container.innerHTML = "<p style='text-align:center; color:var(--sub); margin-top:40px;'>No SEC or Top 25 games found for today.</p>";
+        container.innerHTML = "<p style='text-align:center; color:var(--sub); margin-top:40px;'>No Conf 23 or Top 25 games found for today.</p>";
         return;
       }
 
@@ -343,7 +331,7 @@
     function createCard(g, isCompleted = false) {
       const card = document.createElement("div");
       let cardClass = "game-card" + (isCompleted ? " completed-card" : "");
-      if (g.isSec) cardClass += " sec-game";
+      if (g.isConf23) cardClass += " conf23-game";
       else if (g.hasRanked) cardClass += " ranked-game";
 
       if (g.state === 'in') {
