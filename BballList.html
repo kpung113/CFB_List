@@ -262,15 +262,12 @@
           const hRank = home.curatedRank?.current, aRank = away.curatedRank?.current;
           const hasRanked = (hRank && hRank <= 25) || (aRank && aRank <= 25);
 
-          // STRICT FILTER: Must have conference ID 23 or feature a Top 25 ranked team
           if (!isConf23 && !hasRanked) return;
 
           const gDate = new Date(e.date);
           if (gDate.toDateString() !== now.toDateString() && state !== 'in') return;
 
           const getRecord = compObj => (compObj.records?.find(r => r.type === 'total') || compObj.records?.[0])?.summary || '';
-
-          const confIds = (comp.competitors || []).map(c => c.team?.conferenceId || c.team?.conference?.id || 'none').join('/');
 
           const gameObj = {
             id: e.id,
@@ -282,7 +279,7 @@
             homeScore: home.score || "0", awayScore: away.score || "0",
             homeWinner: home.winner, awayWinner: away.winner,
             state, statusDetail: e.status?.type?.shortDetail || '', period: e.status?.period || 0,
-            isConf23, hasRanked, tv: comp.broadcasts?.[0]?.names?.[0] || "TV TBD", gDate, rawEvent: e, confIds
+            isConf23, hasRanked, tv: comp.broadcasts?.[0]?.names?.[0] || "TV TBD", gDate, rawEvent: e
           };
 
           if (state === 'in') {
@@ -310,7 +307,7 @@
       const container = document.getElementById("games-container");
       container.innerHTML = "";
       if (!live.length && !upcoming.length && !finals.length) {
-        container.innerHTML = "<p style='text-align:center; color:var(--sub); margin-top:40px;'>No Conf 23 or Top 25 games found for today.</p>";
+        container.innerHTML = "<p style='text-align:center; color:var(--sub); margin-top:40px;'>No matching games found for today.</p>";
         return;
       }
 
@@ -352,7 +349,7 @@
         <div class="card-header">
           <span>${g.statusDetail}</span>
           <span class="card-header-right">
-            <span class="broadcast"><span class="sort-tag">Conf: ${g.confIds}</span><strong style="color:#84cc16;">📺 ${g.tv}</strong></span>
+            <span class="broadcast"><strong style="color:#84cc16;">📺 ${g.tv}</strong></span>
             <a href="https://www.espn.com/${sportSlug}/game/_/gameId/${g.id}" target="_blank" rel="noopener noreferrer" class="watch-btn">Gamecast</a>
           </span>
         </div>
