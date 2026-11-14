@@ -164,14 +164,14 @@
       });
     }
 
-        function calculateLivePriorityScore(g) {
+    function calculateLivePriorityScore(g) {
       const comp = g.rawEvent?.competitions?.[0];
       const home = comp?.competitors?.find(c => c.homeAway === 'home');
       const away = comp?.competitors?.find(c => c.homeAway === 'away');
       
       const homeConfId = String(home?.team?.conferenceId || home?.team?.conference?.id || '');
       const awayConfId = String(away?.team?.conferenceId || away?.team?.conference?.id || '');
-      const isSEC = (homeConfId === '8' || awayConfId === '8');
+      const isSECGame = (homeConfId === '8' || awayConfId === '8');
       
       const hRank = home?.curatedRank?.current;
       const aRank = away?.curatedRank?.current;
@@ -187,19 +187,18 @@
         const diffMinutes = (startTime - now) / 60000;
         
         if (diffMinutes >= 0 && diffMinutes <= 15) {
-          // Baseline intensity score based on marquee value / prestige
-          let baseScore = 4.0; // Default Watchable baseline
-          if (homeIsSec && awayIsSec) baseScore = 8.0;
+          let baseScore = 4.0; 
+          if (isSECGame && isRanked) baseScore = 8.0;
           else if (hRnk <= 10 && aRnk <= 10) baseScore = 8.5;
           else if (isRanked) baseScore = 7.0;
-          else if (isSEC) baseScore = 6.0;
+          else if (isSECGame) baseScore = 6.0;
 
           g._isUpcomingStart = true;
           return Number(baseScore.toFixed(1));
         }
       }
       
-      g._isUpcomingStart = false; // Reset if outside window
+      g._isUpcomingStart = false;
 
       const homeScore = parseInt(g.homeScore || 0);
       const awayScore = parseInt(g.awayScore || 0);
@@ -212,27 +211,20 @@
       
       const totalSecondsLeft = Math.max(0, (4 - Math.min(p, 4)) * 900 + rem);
       const timeRemainingFactor = totalSecondsLeft / 3600; 
+      const urgencyBonus = timeRemainingFactor * 0.8;
 
-      // --- EXCEPTIONS & SPECIAL CONDITIONS ---
-      const top10TeamLosingBy16 = (hRnk <= 10 && homeScore < awayScore && margin > 16) || 
-                                  (aRnk <= 10 && awayScore < homeScore && margin > 16);
-      
-      const unrankedLeadingTop10By10 = (hRnk > 25 && aRnk <= 10 && homeScore > awayScore && margin > 10) ||
-                                       (aRnk > 25 && hRnk <= 10 && awayScore > homeScore && margin > 10);
+      const rankedTeamWinning = (hRnk <= 25 && homeScore > awayScore) || (aRnk <= 25 && awayScore > homeScore);
+      const isSecondHalf = (p >= 3);
 
-      // --- SNOOZEFEST TIER (0.0–2.0) ---
-      if (margin > 16 && !top10TeamLosingBy16) {
+      // If a ranked team is leading comfortably or it's an early/halftime blowout, keep it grounded
+      if (!isSecondHalf || (isSecondHalf && rankedTeamWinning && margin >= 10) || (margin > 16)) {
         if (margin > 30) return 0.0;
-        const score = 2.0 - ((margin - 17) / 14) * 2.0;
-        return Number(Math.max(0.0, score).toFixed(1));
-      }
-
-      let maxAllowed = 10.0;
-      if (p === 4 && rem <= 600 && margin > 16 && !top10TeamLosingBy16) {
-        maxAllowed = Math.min(maxAllowed, 8.0);
-      }
-      if (p === 4 && rem <= 300 && margin > 10 && !unrankedLeadingTop10By10) {
-        maxAllowed = Math.min(maxAllowed, 8.0);
+        if (margin > 16) {
+          const score = 2.0 - ((margin - 17) / 14) * 2.0;
+          return Number(Math.max(0.0, score).toFixed(1));
+        }
+        let baseScore = rankedTeamWinning ? 4.5 : 5.5;
+        return Number(Math.min(Math.max(baseScore + (urgencyBonus * 0.3), 3.0), 7.5).toFixed(1));
       }
 
       let marginWeight = 0.1;
@@ -242,88 +234,67 @@
       else if (margin <= 8) marginWeight = 0.5;
       else if (margin <= 10) marginWeight = 0.35;
       else if (margin <= 14) marginWeight = 0.2;
-      else if (margin <= 16) marginWeight = 0.1;
-
-      const urgencyBonus = timeRemainingFactor * 0.8;
 
       // --- TURN TV ON NOW! TIER (9.0–10.0) ---
-      const isEligibleForTopTier = isSEC || isRanked;
-      const within10OrTop10Upset = (margin <= 10) || unrankedLeadingTop10By10;
-
-      if (isEligibleForTopTier && within10OrTop10Upset) {
-        if (p >= 4 && (margin <= 4 || unrankedLeadingTop10By10)) {
+      const isEligibleForTopTier = isSECGame || isRanked;
+      if (isEligibleForTopTier && margin <= 10) {
+        if (p >= 4 && margin <= 4) {
           let peakScore = 9.0 + (marginWeight * 0.5) + ((1 - timeRemainingFactor) * 0.5);
-          return Math.min(Math.max(Number(peakScore.toFixed(1)), 9.0), maxAllowed);
+          return Math.min(Math.max(Number(peakScore.toFixed(1)), 9.0), 10.0);
         }
         let score9 = 9.0 + (marginWeight * 0.5) + (urgencyBonus * 0.2);
-        return Math.min(Number(score9.toFixed(1)), maxAllowed);
+        return Math.min(Number(score9.toFixed(1)), 10.0);
       }
 
       // --- GREAT GAME TIER (6.0–8.9) ---
       if (isEligibleForTopTier && margin <= 16) {
         let baseGreat = (margin <= 10 && p >= 3) ? 7.2 : 6.2;
         let score = baseGreat + (marginWeight * 1.2) + (urgencyBonus * 0.5);
-        return Math.min(Math.max(Number(score.toFixed(1)), 6.0), Math.min(8.9, maxAllowed));
+        return Math.min(Math.max(Number(score.toFixed(1)), 6.0), 8.9);
       }
 
-      // --- WATCHABLE TIER (3.0–5.9) ---
-      if (margin <= 16) {
-        let baseWatchable = (margin <= 10 && p >= 3) ? 4.5 : 3.5;
-        let score = baseWatchable + (marginWeight * 1.2) + (urgencyBonus * 0.5);
-        return Math.min(Math.max(Number(score.toFixed(1)), 3.0), Math.min(5.9, maxAllowed));
-      }
-
-      return Math.min(Number((2.0 + urgencyBonus).toFixed(1)), maxAllowed);
-        }
-    
-    
-    
-       
-    
-    
-    function renderIntensityMeter(scoreInput, g) {
-  const displayScore = Math.min(Math.max(Number(scoreInput), 0), 10).toFixed(1);
-
-  let label = 'Snoozefest', color = '#ef4444', angle = -40;
-
-  if (g && g._isUpcomingStart) {
-    label = 'Upcoming Start';
-    color = '#38bdf8'; // Accent blue for upcoming games
-    angle = 0;
-  } else if (displayScore >= 9.0) {
-    label = 'TURN TV ON NOW!';
-    color = '#84cc16';
-    angle = 55;
-  } else if (displayScore >= 6.0) {
-    label = 'Great Game';
-    color = '#22c55e';
-    angle = 25;
-  } else if (displayScore >= 3.0) {
-    label = 'Watchable';
-    color = '#eab308';
-    angle = 0;
-  }
-
-  return `
-    <div class="intensity-container">
-      <div class="gauge-wrapper">
-        <svg class="gauge-svg" viewBox="0 0 100 55">
-          <path d="M 10 50 A 40 40 0 0 1 33.4 18.2" fill="none" stroke="#ef4444" stroke-width="12"/>
-          <path d="M 33.4 18.2 A 40 40 0 0 1 66.6 18.2" fill="none" stroke="#eab308" stroke-width="12"/>
-          <path d="M 66.6 18.2 A 40 40 0 0 1 90 50" fill="none" stroke="#22c55e" stroke-width="12"/>
-          <circle cx="50" cy="50" r="5" fill="#f8fafc"/>
-          <g transform="rotate(${angle}, 50, 50)"><polygon points="47,50 53,50 50,14" fill="#f8fafc"/></g>
-        </svg>
-      </div>
-      <div class="intensity-text-group">
-        <span class="intensity-label" style="color:${color};">${label}</span>
-        <span class="intensity-score">Intensity Score: ${displayScore}</span>
-      </div>
-    </div>`;
+      return Number((3.5 + urgencyBonus).toFixed(1));
     }
     
-    
-    
+    function renderIntensityMeter(scoreInput, g) {
+      const displayScore = Math.min(Math.max(Number(scoreInput), 0), 10).toFixed(1);
+      let label = 'Snoozefest', color = '#ef4444', angle = -40;
+
+      if (g && g._isUpcomingStart) {
+        label = 'Upcoming Start';
+        color = '#38bdf8';
+        angle = 0;
+      } else if (displayScore >= 9.0) {
+        label = 'TURN TV ON NOW!';
+        color = '#84cc16';
+        angle = 55;
+      } else if (displayScore >= 6.0) {
+        label = 'Great Game';
+        color = '#22c55e';
+        angle = 25;
+      } else if (displayScore >= 3.0) {
+        label = 'Watchable';
+        color = '#eab308';
+        angle = 0;
+      }
+
+      return `
+        <div class="intensity-container">
+          <div class="gauge-wrapper">
+            <svg class="gauge-svg" viewBox="0 0 100 55">
+              <path d="M 10 50 A 40 40 0 0 1 33.4 18.2" fill="none" stroke="#ef4444" stroke-width="12"/>
+              <path d="M 33.4 18.2 A 40 40 0 0 1 66.6 18.2" fill="none" stroke="#eab308" stroke-width="12"/>
+              <path d="M 66.6 18.2 A 40 40 0 0 1 90 50" fill="none" stroke="#22c55e" stroke-width="12"/>
+              <circle cx="50" cy="50" r="5" fill="#f8fafc"/>
+              <g transform="rotate(${angle}, 50, 50)"><polygon points="47,50 53,50 50,14" fill="#f8fafc"/></g>
+            </svg>
+          </div>
+          <div class="intensity-text-group">
+            <span class="intensity-label" style="color:${color};">${label}</span>
+            <span class="intensity-score">Intensity Score: ${displayScore}</span>
+          </div>
+        </div>`;
+    }
 
     async function fetchScores() {
       const statusEl = document.getElementById("update-status");
@@ -351,7 +322,6 @@
           let spread = comp.odds?.[0]?.details || comp.odds?.[0]?.summary || '';
           if (spread === 'null' || spread === 'EVEN') spread = '';
 
-          // Find conference abbreviation helper for the tag
           const getConfAbbr = teamObj => {
             const ab = teamObj.team?.conference?.abbreviation;
             if (ab) return ab.toUpperCase();
@@ -504,7 +474,7 @@
       if (hasIntensity || hasMeta) {
         footerHtml = `<div class="card-footer-flex">`;
         if (hasIntensity) {
-          footerHtml += renderIntensityMeter(g.priorityScore);
+          footerHtml += renderIntensityMeter(g.priorityScore, g);
         }
         if (hasMeta) {
           footerHtml += `<div class="win-prob-badge">${g.winProb ? `<span>${g.winProb}</span>` : (g.spread ? `<span>${g.spread}</span>` : '')}</div>`;
