@@ -16,8 +16,8 @@
     *{box-sizing:border-box;}
     body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:16px;}
     body.dyslexia-font,body.dyslexia-font *{font-family:"Comic Sans MS",Verdana,sans-serif!important;letter-spacing:.05em!important;word-spacing:.1em!important;}
-    .dyslexia-toggle,.sport-toggle{background:#181920;border:1px solid var(--border);color:#38bdf8;font-size:.75rem;font-weight:700;padding:5px 10px;border-radius:6px;cursor:pointer;}
-    .sport-toggle.active{background:#38bdf8;color:#0b0c10;border-color:#38bdf8;}
+    .dyslexia-toggle,.sport-toggle,.date-toggle{background:#181920;border:1px solid var(--border);color:#38bdf8;font-size:.75rem;font-weight:700;padding:5px 10px;border-radius:6px;cursor:pointer;}
+    .sport-toggle.active,.date-toggle.active{background:#38bdf8;color:#0b0c10;border-color:#38bdf8;}
     .nav-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);z-index:99;opacity:0;visibility:hidden;pointer-events:none;transition:0.2s;}
     .nav-overlay.open{opacity:1;visibility:visible;pointer-events:auto;}
     .nav-drawer{position:fixed;top:0;left:-260px;width:260px;height:100vh;background:#181920;border-right:1px solid var(--border);z-index:100;display:flex;flex-direction:column;transition:0.3s;box-shadow:4px 0 15px rgba(0,0,0,.4);}
@@ -28,14 +28,14 @@
     .drawer-links a{padding:12px 18px;color:var(--text);text-decoration:none;font-size:.85rem;font-weight:700;display:block;border-left:3px solid transparent;}
     .drawer-links a:hover,.drawer-links a.active{background:#222530;border-left-color:#38bdf8;color:#38bdf8;}
     header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--maroon);}
-    .header-left,.header-right,.header-title,.card-header-right{display:flex;align-items:center;gap:8px;}
+    .header-left,.header-right,.header-title,.card-header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
     .header-left{gap:12px;}
     .menu-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;width:22px;height:18px;padding:0;z-index:101;}
     .menu-btn span{display:block;width:100%;height:2px;background:#38bdf8;border-radius:2px;}
     .msu-logo{height:38px;width:auto;object-fit:contain;filter:drop-shadow(0 0 2px #fff);}
     h1{margin:0;font-size:1.25rem;font-weight:800;}
     .status-badge{font-size:.75rem;padding:4px 10px;background:#222530;border:1px solid var(--border);border-radius:12px;color:var(--sub);}
-    .toggle-group{display:flex;gap:6px;}
+    .toggle-group{display:flex;gap:4px;}
     .tier-header{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gold);margin:14px 0 8px 4px;padding-bottom:4px;border-bottom:1px solid #222530;}
     .game-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;border-left:5px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.4);}
     .game-card.live-late{border-left-color:var(--red);background:linear-gradient(135deg,#181920 0%,#221518 100%);}
@@ -74,6 +74,11 @@
         <button id="mbbToggle" class="sport-toggle active" onclick="setSport('mbb')">Men's</button>
         <button id="wbbToggle" class="sport-toggle" onclick="setSport('wbb')">Women's</button>
       </div>
+      <div class="toggle-group">
+        <button id="datePrev" class="date-toggle" onclick="setDayOffset(-1)">Yesterday</button>
+        <button id="dateToday" class="date-toggle active" onclick="setDayOffset(0)">Today</button>
+        <button id="dateNext" class="date-toggle" onclick="setDayOffset(1)">Tomorrow</button>
+      </div>
       <button id="fontToggleBtn" class="dyslexia-toggle" onclick="toggleDyslexiaFont()">Kate Button: OFF</button>
       <span id="update-status" class="status-badge">Loading...</span>
     </div>
@@ -83,6 +88,7 @@
 
   <script>
     let currentSport = 'mbb';
+    let dayOffset = 0;
 
     function getInitialSport() {
       const day = new Date().getDay();
@@ -97,6 +103,14 @@
       document.getElementById('mbbToggle').classList.toggle('active', sport === 'mbb');
       document.getElementById('wbbToggle').classList.toggle('active', sport === 'wbb');
       document.getElementById('page-title').innerText = sport === 'mbb' ? "Bully's MBB Board" : "Bully's WBB Board";
+      fetchScores();
+    }
+
+    function setDayOffset(offset) {
+      dayOffset = offset;
+      document.getElementById('datePrev').classList.toggle('active', offset === -1);
+      document.getElementById('dateToday').classList.toggle('active', offset === 0);
+      document.getElementById('dateNext').classList.toggle('active', offset === 1);
       fetchScores();
     }
 
@@ -121,7 +135,9 @@
       if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
       if (typeof renderSharedNav === 'function') renderSharedNav();
       setSport(getInitialSport());
-      setInterval(fetchScores, 30000);
+      setInterval(() => {
+        if (dayOffset === 0) fetchScores();
+      }, 30000);
     });
 
     const hasConf23 = e => {
@@ -137,11 +153,12 @@
       statusEl.innerText = "Refreshing...";
       try {
         const sportPath = currentSport === 'mbb' ? 'mens-college-basketball' : 'womens-college-basketball';
-        const now = new Date();
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + dayOffset);
         
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
+        const year = targetDate.getFullYear();
+        const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+        const day = String(targetDate.getDate()).padStart(2, '0');
         const dateStr = `${year}${month}${day}`;
         
         const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=50&limit=600&dates=${dateStr}`);
@@ -162,7 +179,7 @@
           if (!isConf23 && !hasRanked) return;
 
           const gDate = new Date(e.date);
-          if (gDate.toDateString() !== now.toDateString() && state !== 'in') return;
+          if (gDate.toDateString() !== targetDate.toDateString() && state !== 'in') return;
 
           const getRecord = compObj => (compObj.records?.find(r => r.type === 'total') || compObj.records?.[0])?.summary || '';
 
@@ -194,7 +211,7 @@
         finals.sort((a, b) => new Date(b.gDate) - new Date(a.gDate));
 
         renderGames(live, upcoming, finals, currentSport, createCard);
-        statusEl.innerText = "Live • 30s";
+        statusEl.innerText = dayOffset === 0 ? "Live • 30s" : targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       } catch (err) {
         statusEl.innerText = "Error Loading";
       }
