@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bully's Event Travel</title>
+  <script src="nav.js"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
+  <script>
+    window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+    gtag('js',new Date());gtag('config','G-8695308WQ8');
+    if(localStorage.getItem('dyslexiaMode')==='enabled')document.documentElement.classList.add('dyslexia-font');
+  </script>
+  <style>
+    :root{--bg:#0b0c10;--card:#181920;--border:#272935;--text:#f8fafc;--maroon:#5d1725;--red:#ef4444;--sub:#94a3b8;--gold:#84cc16;--blue:#38bdf8;}
+    *{box-sizing:border-box;}
+    body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:10px;}
+    body.dyslexia-font,body.dyslexia-font *{font-family:"Comic Sans MS",Verdana,sans-serif!important;letter-spacing:.05em!important;word-spacing:.1em!important;}
+    .dyslexia-toggle{background:#181920;border:1px solid var(--border);color:var(--blue);font-size:.7rem;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;}
+    .nav-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);z-index:99;opacity:0;visibility:hidden;pointer-events:none;transition:0.2s;}
+    .nav-overlay.open{opacity:1;visibility:visible;pointer-events:auto;}
+    .nav-drawer{position:fixed;top:0;left:-260px;width:260px;height:100vh;background:#181920;border-right:1px solid var(--border);z-index:100;display:flex;flex-direction:column;transition:0.3s;box-shadow:4px 0 15px rgba(0,0,0,.4);}
+    .nav-drawer.open{left:0;}
+    .drawer-header{padding:14px 16px;font-weight:800;font-size:.9rem;text-transform:uppercase;color:var(--blue);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+    .drawer-close{background:none;border:none;color:var(--sub);font-size:1.3rem;cursor:pointer;}
+    .drawer-links{list-style:none;padding:8px 0;margin:0;display:flex;flex-direction:column;}
+    .drawer-links a{padding:12px 18px;color:var(--text);text-decoration:none;font-size:.85rem;font-weight:700;display:block;border-left:3px solid transparent;}
+    .drawer-links a:hover,.drawer-links a.active{background:#222530;border-left-color:var(--blue);color:var(--blue);}
+    header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--maroon);}
+    .header-left,.header-right,.header-title{display:flex;align-items:center;gap:8px;}
+    .header-left{gap:10px;}
+    .menu-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;width:22px;height:18px;padding:0;z-index:101;}
+    .menu-btn span{display:block;width:100%;height:2px;background:var(--blue);border-radius:2px;}
+    .msu-logo{height:32px;width:auto;object-fit:contain;filter:drop-shadow(0 0 2px #fff);}
+    h1{margin:0;font-size:1.1rem;font-weight:800;}
+    
+    /* Travel Form Containers */
+    .travel-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+    .form-group{margin-bottom:12px;}
+    .form-group label{display:block;font-size:.75rem;font-weight:700;text-transform:uppercase;color:var(--sub);margin-bottom:5px;}
+    .form-control{width:100%;background:#111319;border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:.9rem;}
+    .form-control:focus{outline:none;border-color:var(--blue);}
+    .row-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    
+    /* Segmented toggles */
+    .toggle-options{display:flex;gap:6px;margin-bottom:8px;}
+    .option-btn{flex:1;background:#111319;border:1px solid var(--border);color:var(--sub);font-size:.75rem;font-weight:700;padding:6px;border-radius:6px;cursor:pointer;text-align:center;}
+    .option-btn.active{background:var(--blue);color:#0b0c10;border-color:var(--blue);}
+    
+    .date-section{display:none;}
+    .date-section.active{display:block;}
+    
+    .search-btn{width:100%;background:var(--maroon);border:1px solid #7d2033;color:#fff;font-weight:800;padding:10px;border-radius:8px;font-size:.95rem;cursor:pointer;margin-top:4px;}
+    .search-btn:hover{background:#7d2033;}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
+      <div class="header-title">
+        <img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/ncaa/500/344.png&h=100&w=100" alt="MSU Logo" class="msu-logo">
+        <h1>Event Travel Search</h1>
+      </div>
+    </div>
+    <div class="header-right">
+      <button id="fontToggleBtn" class="dyslexia-toggle" onclick="toggleDyslexiaFont()">Kate Button: OFF</button>
+    </div>
+  </header>
+  
+  <div class="travel-card">
+    <form id="travelForm" onsubmit="launchKayak(event)">
+      
+      <!-- Destination Selector -->
+      <div class="form-group">
+        <label for="destination">Destination</label>
+        <select id="destination" class="form-control" required>
+          <option value="HSV">Huntsville, AL (HSV)</option>
+          <option value="BOS">Boston, MA (BOS)</option>
+          <option value="GTR">Starkville / Columbus, MS (GTR)</option>
+        </select>
+      </div>
+
+      <!-- Passengers / Seats Selector -->
+      <div class="form-group">
+        <label>Passengers & Seats</label>
+        <div class="row-inputs">
+          <div>
+            <span style="font-size:0.65rem; color:var(--sub);">Adults</span>
+            <input type="number" id="adults" class="form-control" value="2" min="1" max="9" required>
+          </div>
+          <div>
+            <span style="font-size:0.65rem; color:var(--sub);">Children (Seats)</span>
+            <input type="number" id="children" class="form-control" value="2" min="0" max="8" required>
+          </div>
+        </div>
+        <div style="font-size:0.65rem; color:var(--sub); margin-top:4px;">Defaults: 2 Adults, 2 Kids (Ages 4 & 2 in own seats)</div>
+      </div>
+
+      <!-- Date Type Toggle -->
+      <div class="form-group">
+        <label>Travel Schedule Type</label>
+        <div class="toggle-options">
+          <button type="button" id="btnSpecific" class="option-btn active" onclick="setDateMode('specific')">Specific Dates</button>
+          <button type="button" id="btnFlexible" class="option-btn" onclick="setDateMode('flexible')">Flexible Dates</button>
+        </div>
+      </div>
+
+      <!-- Specific Dates Pickers -->
+      <div id="specificDatesSection" class="date-section active">
+        <div class="row-inputs">
+          <div class="form-group">
+            <label for="depDate">Departure Date</label>
+            <input type="date" id="depDate" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="retDate">Return Date</label>
+            <input type="date" id="retDate" class="form-control">
+          </div>
+        </div>
+      </div>
+
+      <!-- Flexible Dates Pickers -->
+      <div id="flexibleDatesSection" class="date-section">
+        <div class="form-group">
+          <label>Flexibility Window (Next 6 Months)</label>
+          <div class="toggle-options">
+            <button type="button" id="flexWeekend" class="option-btn active" onclick="setFlexType('weekend')">Weekend (Fri - Sun)</button>
+            <button type="button" id="flexWeek" class="option-btn" onclick="setFlexType('week')">Week (Sat - Sat)</button>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="search-btn">Search Flights on Kayak</button>
+    </form>
+  </div>
+
+  <script>
+    let dateMode = 'specific';
+    let flexType = 'weekend';
+
+    function setDateMode(mode) {
+      dateMode = mode;
+      document.getElementById('btnSpecific').classList.toggle('active', mode === 'specific');
+      document.getElementById('btnFlexible').classList.toggle('active', mode === 'flexible');
+      document.getElementById('specificDatesSection').classList.toggle('active', mode === 'specific');
+      document.getElementById('flexibleDatesSection').classList.toggle('active', mode === 'flexible');
+    }
+
+    function setFlexType(type) {
+      flexType = type;
+      document.getElementById('flexWeekend').classList.toggle('active', type === 'weekend');
+      document.getElementById('flexWeek').classList.toggle('active', type === 'week');
+    }
+
+    function updateToggleButtonState() {
+      const btn = document.getElementById('fontToggleBtn');
+      if (!btn) return;
+      const active = localStorage.getItem('dyslexiaMode') === 'enabled';
+      btn.innerText = active ? 'Kate Button: ON' : 'Kate Button: OFF';
+      btn.style.borderColor = active ? 'var(--blue)' : '#334155';
+    }
+
+    function toggleDyslexiaFont() {
+      const active = localStorage.getItem('dyslexiaMode') === 'enabled';
+      localStorage.setItem('dyslexiaMode', active ? 'disabled' : 'enabled');
+      document.body.classList.toggle('dyslexia-font', !active);
+      document.documentElement.classList.toggle('dyslexia-font', !active);
+      updateToggleButtonState();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateToggleButtonState();
+      if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
+      if (typeof renderSharedNav === 'function') renderSharedNav();
+    });
+
+    function launchKayak(e) {
+      e.preventDefault();
+      const dest = document.getElementById('destination').value;
+      const adults = document.getElementById('adults').value;
+      const children = document.getElementById('children').value;
+      const origin = 'TPA'; // Assumes departure out of Tampa regional proximity
+
+      let kayakUrl = '';
+
+      if (dateMode === 'specific') {
+        const dep = document.getElementById('depDate').value;
+        const ret = document.getElementById('retDate').value;
+        if (!dep || !ret) {
+          alert('Please select both departure and return dates.');
+          return;
+        }
+        // Kayak custom formatting pattern: origin-destination/departure-date/return-date/adults-adults...
+        kayakUrl = `https://www.kayak.com/flights/${origin}-${dest}/${dep}/${ret}/${adults}adults`;
+      } else {
+        // Flexible option defaults query parameters across next 6 months windows
+        const rangeParam = flexType === 'weekend' ? 'weekend' : '1week';
+        kayakUrl = `https://www.kayak.com/flights/${origin}-${dest}/flexible-${rangeParam}/${adults}adults`;
+      }
+
+      // Append additional passenger counts if children are included
+      if (parseInt(children) > 0) {
+        kayakUrl += `/${children}children`;
+      }
+
+      window.open(kayakUrl, '_blank');
+    }
+  </script>
+</body>
+</html>
