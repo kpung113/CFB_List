@@ -14,9 +14,9 @@
   <style>
     :root{--bg:#0b0c10;--card:#181920;--border:#272935;--text:#f8fafc;--maroon:#5d1725;--red:#ef4444;--sub:#94a3b8;--gold:#84cc16;}
     *{box-sizing:border-box;}
-    body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:16px;}
+    body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:10px;}
     body.dyslexia-font,body.dyslexia-font *{font-family:"Comic Sans MS",Verdana,sans-serif!important;letter-spacing:.05em!important;word-spacing:.1em!important;}
-    .dyslexia-toggle,.sport-toggle,.date-toggle{background:#181920;border:1px solid var(--border);color:#38bdf8;font-size:.75rem;font-weight:700;padding:5px 10px;border-radius:6px;cursor:pointer;}
+    .dyslexia-toggle,.sport-toggle,.date-toggle{background:#181920;border:1px solid var(--border);color:#38bdf8;font-size:.7rem;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;}
     .sport-toggle.active,.date-toggle.active{background:#38bdf8;color:#0b0c10;border-color:#38bdf8;}
     .nav-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);z-index:99;opacity:0;visibility:hidden;pointer-events:none;transition:0.2s;}
     .nav-overlay.open{opacity:1;visibility:visible;pointer-events:auto;}
@@ -27,36 +27,41 @@
     .drawer-links{list-style:none;padding:8px 0;margin:0;display:flex;flex-direction:column;}
     .drawer-links a{padding:12px 18px;color:var(--text);text-decoration:none;font-size:.85rem;font-weight:700;display:block;border-left:3px solid transparent;}
     .drawer-links a:hover,.drawer-links a.active{background:#222530;border-left-color:#38bdf8;color:#38bdf8;}
-    header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--maroon);}
+    header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--maroon);}
     .header-left,.header-right,.header-title,.card-header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-    .header-left{gap:12px;}
+    .header-left{gap:10px;}
     .menu-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;width:22px;height:18px;padding:0;z-index:101;}
     .menu-btn span{display:block;width:100%;height:2px;background:#38bdf8;border-radius:2px;}
-    .msu-logo{height:38px;width:auto;object-fit:contain;filter:drop-shadow(0 0 2px #fff);}
-    h1{margin:0;font-size:1.25rem;font-weight:800;}
-    .status-badge{font-size:.75rem;padding:4px 10px;background:#222530;border:1px solid var(--border);border-radius:12px;color:var(--sub);}
+    .msu-logo{height:32px;width:auto;object-fit:contain;filter:drop-shadow(0 0 2px #fff);}
+    h1{margin:0;font-size:1.1rem;font-weight:800;}
+    .status-badge{font-size:.7rem;padding:3px 8px;background:#222530;border:1px solid var(--border);border-radius:10px;color:var(--sub);}
     .toggle-group{display:flex;gap:4px;}
-    .tier-header{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gold);margin:14px 0 8px 4px;padding-bottom:4px;border-bottom:1px solid #222530;}
-    .game-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;border-left:5px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.4);}
+    .tier-header{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gold);margin:10px 0 6px 4px;padding-bottom:2px;border-bottom:1px solid #222530;}
+    
+    /* Compact Card Spacing */
+    .game-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;border-left:4px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.3);}
     .game-card.live-late{border-left-color:var(--red);background:linear-gradient(135deg,#181920 0%,#221518 100%);}
     .game-card.live{border-left-color:var(--maroon);background:linear-gradient(135deg,#181920 0%,#1f1418 100%);}
     .game-card.conf23-game{border-left-color:#f59e0b;}
     .game-card.ranked-game{border-left-color:#ef4444;}
     .game-card.completed-card{opacity:.85;background:#172033;}
-    .card-header{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--sub);margin-bottom:8px;}
-    .team-row{display:flex;justify-content:space-between;align-items:center;margin:6px 0;font-size:1.1rem;font-weight:600;}
+    
+    .card-header{display:flex;justify-content:space-between;align-items:center;font-size:.75rem;color:var(--sub);margin-bottom:4px;}
+    .team-row{display:flex;justify-content:space-between;align-items:center;margin:3px 0;font-size:1rem;font-weight:600;}
     .team-row.winner{font-weight:800;color:#fff;}
     .team-row.loser{color:#64748b;}
-    .score{font-size:1.25rem;font-weight:bold;}
-    .sort-tag{background:#334155;color:#38bdf8;font-size:.6rem;padding:2px 5px;border-radius:3px;font-weight:700;margin-right:6px;}
-    .watch-btn{color:#fff;text-decoration:none;font-weight:bold;font-size:.75rem;background:var(--maroon);border:1px solid #7d2033;padding:3px 8px;border-radius:4px;}
-    .intensity-container{display:flex;align-items:center;gap:10px;background:#111319;border:1px solid var(--border);border-radius:8px;padding:6px 12px;}
-    .gauge-wrapper{position:relative;width:54px;height:30px;flex-shrink:0;}
+    .score{font-size:1.1rem;font-weight:bold;}
+    .sort-tag{background:#334155;color:#38bdf8;font-size:.55rem;padding:1px 4px;border-radius:3px;font-weight:700;margin-right:4px;}
+    .watch-btn{color:#fff;text-decoration:none;font-weight:bold;font-size:.7rem;background:var(--maroon);border:1px solid #7d2033;padding:2px 6px;border-radius:4px;}
+    
+    .intensity-container{display:flex;align-items:center;gap:8px;background:#111319;border:1px solid var(--border);border-radius:6px;padding:4px 8px;}
+    .gauge-wrapper{position:relative;width:44px;height:24px;flex-shrink:0;}
     .gauge-svg{width:100%;height:100%;overflow:visible;}
     .intensity-text-group{display:flex;flex-direction:column;}
-    .intensity-label{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
-    .intensity-score{font-size:.65rem;color:var(--sub);font-weight:600;}
-    .card-footer-flex {display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;padding-top:6px;border-top:1px solid var(--border);}
+    .intensity-label{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
+    .intensity-score{font-size:.55rem;color:var(--sub);font-weight:600;}
+    
+    .card-footer-flex {display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;padding-top:5px;border-top:1px solid var(--border);}
     .card-footer-flex .intensity-container {margin-top:0;flex-grow:1;}
   </style>
 </head>
@@ -246,11 +251,11 @@
           </span>
         </div>
         <div class="team-row${awayClass}">
-          <span>${g.awayRank}${g.awayTeam} <span style="font-size:0.75rem; color:var(--sub); font-weight:normal;">${g.awayRecord ? `(${g.awayRecord})` : ''}</span></span>
+          <span>${g.awayRank}${g.awayTeam} <span style="font-size:0.65rem; color:var(--sub); font-weight:normal;">${g.awayRecord ? `(${g.awayRecord})` : ''}</span></span>
           <span class="score">${g.state === 'pre' ? '' : g.awayScore}</span>
         </div>
         <div class="team-row${homeClass}">
-          <span>${g.homeRank}${g.homeTeam} <span style="font-size:0.75rem; color:var(--sub); font-weight:normal;">${g.homeRecord ? `(${g.homeRecord})` : ''}</span></span>
+          <span>${g.homeRank}${g.homeTeam} <span style="font-size:0.65rem; color:var(--sub); font-weight:normal;">${g.homeRecord ? `(${g.homeRecord})` : ''}</span></span>
           <span class="score">${g.state === 'pre' ? '' : g.homeScore}</span>
         </div>
         ${hasIntensity ? `<div class="card-footer-flex">${renderIntensityMeter(g.priorityScore, g)}</div>` : ''}
