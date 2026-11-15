@@ -137,10 +137,16 @@
       statusEl.innerText = "Refreshing...";
       try {
         const sportPath = currentSport === 'mbb' ? 'mens-college-basketball' : 'womens-college-basketball';
+        const now = new Date();
         
-        const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=50&limit=600`);
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const dateStr = `${year}${month}${day}`;
+        
+        const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/${sportPath}/scoreboard?groups=50&limit=600&dates=${dateStr}`);
         const data = await res.json();
-        const live = [], upcoming = [], finals = [], now = new Date();
+        const live = [], upcoming = [], finals = [];
 
         (data.events || []).forEach(e => {
           const comp = e.competitions?.[0]; if (!comp) return;
