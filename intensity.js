@@ -38,7 +38,6 @@ function calculateLivePriorityScore(g) {
       const awayScore = parseInt(g.awayScore || 0);
       const margin = Math.abs(homeScore - awayScore);
       const p = g.period || 1;
-      const isFirstHalf = (p < 3);
 
       let rem = 900;
       const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
@@ -88,19 +87,16 @@ function calculateLivePriorityScore(g) {
       if (isEligibleForTopTier && margin <= 16) {
         if (margin > 10) {
           let watchableScore = 4.0 + (urgencyBonus * 0.9);
-          if (isFirstHalf && isSECGame) watchableScore += 0.8; // Prioritize SEC within Watchable range
           return Math.min(Math.max(Number(watchableScore.toFixed(1)), 3.0), 5.9);
         }
         let baseGreat = 6.0;
         let score = baseGreat + (urgencyBonus * 1.4);
-        if (isFirstHalf && isSECGame) score += 0.7; // Prioritize SEC within Great Game range in 1st/2nd half
         return Math.min(Math.max(Number(score.toFixed(1)), 6.0), Math.min(8.9, maxAllowed));
       }
 
       // --- WATCHABLE TIER (3.0–5.9) ---
       let baseWatchable = (margin <= 10 && p >= 3) ? 4.2 : 3.2;
       let watchScore = baseWatchable + (urgencyBonus * 1.2);
-      if (isFirstHalf && isSECGame) watchScore += 0.8; // Prioritize SEC within Watchable tier in 1st/2nd half
       return Math.min(Math.max(Number(watchScore.toFixed(1)), 3.0), 5.9);
     }
     
