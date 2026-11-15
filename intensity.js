@@ -38,6 +38,7 @@ function calculateLivePriorityScore(g) {
       const awayScore = parseInt(g.awayScore || 0);
       const margin = Math.abs(homeScore - awayScore);
       const p = g.period || 1;
+      const isFirstHalf = (p < 3);
 
       let rem = 900;
       const m = (g.statusDetail || '').match(/(\d+):(\d+)/);
@@ -45,7 +46,7 @@ function calculateLivePriorityScore(g) {
       
       const totalSecondsLeft = Math.max(0, (4 - Math.min(p, 4)) * 900 + rem);
       const timeRemainingFactor = totalSecondsLeft / 3600; 
-      const urgencyBonus = (1 - timeRemainingFactor) * 2.0; // Dynamic scaling factor moving up as game progresses
+      const urgencyBonus = (1 - timeRemainingFactor) * 2.0;
 
       const top10TeamLosingBy16 = (hRnk <= 10 && homeScore < awayScore && margin > 16) || 
                                   (aRnk <= 10 && awayScore < homeScore && margin > 16);
@@ -68,6 +69,7 @@ function calculateLivePriorityScore(g) {
       if (p === 4 && rem <= 300 && margin > 10 && !unrankedLeadingTop10By10) {
         maxAllowed = Math.min(maxAllowed, 8.0);
       }
+
       // --- TURN TV ON NOW! TIER (9.0–10.0) ---
       const isEligibleForTopTier = isSECGame || isRanked;
       const within10OrTop10Upset = (margin <= 10) || unrankedLeadingTop10By10;
@@ -83,21 +85,22 @@ function calculateLivePriorityScore(g) {
       }
 
       // --- GREAT GAME TIER (6.0–8.9) ---
-      // SEC or Ranked games with margin <= 16 (sliding down to watchable if margin > 10)
       if (isEligibleForTopTier && margin <= 16) {
         if (margin > 10) {
-          // Slide down into Watchable tier if SEC/Ranked game margin exceeds 10 points
           let watchableScore = 4.0 + (urgencyBonus * 0.9);
+          if (isFirstHalf && isSECGame) watchableScore += 0.8; // Prioritize SEC within Watchable range
           return Math.min(Math.max(Number(watchableScore.toFixed(1)), 3.0), 5.9);
         }
         let baseGreat = 6.0;
         let score = baseGreat + (urgencyBonus * 1.4);
+        if (isFirstHalf && isSECGame) score += 0.7; // Prioritize SEC within Great Game range in 1st/2nd half
         return Math.min(Math.max(Number(score.toFixed(1)), 6.0), Math.min(8.9, maxAllowed));
       }
 
       // --- WATCHABLE TIER (3.0–5.9) ---
       let baseWatchable = (margin <= 10 && p >= 3) ? 4.2 : 3.2;
       let watchScore = baseWatchable + (urgencyBonus * 1.2);
+      if (isFirstHalf && isSECGame) watchScore += 0.8; // Prioritize SEC within Watchable tier in 1st/2nd half
       return Math.min(Math.max(Number(watchScore.toFixed(1)), 3.0), 5.9);
     }
     
@@ -122,7 +125,8 @@ function calculateLivePriorityScore(g) {
         color = '#eab308';
         angle = 0;
       }
-return `
+
+      return `
         <div class="intensity-container">
           <div class="gauge-wrapper">
             <svg class="gauge-svg" viewBox="0 0 100 55">
