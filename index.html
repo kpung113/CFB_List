@@ -54,7 +54,6 @@
     .sort-tag{background:#334155;color:#38bdf8;font-size:.55rem;padding:1px 4px;border-radius:3px;font-weight:700;margin-right:4px;}
     .conf-tag{background:#272935;color:var(--sub);font-size:.55rem;padding:1px 4px;border-radius:3px;font-weight:700;margin-right:4px;border:1px solid #334155;}
     
-    .drive-banner{font-size:.7rem;color:#38bdf8;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);padding:3px 6px;border-radius:4px;margin:5px 0;font-weight:600;}
     .watch-btn{color:#fff;text-decoration:none;font-weight:bold;font-size:.7rem;background:var(--maroon);border:1px solid #7d2033;padding:2px 6px;border-radius:4px;}
     
     .intensity-container{display:flex;align-items:center;gap:8px;background:#111319;border:1px solid var(--border);border-radius:6px;padding:4px 8px;}
@@ -208,13 +207,6 @@
           const confDisplayTag = hConf === aConf ? hConf : `${aConf}/${hConf}`;
 
           const sit = comp.situation;
-          let driveText = '';
-          if (state === 'in' && sit) {
-            const down = sit.down, dist = sit.distance, pos = sit.possessionText || '';
-            let dt = sit.downText && !sit.downText.includes('-1') ? sit.downText : (down > 0 && dist > 0 ? `${down} & ${dist}` : '');
-            if (dt || (pos && !pos.includes('-1'))) driveText = `${dt}${dt && pos ? ' at ' : ''}${pos}`;
-          }
-
           let winProb = '';
           if (sit?.lastPlay?.probability) {
             const wp = Math.round((sit.lastPlay.probability.homeWinPercentage || 0) * 100);
@@ -243,7 +235,7 @@
             homeWinner: home.winner, awayWinner: away.winner,
             state, statusDetail: e.status?.type?.shortDetail || '', period: e.status?.period || 0,
             isSec, hasRanked, bestRank, tv, spread, winProb, confDisplayTag,
-            posId: String(sit?.possession || ''), driveText, gDate, rawEvent: e
+            posId: String(sit?.possession || ''), gDate, rawEvent: e
           };
 
           if (state === 'in') {
@@ -375,7 +367,7 @@
         footerHtml += `</div>`;
       }
 
-card.innerHTML = `
+      card.innerHTML = `
         <div class="card-header">
           <span>${g.statusDetail}</span>
           <span class="card-header-right">
@@ -391,7 +383,6 @@ card.innerHTML = `
           <span>${isHomePos ? '🏈 ' : ''}${g.homeRank}${g.homeTeam} <span style="font-size:0.65rem; color:var(--sub); font-weight:normal;">${g.homeRecord ? `(${g.homeRecord})` : ''}</span></span>
           <span class="score">${g.state === 'pre' ? '' : g.homeScore}</span>
         </div>
-        ${g.driveText ? `<div class="drive-banner">Drive: ${g.driveText}</div>` : ''}
         ${footerHtml}
       `;
       return card;
