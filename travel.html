@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Airport Travel</title>
+  <title>Bully's Event Travel</title>
   <script src="nav.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8695308WQ8"></script>
   <script>
@@ -51,7 +51,7 @@
     
     .search-btn{width:100%;background:var(--maroon);border:1px solid #7d2033;color:#fff;font-weight:800;padding:10px;border-radius:8px;font-size:.95rem;cursor:pointer;margin-top:4px;}
     .search-btn:hover{background:#7d2033;}
-    .airport-preview{font-size:0.7rem;color:var(--sub);margin-top:5px;line-height:1.4;}
+    .hint-text{font-size:0.68rem;color:var(--sub);margin-top:5px;line-height:1.35;}
   </style>
 </head>
 <body>
@@ -69,7 +69,7 @@
   </header>
   
   <div class="travel-card">
-    <form id="travelForm" onsubmit="launchKayak(event)">
+    <form id="travelForm" onsubmit="launchGoogleFlights(event)">
       
       <!-- Origin Info -->
       <div class="form-group">
@@ -80,11 +80,11 @@
       <!-- Destination Selector -->
       <div class="form-group">
         <label for="destination">Destination</label>
-        <select id="destination" class="form-control" onchange="updateDestPreview()" required>
-          <option value="HSV,BHM,BNA,CHA">Huntsville, AL (HSV, BHM, BNA, CHA)</option>
-          <option value="BOS,MHT,BDL,PVD,ORH">Boston, MA (BOS, MHT, BDL, PVD, ORH)</option>
-          <option value="GTR,BHM,MEM,JAN">Starkville, MS (GTR, BHM, MEM, JAN)</option>
-          <option value="MSY,GPT,MOB,BTR">New Orleans, LA (MSY, GPT, MOB, BTR)</option>
+        <select id="destination" class="form-control" required>
+          <option value="HSV, BHM, BNA, CHA">Huntsville, AL (HSV, BHM, BNA, CHA)</option>
+          <option value="BOS, MHT, BDL, PVD, ORH">Boston, MA (BOS, MHT, BDL, PVD, ORH)</option>
+          <option value="GTR, BHM, MEM, JAN">Starkville, MS (GTR, BHM, MEM, JAN)</option>
+          <option value="MSY, GPT, MOB, BTR">New Orleans, LA (MSY, GPT, MOB, BTR)</option>
         </select>
       </div>
 
@@ -101,7 +101,7 @@
             <input type="number" id="children" class="form-control" value="2" min="0" max="8" required>
           </div>
         </div>
-        <div style="font-size:0.65rem; color:var(--sub); margin-top:4px;">Defaults: 2 Adults, 2 Kids (in own seats)</div>
+        <div class="hint-text">Defaults: 2 Adults, 2 Kids (in own seats)</div>
       </div>
 
       <!-- Date Type Toggle -->
@@ -109,7 +109,7 @@
         <label>Travel Schedule Type</label>
         <div class="toggle-options">
           <button type="button" id="btnSpecific" class="option-btn active" onclick="setDateMode('specific')">Specific Dates</button>
-          <button type="button" id="btnFlexible" class="option-btn" onclick="setDateMode('flexible')">Flexible Dates</button>
+          <button type="button" id="btnFlexible" class="option-btn" onclick="setDateMode('flexible')">Flexible (Next 6 Mos)</button>
         </div>
       </div>
 
@@ -130,17 +130,16 @@
       <!-- Flexible Dates Pickers -->
       <div id="flexibleDatesSection" class="date-section">
         <div class="form-group">
-          <label for="flexMonth">Target Month</label>
-          <input type="month" id="flexMonth" class="form-control" style="margin-bottom:8px;">
-          <label>Trip Length</label>
+          <label>Trip Length (Next 6 Months)</label>
           <div class="toggle-options">
             <button type="button" id="flexWeekend" class="option-btn active" onclick="setFlexType('weekend')">Weekend</button>
-            <button type="button" id="flexWeek" class="option-btn" onclick="setFlexType('1week')">1 Week</button>
+            <button type="button" id="flexWeek" class="option-btn" onclick="setFlexType('1 week')">1 Week</button>
           </div>
+          <div class="hint-text">Opens Google Flights with all airports loaded—tap the date box or "Date grid / Price graph" to view the full 6-month calendar.</div>
         </div>
       </div>
 
-      <button type="submit" class="search-btn">Search Flights on Kayak</button>
+      <button type="submit" class="search-btn">Search Flights on Google Flights</button>
     </form>
   </div>
 
@@ -159,7 +158,7 @@
     function setFlexType(type) {
       flexType = type;
       document.getElementById('flexWeekend').classList.toggle('active', type === 'weekend');
-      document.getElementById('flexWeek').classList.toggle('active', type === '1week');
+      document.getElementById('flexWeek').classList.toggle('active', type === '1 week');
     }
 
     function updateToggleButtonState() {
@@ -182,22 +181,21 @@
       updateToggleButtonState();
       if (localStorage.getItem('dyslexiaMode') === 'enabled') document.body.classList.add('dyslexia-font');
       if (typeof renderSharedNav === 'function') renderSharedNav();
-
-      // Default flexMonth to next month
-      const nextMonth = new Date();
-      nextMonth.setMonth(nextMonth.getMonth() + 1);
-      document.getElementById('flexMonth').value = nextMonth.toISOString().slice(0, 7);
     });
 
-    function launchKayak(e) {
+    function launchGoogleFlights(e) {
       e.preventDefault();
-      const origin = 'TPA,PIE,MCO,SRQ,LAL';
-      const dest = document.getElementById('destination').value;
+      const origins = 'TPA, PIE, MCO, SRQ, LAL';
+      const dests = document.getElementById('destination').value;
       const adults = parseInt(document.getElementById('adults').value, 10);
       const children = parseInt(document.getElementById('children').value, 10);
 
-      let dateSegment = '';
+      let paxText = `${adults} ${adults === 1 ? 'adult' : 'adults'}`;
+      if (children > 0) {
+        paxText += ` ${children} ${children === 1 ? 'child' : 'children'}`;
+      }
 
+      let dateText = '';
       if (dateMode === 'specific') {
         const dep = document.getElementById('depDate').value;
         const ret = document.getElementById('retDate').value;
@@ -205,26 +203,15 @@
           alert('Please select both departure and return dates.');
           return;
         }
-        dateSegment = `${dep}/${ret}`;
+        dateText = `on ${dep} returning ${ret}`;
       } else {
-        const monthVal = document.getElementById('flexMonth').value;
-        if (!monthVal) {
-          alert('Please select a target month.');
-          return;
-        }
-        // Kayak flexible format requires a starting YYYY-MM-DD anchor followed by -flexible-weekend or -flexible-1week
-        dateSegment = `${monthVal}-01-flexible-${flexType}`;
+        dateText = `for a ${flexType} in the next 6 months`;
       }
 
-      // Build passenger string (Kayak requires "-1S" per child for seated children, or it redirects to homepage)
-      let paxSegment = `${adults}adults`;
-      if (children > 0) {
-        const childSeats = Array(children).fill('1S').join('-');
-        paxSegment += `/${children}children-${childSeats}`;
-      }
+      const query = `Flights from ${origins} to ${dests} ${dateText} for ${paxText}`;
+      const googleFlightsUrl = `https://www.google.com/travel/flights?q=${encodeURIComponent(query)}`;
 
-      const kayakUrl = `https://www.kayak.com/flights/${origin}-${dest}/${dateSegment}/${paxSegment}?sort=bestflight_a`;
-      window.open(kayakUrl, '_blank');
+      window.open(googleFlightsUrl, '_blank');
     }
   </script>
 </body>
