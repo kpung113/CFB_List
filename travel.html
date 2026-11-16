@@ -183,19 +183,19 @@
       if (typeof renderSharedNav === 'function') renderSharedNav();
     });
 
-    function launchGoogleFlights(e) {
+        function launchGoogleFlights(e) {
       e.preventDefault();
-      const origins = 'TPA, PIE, MCO, SRQ, LAL';
-      const dests = document.getElementById('destination').value;
+      const origins = 'TPA,PIE,MCO,SRQ,LAL';
+      const dests = document.getElementById('destination').value; // e.g., "HSV,BHM,BNA,CHA"
       const adults = parseInt(document.getElementById('adults').value, 10);
       const children = parseInt(document.getElementById('children').value, 10);
+      const infantsInSeat = 0;
+      const infantsOnLap = 0;
 
-      let paxText = `${adults} ${adults === 1 ? 'adult' : 'adults'}`;
-      if (children > 0) {
-        paxText += ` ${children} ${children === 1 ? 'child' : 'children'}`;
-      }
+      // Google Flights passenger string format: adults,children,infantsInSeat,infantsOnLap
+      const pxString = `${adults},${children},${infantsInSeat},${infantsOnLap}`;
 
-      let dateText = '';
+      let routeSegment = '';
       if (dateMode === 'specific') {
         const dep = document.getElementById('depDate').value;
         const ret = document.getElementById('retDate').value;
@@ -203,16 +203,21 @@
           alert('Please select both departure and return dates.');
           return;
         }
-        dateText = `on ${dep} returning ${ret}`;
+        // Format: ORIGINS.DESTINATIONS.DEPDATE*DESTINATIONS.ORIGINS.RETDATE
+        routeSegment = `${origins}.${dests}.${dep}*${dests}.${origins}.${ret}`;
       } else {
-        dateText = `for a ${flexType} in the next 6 months`;
+        // For flexible searches, open to the main calendar view with the routes and passengers pre-loaded
+        routeSegment = `${origins}.${dests}`;
       }
 
-      const query = `Flights from ${origins} to ${dests} ${dateText} for ${paxText}`;
-      const googleFlightsUrl = `https://www.google.com/travel/flights?q=${encodeURIComponent(query)}`;
+      // Construct the stable hash deep-link
+      const googleFlightsUrl = `https://www.google.com/travel/flights?hl=en#flt=${routeSegment};px:${pxString}`;
 
       window.open(googleFlightsUrl, '_blank');
-    }
+        }
+    
+
+      
   </script>
 </body>
 </html>
