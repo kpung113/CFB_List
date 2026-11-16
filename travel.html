@@ -77,14 +77,14 @@
         <div class="form-control" style="color:var(--sub); font-size:0.8rem;">TPA, PIE, MCO, SRQ, LAL</div>
       </div>
 
-      <!-- Destination Selector -->
+      <!-- Destination Selector (NO SPACES in option values) -->
       <div class="form-group">
         <label for="destination">Destination</label>
         <select id="destination" class="form-control" required>
-          <option value="HSV, BHM, BNA, CHA">Huntsville, AL (HSV, BHM, BNA, CHA)</option>
-          <option value="BOS, MHT, BDL, PVD, ORH">Boston, MA (BOS, MHT, BDL, PVD, ORH)</option>
-          <option value="GTR, BHM, MEM, JAN">Starkville, MS (GTR, BHM, MEM, JAN)</option>
-          <option value="MSY, GPT, MOB, BTR">New Orleans, LA (MSY, GPT, MOB, BTR)</option>
+          <option value="HSV,BHM,BNA,CHA">Huntsville, AL (HSV, BHM, BNA, CHA)</option>
+          <option value="BOS,MHT,BDL,PVD,ORH">Boston, MA (BOS, MHT, BDL, PVD, ORH)</option>
+          <option value="GTR,BHM,MEM,JAN">Starkville, MS (GTR, BHM, MEM, JAN)</option>
+          <option value="MSY,GPT,MOB,BTR">New Orleans, LA (MSY, GPT, MOB, BTR)</option>
         </select>
       </div>
 
@@ -183,16 +183,15 @@
       if (typeof renderSharedNav === 'function') renderSharedNav();
     });
 
-        function launchGoogleFlights(e) {
+    function launchGoogleFlights(e) {
       e.preventDefault();
       const origins = 'TPA,PIE,MCO,SRQ,LAL';
-      const dests = document.getElementById('destination').value; // e.g., "HSV,BHM,BNA,CHA"
+      const dests = document.getElementById('destination').value; // No spaces in values now
       const adults = parseInt(document.getElementById('adults').value, 10);
       const children = parseInt(document.getElementById('children').value, 10);
       const infantsInSeat = 0;
       const infantsOnLap = 0;
 
-      // Google Flights passenger string format: adults,children,infantsInSeat,infantsOnLap
       const pxString = `${adults},${children},${infantsInSeat},${infantsOnLap}`;
 
       let routeSegment = '';
@@ -203,21 +202,16 @@
           alert('Please select both departure and return dates.');
           return;
         }
-        // Format: ORIGINS.DESTINATIONS.DEPDATE*DESTINATIONS.ORIGINS.RETDATE
         routeSegment = `${origins}.${dests}.${dep}*${dests}.${origins}.${ret}`;
       } else {
-        // For flexible searches, open to the main calendar view with the routes and passengers pre-loaded
         routeSegment = `${origins}.${dests}`;
       }
 
-      // Construct the stable hash deep-link
-      const googleFlightsUrl = `https://www.google.com/travel/flights?hl=en#flt=${routeSegment};px:${pxString}`;
+      // Fixed: changed px: to px= for proper hash routing
+      const googleFlightsUrl = `https://www.google.com/travel/flights?hl=en#flt=${routeSegment};px=${pxString}`;
 
       window.open(googleFlightsUrl, '_blank');
-        }
-    
-
-      
+    }
   </script>
 </body>
 </html>
