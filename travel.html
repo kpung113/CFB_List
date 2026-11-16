@@ -54,8 +54,8 @@
     
     /* Weekend Picker Grid */
     .weekend-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;}
-    .weekend-btn{background:#111319;border:1px solid var(--border);color:var(--text);font-size:.75rem;font-weight:700;padding:8px;border-radius:6px;cursor:pointer;text-align:center;}
-    .weekend-btn.active{background:var(--blue);color:#0b0c10;border-color:var(--blue);}
+    .weekend-btn{background:#111319;border:1px solid var(--border);color:var(--text);font-size:.75rem;font-weight:700;padding:9px;border-radius:6px;cursor:pointer;text-align:center;transition:0.15s;}
+    .weekend-btn:hover{border-color:var(--blue);background:#1b1f2a;}
   </style>
 </head>
 <body>
@@ -113,7 +113,7 @@
         <label>Travel Schedule Type</label>
         <div class="toggle-options">
           <button type="button" id="btnSpecific" class="option-btn active" onclick="setDateMode('specific')">Specific Dates</button>
-          <button type="button" id="btnWeekend" class="option-btn" onclick="setDateMode('weekend')">Weekend Selector</button>
+          <button type="button" id="btnWeekend" class="option-btn" onclick="setDateMode('weekend')">Weekend Quick-Click</button>
         </div>
       </div>
 
@@ -129,6 +129,7 @@
             <input type="date" id="retDate" class="form-control">
           </div>
         </div>
+        <button type="submit" class="search-btn">Search Flights on Kayak</button>
       </div>
 
       <!-- Weekend Selector Section -->
@@ -140,20 +141,18 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Select Weekend (Fri - Sun)</label>
+          <label>Tap a Weekend to Launch Search Instantly</label>
           <div id="weekendButtonsGrid" class="weekend-grid">
             <!-- Populated dynamically via JS -->
           </div>
         </div>
       </div>
 
-      <button type="submit" class="search-btn">Search Flights on Kayak</button>
     </form>
   </div>
 
   <script>
     let dateMode = 'specific';
-    let selectedWeekend = { dep: '', ret: '' };
 
     function setDateMode(mode) {
       dateMode = mode;
@@ -212,21 +211,32 @@
 
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = `weekend-btn ${index === 0 ? 'active' : ''}`;
+        btn.className = 'weekend-btn';
         btn.textContent = `Wknd ${index + 1} (${friLabel} - ${sunLabel})`;
-        
-        if (index === 0) {
-          selectedWeekend = { dep: depStr, ret: retStr };
-        }
 
+        // Clicking this button launches Kayak immediately for this weekend
         btn.onclick = () => {
-          document.querySelectorAll('.weekend-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          selectedWeekend = { dep: depStr, ret: retStr };
+          openKayakSearch(depStr, retStr);
         };
 
         grid.appendChild(btn);
       });
+    }
+
+    function openKayakSearch(dep, ret) {
+      const origin = 'TPA,PIE,MCO,SRQ,LAL';
+      const dest = document.getElementById('destination').value;
+      const adults = parseInt(document.getElementById('adults').value, 10);
+      const children = parseInt(document.getElementById('children').value, 10);
+
+      let paxSegment = `${adults}adults`;
+      if (children > 0) {
+        const childSeats = Array(children).fill('1S').join('-');
+        paxSegment += `/${children}children-${childSeats}`;
+      }
+
+      const kayakUrl = `https://www.kayak.com/flights/${origin}-${dest}/${dep}/${ret}/${paxSegment}?sort=bestflight_a`;
+      window.open(kayakUrl, '_blank');
     }
 
     function updateToggleButtonState() {
@@ -253,41 +263,14 @@
 
     function launchKayak(e) {
       e.preventDefault();
-      const origin = 'TPA,PIE,MCO,SRQ,LAL';
-      const dest = document.getElementById('destination').value;
-      const adults = parseInt(document.getElementById('adults').value, 10);
-      const children = parseInt(document.getElementById('children').value, 10);
-
-      let paxSegment = `${adults}adults`;
-      if (children > 0) {
-        const childSeats = Array(children).fill('1S').join('-');
-        paxSegment += `/${children}children-${childSeats}`;
+      // Handles form submit when in "Specific Dates" mode
+      const dep = document.getElementById('depDate').value;
+      const ret = document.getElementById('retDate').value;
+      if (!dep || !ret) {
+        alert('Please select both departure and return dates.');
+        return;
       }
-
-      let dep = '';
-      let ret = '';
-
-      if (dateMode === 'specific') {
-        dep = document.getElementById('depDate').value;
-        ret = document.getElementById('retDate').value;
-        if (!dep || !ret) {
-          alert('Please select both departure and return dates.');
-          return;
-        }
-      } else {
-        dep = selectedWeekend.dep;
-        ret = selectedWeekend.ret;
-        if (!dep || !ret) {
-          alert('Please select a weekend.');
-          return;
-        }
-      }
-
-      const kayakUrl = `https://www.keyak.com/flights/${origin}-${dest}/${dep}/${ret}/${paxSegment}?sort=bestflight_a`;
-      // Note: keeping kayak.com domain (fixed typo from keyak)
-      const fixedKayakUrl = `https://www.kayak.com/flights/${origin}-${dest}/${dep}/${ret}/${paxSegment}?sort=bestflight_a`;
-
-      window.open(fixedKayakUrl, '_blank');
+      openKayakSearch(dep, ret);
     }
   </script>
 </body>
