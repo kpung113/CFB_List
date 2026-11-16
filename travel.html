@@ -51,8 +51,11 @@
     
     .search-btn{width:100%;background:var(--maroon);border:1px solid #7d2033;color:#fff;font-weight:800;padding:10px;border-radius:8px;font-size:.95rem;cursor:pointer;margin-top:4px;}
     .search-btn:hover{background:#7d2033;}
-    .month-link-btn{display:block;background:#111319;border:1px solid var(--border);color:var(--text);font-size:.8rem;font-weight:700;padding:9px;border-radius:6px;text-align:center;text-decoration:none;transition:0.15s;}
-    .month-link-btn:hover{border-color:var(--blue);color:var(--blue);background:#1b1f2a;}
+    
+    /* Weekend Picker Grid */
+    .weekend-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;}
+    .weekend-btn{background:#111319;border:1px solid var(--border);color:var(--text);font-size:.75rem;font-weight:700;padding:8px;border-radius:6px;cursor:pointer;text-align:center;}
+    .weekend-btn.active{background:var(--blue);color:#0b0c10;border-color:var(--blue);}
   </style>
 </head>
 <body>
@@ -110,7 +113,7 @@
         <label>Travel Schedule Type</label>
         <div class="toggle-options">
           <button type="button" id="btnSpecific" class="option-btn active" onclick="setDateMode('specific')">Specific Dates</button>
-          <button type="button" id="btnFlexible" class="option-btn" onclick="setDateMode('flexible')">Flexible (Next 6 Mos)</button>
+          <button type="button" id="btnWeekend" class="option-btn" onclick="setDateMode('weekend')">Weekend Selector</button>
         </div>
       </div>
 
@@ -128,49 +131,102 @@
         </div>
       </div>
 
-      <!-- Flexible Dates Pickers -->
-      <div id="flexibleDatesSection" class="date-section">
+      <!-- Weekend Selector Section -->
+      <div id="weekendDatesSection" class="date-section">
         <div class="form-group">
-          <label>Trip Length (Next 6 Months)</label>
-          <div class="toggle-options">
-            <button type="button" id="flexWeekend" class="option-btn active" onclick="setFlexType('weekend')">Weekend</button>
-            <button type="button" id="flexWeek" class="option-btn" onclick="setFlexType('1week')">1 Week</button>
+          <label for="selectMonth">Select Month</label>
+          <select id="selectMonth" class="form-control" onchange="generateWeekends()">
+            <!-- Populated dynamically via JS -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Select Weekend (Fri - Sun)</label>
+          <div id="weekendButtonsGrid" class="weekend-grid">
+            <!-- Populated dynamically via JS -->
           </div>
         </div>
       </div>
 
-      <button type="submit" id="submitBtn" class="search-btn">Search Flights on Kayak</button>
-
-      <!-- Generated 6-Month Links Container -->
-      <div id="multiMonthLinks" style="display:none; margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
-        <div style="font-size:0.72rem; color:var(--sub); margin-bottom:8px; font-weight:700; text-transform:uppercase;">
-          Next 6 Months (Tap to Open Kayak):
-        </div>
-        <div id="monthLinkGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;"></div>
-      </div>
+      <button type="submit" class="search-btn">Search Flights on Kayak</button>
     </form>
   </div>
 
   <script>
     let dateMode = 'specific';
-    let flexType = 'weekend';
+    let selectedWeekend = { dep: '', ret: '' };
 
     function setDateMode(mode) {
       dateMode = mode;
       document.getElementById('btnSpecific').classList.toggle('active', mode === 'specific');
-      document.getElementById('btnFlexible').classList.toggle('active', mode === 'flexible');
+      document.getElementById('btnWeekend').classList.toggle('active', mode === 'weekend');
       document.getElementById('specificDatesSection').classList.toggle('active', mode === 'specific');
-      document.getElementById('flexibleDatesSection').classList.toggle('active', mode === 'flexible');
-      document.getElementById('submitBtn').innerText = mode === 'specific' ? 'Search Flights on Kayak' : 'Generate 6-Month Kayak Links';
-      if (mode === 'specific') {
-        document.getElementById('multiMonthLinks').style.display = 'none';
+      document.getElementById('weekendDatesSection').classList.toggle('active', mode === 'weekend');
+      if (mode === 'weekend') {
+        initMonthSelector();
       }
     }
 
-    function setFlexType(type) {
-      flexType = type;
-      document.getElementById('flexWeekend').classList.toggle('active', type === 'weekend');
-      document.getElementById('flexWeek').classList.toggle('active', type === '1week');
+    function initMonthSelector() {
+      const select = document.getElementById('selectMonth');
+      select.innerHTML = '';
+      const now = new Date();
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+      for (let i = 0; i < 6; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        const text = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = text;
+        select.appendChild(opt);
+      }
+      generateWeekends();
+    }
+
+    function generateWeekends() {
+      const monthVal = document.getElementById('selectMonth').value;
+      const [year, month] = monthVal.split('-').map(Number);
+      const grid = document.getElementById('weekendButtonsGrid');
+      grid.innerHTML = '';
+
+      // Find all Fridays in the selected month
+      const fridays = [];
+      const date = new Date(year, month - 1, 1);
+      while (date.getMonth() === month - 1) {
+        if (date.getDay() === 5) { // Friday
+          fridays.push(new Date(date));
+        }
+        date.setDate(date.getDate() + 1);
+      }
+
+      fridays.forEach((fri, index) => {
+        const sun = new Date(fri);
+        sun.setDate(sun.getDate() + 2); // Sunday
+
+        const depStr = fri.toISOString().split('T')[0];
+        const retStr = sun.toISOString().split('T')[0];
+
+        const friLabel = fri.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+        const sunLabel = sun.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `weekend-btn ${index === 0 ? 'active' : ''}`;
+        btn.textContent = `Wknd ${index + 1} (${friLabel} - ${sunLabel})`;
+        
+        if (index === 0) {
+          selectedWeekend = { dep: depStr, ret: retStr };
+        }
+
+        btn.onclick = () => {
+          document.querySelectorAll('.weekend-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedWeekend = { dep: depStr, ret: retStr };
+        };
+
+        grid.appendChild(btn);
+      });
     }
 
     function updateToggleButtonState() {
@@ -208,41 +264,30 @@
         paxSegment += `/${children}children-${childSeats}`;
       }
 
-      const linksContainer = document.getElementById('multiMonthLinks');
-      const grid = document.getElementById('monthLinkGrid');
+      let dep = '';
+      let ret = '';
 
       if (dateMode === 'specific') {
-        linksContainer.style.display = 'none';
-        const dep = document.getElementById('depDate').value;
-        const ret = document.getElementById('retDate').value;
+        dep = document.getElementById('depDate').value;
+        ret = document.getElementById('retDate').value;
         if (!dep || !ret) {
           alert('Please select both departure and return dates.');
           return;
         }
-        const url = `https://www.kayak.com/flights/${origin}-${dest}/${dep}/${ret}/${paxSegment}?sort=bestflight_a`;
-        window.open(url, '_blank');
       } else {
-        grid.innerHTML = '';
-        const now = new Date();
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-        for (let i = 0; i < 6; i++) {
-          const target = new Date(now.getFullYear(), now.getMonth() + i, 1);
-          const yyyy = target.getFullYear();
-          const mm = String(target.getMonth() + 1).padStart(2, '0');
-          const label = `${monthNames[target.getMonth()]} ${yyyy}`;
-          const url = `https://www.kayak.com/flights/${origin}-${dest}/${yyyy}-${mm}-01-flexible-${flexType}/${paxSegment}?sort=bestflight_a`;
-
-          const a = document.createElement('a');
-          a.href = url;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-          a.className = 'month-link-btn';
-          a.textContent = `${label} (${flexType === 'weekend' ? 'Wknd' : '1 Wk'})`;
-          grid.appendChild(a);
+        dep = selectedWeekend.dep;
+        ret = selectedWeekend.ret;
+        if (!dep || !ret) {
+          alert('Please select a weekend.');
+          return;
         }
-        linksContainer.style.display = 'block';
       }
+
+      const kayakUrl = `https://www.keyak.com/flights/${origin}-${dest}/${dep}/${ret}/${paxSegment}?sort=bestflight_a`;
+      // Note: keeping kayak.com domain (fixed typo from keyak)
+      const fixedKayakUrl = `https://www.kayak.com/flights/${origin}-${dest}/${dep}/${ret}/${paxSegment}?sort=bestflight_a`;
+
+      window.open(fixedKayakUrl, '_blank');
     }
   </script>
 </body>
